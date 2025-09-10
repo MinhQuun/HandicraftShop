@@ -15,6 +15,7 @@
 
 
   <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+  @stack('styles')
 </head>
 <body>
 

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\SanPham;
 use App\Models\Loai;
 
-class ShopController extends Controller
+class ProductController extends Controller
 {
     /** clamp page/per_page giống code cũ */
     private function pageParams(Request $r): array
