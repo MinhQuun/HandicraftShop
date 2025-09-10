@@ -1,0 +1,437 @@
+/* ========== Mega menu chung (áp dụng cho cả cấp 1 và cấp 2) ========== */
+.nav .mega-menu {
+    position: relative;
+}
+.nav .mega-menu > .dropdown-root {
+    position: relative;
+}
+
+/* Panel cấp 1 */
+.nav .mega-menu > .dropdown-root > .mega-sub,
+.nav .mega-sub .has-children > .mega-sub {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 240px;
+    background: rgba(0, 0, 0, 0.92); /* nền đen đồng bộ */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 6px 0;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+    display: none;
+    z-index: 2000;
+}
+
+/* Hiện panel khi hover */
+.nav .mega-menu > .dropdown-root:hover > .mega-sub,
+.nav .mega-sub .has-children:hover > .mega-sub {
+    display: block;
+}
+
+/* List item */
+.nav .mega-sub {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.nav .mega-sub > li {
+    position: relative;
+}
+.nav .mega-sub > li + li {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Link (trắng trên nền đen) */
+.nav .mega-sub a {
+    display: block;
+    padding: 10px 14px;
+    color: #fff;
+    white-space: nowrap;
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 1.2;
+}
+.nav .mega-sub a:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Panel cấp 2 (bay ngang bên phải) */
+.nav .mega-sub .has-children > .mega-sub {
+    top: 0;
+    left: 100%; /* dính cạnh phải của cha */
+    min-width: 220px;
+}
+
+/* Tránh ô tìm kiếm bị che */
+.nav input[type="text"] {
+    position: relative;
+    z-index: 1;
+}
+
+/* Mobile: chuyển dọc */
+@media (max-width: 768px) {
+    .nav .mega-menu > .dropdown-root > .mega-sub,
+    .nav .mega-sub .has-children > .mega-sub {
+        position: static;
+        min-width: 100%;
+        box-shadow: none;
+        border-radius: 8px;
+    }
+}
+
+/* ----------------------Default---------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-family: "Roboto Slab", serif;
+    font-optical-sizing: auto;
+    font-size: 16px;
+    font-weight: 400;
+    font-style: normal;
+    scroll-behavior: smooth;
+    position: relative;
+}
+
+/* font chữ dự phòng */
+.montserrat {
+    font-family: "Montserrat", sans-serif;
+    font-optical-sizing: auto;
+    font-size: 16px;
+    font-weight: 400;
+    font-style: normal;
+}
+
+body {
+    background-color: #ededed !important;
+    font-family: "Roboto Slab", serif !important;
+    max-height: 100%;
+    min-height: 100%;
+    height: 100%;
+}
+
+/* ----------------------Reuseable------------------------ */
+a {
+    text-decoration: none;
+    color: white;
+}
+
+.line-throught {
+    border: 1px solid white;
+    width: 87%;
+    margin: 0px auto;
+}
+
+/* ----------------------Header--------------------------- */
+header {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.header video {
+    height: 100vh;
+}
+
+.nav {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 12px 20px; /* để auto tính chiều cao */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav_ul {
+    height: 100%;
+}
+
+.nav > ul {
+    margin: 0 auto;
+    padding: 10px;
+    text-align: center;
+    width: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+/* Chỉ li cấp 1 (con trực tiếp của .nav > ul) mới xếp ngang */
+.nav > ul > li {
+    list-style: none;
+    display: inline-block;
+    position: relative;
+}
+
+/* Mọi li bên trong submenu phải xếp DỌC */
+.nav ul ul li {
+    display: block;
+    position: relative;
+}
+
+.nav a::before {
+    content: "";
+    display: block;
+    height: 2px;
+    background-color: white;
+    position: absolute;
+    bottom: -5px;
+    width: 0%;
+    transition: all ease-in-out 250ms;
+}
+
+.nav a:hover::before {
+    width: 100%;
+}
+
+.nav input {
+    border: none;
+    outline: none;
+}
+
+.nav input:focus {
+    box-shadow: 0 0 10px white;
+}
+
+header video {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 0;
+    left: 0;
+    /* overflow: hidden; */
+    z-index: -1;
+    object-fit: cover;
+}
+
+/* ----------------------Footer------------------ */
+footer {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), #000);
+    color: #e9e9e9;
+}
+
+/* Khối 4 cột */
+footer .footer-links {
+    display: grid !important; /* ép grid, tránh rule cũ đè */
+    grid-template-columns: repeat(4, minmax(220px, 1fr));
+    gap: 28px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 36px 0;
+}
+footer .footer-links > div {
+    min-width: 0;
+}
+
+footer .footer-links h3 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.2px;
+}
+footer .footer-links ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+footer .footer-links li {
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+footer .footer-links a {
+    color: #cfcfcf;
+    text-decoration: none;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+}
+footer .footer-links a:hover {
+    color: #fff;
+}
+footer .footer-links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    height: 1px;
+    width: 0;
+    background: #fff;
+    transition: width 0.25s ease;
+}
+footer .footer-links a:hover::after {
+    width: 100%;
+}
+
+/* Đường kẻ giữa */
+.line-throught {
+    width: min(1200px, 92%);
+    height: 1px;
+    margin: 8px auto 0;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Thanh dưới: bản quyền + link pháp lý + social */
+footer .footer-links-2 {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+footer .footer-links-2 ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 18px;
+}
+footer .footer-links-2 li {
+    margin: 0;
+}
+footer .footer-links-2 a {
+    color: #cfcfcf;
+    text-decoration: none;
+    font-size: 14px;
+}
+footer .footer-links-2 a:hover {
+    color: #fff;
+}
+
+/* Social (nhóm UL cuối cùng) */
+footer .footer-links-2 ul:last-child a {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+}
+footer .footer-links-2 ul:last-child a:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+footer .footer-links-2 ul:last-child i {
+    font-size: 18px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    footer .footer-links {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 560px) {
+    footer .footer-links {
+        grid-template-columns: 1fr;
+    }
+    footer .footer-links-2 {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ---------------------------About us------------------------------- */
+
+.about-us {
+    min-height: 60vh;
+    padding: 80px 24px 160px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center;
+    align-items: flex-start;
+    background: #fff;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.about-us .line-throught {
+    width: 40%;
+    border: 1px solid #000;
+}
+
+.about-us p {
+    font-size: 18px;
+}
+
+/* Link trong khu vực About Us: hiện màu rõ trên nền trắng */
+.about-us a {
+    color: #1e40af; /* xanh đậm dễ đọc */
+    text-decoration: underline; /* có gạch chân để nổi bật */
+    font-weight: 500;
+}
+
+.about-us a:hover {
+    color: #0d2e8c; /* đậm hơn khi hover */
+    text-decoration: none; /* bỏ gạch chân khi hover cho gọn */
+}
+
+main {
+    margin-top: 80px; /* bằng hoặc lớn hơn chiều cao navbar */
+}
+main.no-offset {
+    margin-top: 0 !important;
+}
+
+/* ----------------------- Underline cho menu --------------- */
+/* 1) Tắt underline cũ cho tất cả link trong nav để khỏi “quá lố” */
+.nav a::before {
+    content: none !important;
+}
+
+/* 2) Underline mới cho MENU CẤP 1 (ngắn, ở giữa) */
+.nav > ul > li > a {
+    position: relative;
+}
+.nav > ul > li > a::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -6px; /* khoảng cách với chữ */
+    width: 0;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transform: translateX(-50%);
+    transition: width 0.22s ease;
+}
+.nav > ul > li > a:hover::after {
+    width: 60%;
+} /* ngắn gọn, không tràn block */
+
+/* 3) Underline cho MENU CẤP 2 (panel xổ xuống) */
+.nav .mega-sub a {
+    position: relative;
+}
+.nav .mega-sub a::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    width: 0;
+    height: 1.5px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 2px;
+    transform: translateX(-50%);
+    transition: width 0.18s ease;
+}
+.nav .mega-sub a:hover::after {
+    width: 40%;
+} /* ngắn hơn cấp 1 để nhìn tinh tế */
+/* --------------------------------------------------------- */

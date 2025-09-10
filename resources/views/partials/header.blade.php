@@ -1,0 +1,98 @@
+@php
+  // Lấy menu DanhMuc -> Loai bằng Eloquent
+  // (cần có Models: DanhMuc, Loai như mình đã gửi)
+  $menus = \App\Models\DanhMuc::orderBy('TENDANHMUC')
+            ->with(['loais' => fn($q) => $q->orderBy('TENLOAI')])
+            ->get();
+@endphp
+
+<header class="header">
+  <div class="nav">
+    <ul>
+      {{-- Logo --}}
+      <li>
+        <a href="{{ route('home') }}" class="d-flex align-items-center mb-2 mb-lg-0 text-decoration-none">
+          <img src="{{ asset('assets/images/LOGO/Logo.jpg') }}"
+               alt="Handicraft Shop Logo"
+               width="50"
+               height="auto"
+               class="bi me-2" />
+        </a>
+      </li>
+
+      <li><a href="{{ route('home') }}">Trang chủ</a></li>
+
+      {{-- Dropdown Sản phẩm (menu 2 tầng) --}}
+      <li>
+        <ul class="mega-menu">
+          <li class="dropdown-root" style="width: 100px;">
+            <a href="#">Sản phẩm <i class="fa-solid fa-angle-down"></i></a>
+
+            <ul class="mega-sub">
+              {{-- Tất cả sản phẩm --}}
+              <li><a href="{{ route('all_product') }}">Tất cả sản phẩm</a></li>
+
+              {{-- Danh mục cấp 1 --}}
+              @foreach ($menus as $dm)
+                @php
+                  $madm  = (int) $dm->MADANHMUC;
+                  $tendm = $dm->TENDANHMUC;
+                  $loais = $dm->loais ?? collect();
+                @endphp
+
+                <li class="has-children">
+                  <a href="{{ route('category', ['dm' => $madm]) }}">
+                    {{ $tendm }}
+                    @if ($loais->isNotEmpty())
+                      <i class="fa-solid fa-angle-right"></i>
+                    @endif
+                  </a>
+
+                  {{-- Loại cấp 2 --}}
+                  @if ($loais->isNotEmpty())
+                    <ul class="mega-sub">
+                      @foreach ($loais as $loai)
+                        <li>
+                          <a href="{{ route('sp.byType', $loai->MALOAI) }}">
+                            {{ $loai->TENLOAI }}
+                          </a>
+                        </li>
+                      @endforeach
+                    </ul>
+                  @endif
+                </li>
+              @endforeach
+            </ul>
+          </li>
+        </ul>
+      </li>
+
+      {{-- Ô tìm kiếm (giữ style như bạn để) --}}
+      <form action="{{ route('sp.search') }}" method="get" style="display:inline;">
+        <input type="text" name="q" placeholder="Tìm kiếm..."
+               style="width:250px;height:30px;border-radius:10px;padding-left:10px"
+               value="{{ request('q') }}">
+      </form>
+
+      {{-- Các link tĩnh khác (đổi sang route/url Laravel) --}}
+      <li><a href="{{ route('services') }}">Dịch vụ</a></li>
+      <li><a href="{{ route('contact') }}">Liên hệ</a></li>
+      <li><a href="{{ route('about') }}">Về chúng tôi</a></li>
+
+      {{-- Auth: nếu dùng Breeze/Fortify có sẵn route('login') --}}
+      @guest
+        <li><a href="{{ route('login') }}">Đăng nhập / Đăng ký</a></li>
+      @else
+        <li><a href="{{ route('home') }}">Xin chào, {{ auth()->user()->name }}</a></li>
+      @endguest
+
+      {{-- Giỏ hàng (tạm dùng route 'cart' hoặc url('/cart')) --}}
+      <li>
+        <a href="{{ route('cart') }}">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="cart-count">0</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</header>
