@@ -1,0 +1,280 @@
+/* ===== HandicraftShop — Contact (Rustic Vintage) ===== */
+/* Tông ấm sáng: beige / ivory / nâu gỗ / xanh rêu */
+:root {
+    --bg-ivory-1: #f7f2ea; /* nền cao */
+    --bg-ivory-2: #faf6f0; /* nền thấp */
+    --text: #3b352d; /* nâu đậm dễ đọc */
+    --muted: #6f6559; /* nâu xám nhạt */
+    --card: #fffaf5; /* thẻ ngà */
+    --card-brd: #e7d6c4; /* viền nâu nhạt */
+    --shadow: 0 12px 28px rgba(120, 92, 58, 0.12);
+    --wood: #8c6d3b; /* nâu gỗ */
+    --moss: #6a8f55; /* xanh rêu */
+    --wheat: #c8a97e; /* vàng lúa */
+}
+
+/* Nền trang & chữ */
+body {
+    color: var(--text);
+    background: radial-gradient(
+            900px 600px at 10% -10%,
+            rgba(200, 169, 126, 0.2),
+            transparent 60%
+        ),
+        radial-gradient(
+            800px 600px at 110% 0%,
+            rgba(106, 143, 85, 0.18),
+            transparent 60%
+        ),
+        linear-gradient(180deg, var(--bg-ivory-1), var(--bg-ivory-2)) fixed;
+}
+
+/* Khoảng cách để không bị header che */
+.page-contact {
+    --nav-h: 72px;
+    padding-top: calc(var(--nav-h) + 16px);
+    padding-bottom: 48px;
+}
+
+/* ========== HERO ========== */
+.contact-hero {
+    width: min(1100px, 92%);
+    margin: 0 auto 18px;
+    text-align: center;
+    padding: 30px 18px;
+    border-radius: 22px;
+    background: radial-gradient(
+            1200px 520px at 15% 0%,
+            rgba(200, 169, 126, 0.2),
+            transparent 60%
+        ),
+        linear-gradient(135deg, #fff7ee, #fffaf6);
+    border: 1px solid var(--card-brd);
+    box-shadow: var(--shadow);
+}
+.contact-hero h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    color: var(--wood);
+    letter-spacing: 0.2px;
+}
+.contact-hero p {
+    margin: 0;
+    color: var(--muted);
+}
+
+/* ========== GRID ========== */
+.contact-wrap {
+    max-width: 1100px;
+    margin: 12px auto 48px;
+    padding: 0 16px;
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 24px;
+}
+@media (max-width: 900px) {
+    .contact-wrap {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========== CARD ========== */
+.card {
+    background: var(--card);
+    border: 1px solid var(--card-brd);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 22px;
+}
+.card-title {
+    font-size: 18px;
+    margin: 0 0 14px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    color: var(--wood);
+}
+
+/* ========== FORM (floating) ========== */
+.contact-form {
+    display: grid;
+    gap: 14px;
+}
+.field {
+    position: relative;
+}
+.field input,
+.field textarea {
+    width: 100%;
+    padding: 14px 40px 14px 14px;
+    border: 1px solid #e8dccd;
+    border-radius: 12px;
+    background: #fffcf8;
+    color: var(--text);
+    transition: 0.2s;
+    font-size: 15px;
+    outline: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.field textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+.field input:focus,
+.field textarea:focus {
+    border-color: var(--moss);
+    box-shadow: 0 0 0 3px rgba(106, 143, 85, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    background: #fff;
+}
+.field label {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0 6px;
+    color: #8a7e71;
+    background: transparent;
+    pointer-events: none;
+    transition: 0.18s;
+}
+.field input:not(:placeholder-shown) + label,
+.field input:focus + label,
+.field textarea:not(:placeholder-shown) + label,
+.field textarea:focus + label {
+    top: -8px;
+    font-size: 12px;
+    color: var(--wood);
+    background: var(--card);
+}
+.field .field-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a09a90;
+}
+
+/* ========== BUTTON ========== */
+.btn-primary {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--wheat), var(--moss));
+    color: #fff;
+    box-shadow: 0 10px 20px rgba(41, 37, 36, 0.15);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+    box-shadow: 0 14px 28px rgba(41, 37, 36, 0.22);
+}
+.btn-primary:active {
+    transform: none;
+    box-shadow: 0 8px 18px rgba(41, 37, 36, 0.16);
+}
+
+/* ========== INFO ========== */
+.info-list {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+    color: var(--text);
+}
+.info-list li {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    color: var(--muted);
+}
+.info-list i {
+    color: var(--wood);
+}
+
+/* Socials */
+.socials {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+.socials a {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid #e7d9c9;
+    color: #5c5245;
+    background: #fffdf8;
+    transition: 0.2s;
+    box-shadow: 0 6px 14px rgba(120, 92, 58, 0.1);
+}
+.socials a:hover {
+    transform: translateY(-2px) scale(1.05);
+    background: linear-gradient(135deg, var(--wheat), var(--moss));
+    color: #fff;
+    border-color: transparent;
+}
+
+/* Mini map */
+.mini-map {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff7ee;
+    color: #6a5e51;
+    border: 1px dashed #e6d6c3;
+    text-align: center;
+}
+
+/* Alerts */
+.alert {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-weight: 600;
+}
+.alert.success {
+    background: #ecf7ea;
+    color: #2f6b36;
+    border: 1px solid #bfe3c3;
+}
+.alert.error {
+    background: #fff1f0;
+    color: #a83c3c;
+    border: 1px solid #f2b8b5;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+@keyframes slideUp {
+    from {
+        transform: translateY(8px);
+        opacity: 0;
+    }
+    to {
+        transform: none;
+        opacity: 1;
+    }
+}

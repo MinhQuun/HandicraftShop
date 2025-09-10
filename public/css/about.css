@@ -1,0 +1,230 @@
+/* ====== About Page — Rustic Vintage ====== */
+/* Tone sáng ấm: ivory + beige + gỗ + xanh rêu */
+:root {
+    --bg-ivory-1: #f7f2ea;
+    --bg-ivory-2: #faf6f0;
+    --card: #fffaf5;
+    --card-brd: #e7d6c4;
+    --text: #3b352d;
+    --muted: #6f6559;
+    --accent-wood: #8c6d3b;
+    --accent-moss: #6a8f55;
+    --accent-wheat: #c8a97e;
+    --shadow: 0 20px 40px rgba(120, 92, 58, 0.15);
+}
+
+/* Nền trang */
+body:has(.about-page) {
+    color: var(--text);
+    background: radial-gradient(
+            900px 600px at 10% -10%,
+            rgba(200, 169, 126, 0.18),
+            transparent 60%
+        ),
+        radial-gradient(
+            800px 600px at 110% 0%,
+            rgba(106, 143, 85, 0.15),
+            transparent 60%
+        ),
+        linear-gradient(180deg, var(--bg-ivory-1), var(--bg-ivory-2)) fixed;
+}
+
+/* spacing header fixed */
+.about-page {
+    --nav-h: 72px;
+    padding-top: calc(var(--nav-h) + 24px);
+    padding-bottom: 56px;
+}
+
+/* ===== HERO ===== */
+.about-hero {
+    width: min(1100px, 92%);
+    margin: 0 auto 28px;
+    border-radius: 22px;
+    padding: 36px 22px;
+    background: radial-gradient(
+            1200px 520px at 15% 0%,
+            rgba(200, 169, 126, 0.2),
+            transparent 60%
+        ),
+        linear-gradient(135deg, #fff9f3, #fffdf9);
+    border: 1px solid var(--card-brd);
+    box-shadow: var(--shadow);
+    animation: fadeIn 0.6s ease-out both;
+}
+.about-hero .kicker {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(200, 169, 126, 0.12);
+    border: 1px solid var(--card-brd);
+    color: var(--muted);
+}
+.about-hero h1 {
+    margin: 14px 0 10px;
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(90deg, #6a5e51, #8c6d3b, #6a8f55);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.about-hero p {
+    margin: 0;
+    color: var(--muted);
+    max-width: 850px;
+}
+
+/* stats */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 16px;
+}
+.stat {
+    border-radius: 14px;
+    padding: 14px;
+    background: #fffdf9;
+    border: 1px solid var(--card-brd);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    box-shadow: var(--shadow);
+    transition: 0.25s;
+}
+.stat .n {
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--accent-wood);
+}
+.stat .t {
+    font-size: 13px;
+    color: var(--muted);
+}
+.stat:hover {
+    background: linear-gradient(180deg, #fffaf5, #fff7ee);
+    border-color: var(--accent-wood);
+    transform: translateY(-2px) scale(1.02);
+}
+
+/* ===== GRID ===== */
+.about-grid {
+    width: min(1100px, 92%);
+    margin: 18px auto 0;
+    display: grid;
+    gap: 28px;
+    grid-template-columns: 1.15fr 0.85fr;
+}
+@media (max-width: 992px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== Card ===== */
+.about-card {
+    border-radius: 20px;
+    padding: 22px;
+    background: var(--card);
+    border: 1px solid var(--card-brd);
+    box-shadow: var(--shadow);
+    animation: slideUp 0.5s ease-out both;
+}
+.about-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 12px;
+    font-weight: 800;
+    color: var(--accent-wood);
+}
+.divider {
+    height: 3px;
+    width: 64px;
+    background: linear-gradient(90deg, var(--accent-wood), var(--accent-moss));
+    border-radius: 999px;
+    margin: 8px 0 16px;
+}
+
+/* ===== Lists ===== */
+.about-card p {
+    color: var(--muted);
+    margin: 0 0 12px;
+}
+.about-list,
+.team-list {
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.7;
+    color: var(--text);
+}
+.about-list li,
+.team-list li {
+    margin: 4px 0;
+}
+
+/* ===== Chips ===== */
+.tech-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 0;
+    list-style: none;
+}
+.tech-chips li {
+    border: 1px solid var(--card-brd);
+    background: #fffdf9;
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 13px;
+    box-shadow: 0 6px 12px rgba(120, 92, 58, 0.08);
+    transition: 0.25s;
+}
+.tech-chips li:hover {
+    background: linear-gradient(135deg, var(--accent-wood), var(--accent-moss));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-3px) scale(1.05);
+}
+
+/* ===== Links ===== */
+.contact-note a {
+    color: var(--accent-moss);
+    border-bottom: 1px dashed rgba(106, 143, 85, 0.45);
+    text-decoration: none;
+    transition: 0.2s;
+}
+.contact-note a:hover {
+    opacity: 0.85;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 // });
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ContactController;
 
 Route::get('/', [ProductController::class,'home'])->name('home');
 
@@ -23,3 +24,6 @@ Route::view('/cart', 'pages.cart')->name('cart');
 Route::view('/login', 'pages.auth')->name('login');   
 
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+
+Route::get('/lien-he', [ContactController::class, 'show'])->name('contact');
+Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
