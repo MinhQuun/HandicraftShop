@@ -7,103 +7,113 @@
 @endpush
 
 @section('content')
-<div class="container mt-5 mb-5 shadow-lg p-4 rounded cart-page">
-    <h2 class="text-center mb-4 text-uppercase font-weight-bold text-title">
-        Thông Tin Giỏ Hàng
-    </h2>
+<main class="page-cart">
+  <section class="cart-shell">
+    <h2 class="cart-title">THÔNG TIN GIỎ HÀNG</h2>
 
     {{-- Thông báo --}}
     @if (session('message'))
-      <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <strong>Thông báo:</strong> {{ session('message') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <div class="alert warn">
+        <strong>Thông báo:</strong>&nbsp;{{ session('message') }}
       </div>
     @endif
 
-    {{-- Bảng Giỏ Hàng --}}
-    <table class="table table-hover text-center align-middle rounded shadow-sm">
-        <thead class="table-dark">
-            <tr>
-                <th>Mã Sản Phẩm</th>
-                <th>Tên Sản Phẩm</th>
-                <th>Ảnh</th>
-                <th>Số Lượng</th>
-                <th>Đơn Giá</th>
-                <th>Thành Tiền</th>
-                <th>Hành Động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($items as $item)
-                <tr>
-                    <td class="fw-bold">{{ $item['MASANPHAM'] }}</td>
-                    <td>{{ $item['TENSANPHAM'] }}</td>
-                    <td>
-                        @php
-                          $img = trim((string)($item['HINHANH'] ?? ''));
-                          $imgUrl = $img !== '' ? asset('assets/images/' . $img)
-                                                : asset('HinhAnh/LOGO/Logo.jpg');
-                        @endphp
-                        <img src="{{ $imgUrl }}" class="product-image img-thumbnail shadow-sm"
-                             alt="{{ $item['TENSANPHAM'] }}">
-                    </td>
-                    <td>
-                        <div class="d-flex justify-content-center align-items-center">
-                            <form method="POST" action="{{ route('cart.decrease', $item['MASANPHAM']) }}" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-outline-danger btn-sm me-2 rounded-circle shadow-sm">-</button>
-                            </form>
+    {{-- Bảng giỏ hàng --}}
+    <table class="cart-table">
+      <thead class="cart-thead">
+        <tr>
+          <th>Mã Sản Phẩm</th>
+          <th>Tên Sản Phẩm</th>
+          <th class="col-hide-md">Ảnh</th>
+          <th>Số Lượng</th>
+          <th class="col-hide-md">Đơn Giá</th>
+          <th>Thành Tiền</th>
+          <th>Hành Động</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse ($items as $item)
+          @php
+            $img = trim((string)($item['HINHANH'] ?? ''));
+            $imgUrl = $img !== '' ? asset('assets/images/' . $img)
+                                  : asset('HinhAnh/LOGO/Logo.jpg');
+            $price = (float)$item['GIABAN'];
+            $qty   = (int)$item['SOLUONG'];
+            $sub   = $price * $qty;
+          @endphp
+          <tr class="cart-row">
+            <td class="fw-bold">{{ $item['MASANPHAM'] }}</td>
+            <td>{{ $item['TENSANPHAM'] }}</td>
 
-                            <span class="fw-bold" style="min-width: 30px; display: inline-block;">
-                                {{ $item['SOLUONG'] }}
-                            </span>
+            <td class="col-hide-md">
+              <img src="{{ $imgUrl }}" alt="{{ $item['TENSANPHAM'] }}" class="product-image">
+            </td>
 
-                            <form method="POST" action="{{ route('cart.increase', $item['MASANPHAM']) }}" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-outline-success btn-sm ms-2 rounded-circle shadow-sm">+</button>
-                            </form>
-                        </div>
-                    </td>
-                    <td class="text-success fw-bold">
-                        {{ number_format((float)$item['GIABAN'], 0, ',', '.') }} VNĐ
-                    </td>
-                    <td class="text-danger fw-bold">
-                        {{ number_format((float)$item['GIABAN'] * (int)$item['SOLUONG'], 0, ',', '.') }} VNĐ
-                    </td>
-                    <td>
-                        <a href="{{ route('sp.detail', $item['MASANPHAM']) }}" class="btn btn-info btn-sm me-2 shadow-sm">
-                            <i class="fas fa-info-circle"></i> Chi Tiết
-                        </a>
-                        <form method="POST" action="{{ route('cart.remove', $item['MASANPHAM']) }}" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-danger btn-sm shadow-sm">
-                                <i class="fas fa-trash-alt"></i> Xóa
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="7" class="text-muted">Giỏ hàng của bạn đang trống.</td>
-                </tr>
-            @endforelse
-        </tbody>
+            <td>
+              <div class="qty-box">
+                <form method="POST" action="{{ route('cart.decrease', $item['MASANPHAM']) }}">
+                  @csrf
+                  <button type="submit" class="btn-qty" title="Giảm 1">−</button>
+                </form>
+
+                <span class="qty-number">{{ $qty }}</span>
+
+                <form method="POST" action="{{ route('cart.increase', $item['MASANPHAM']) }}">
+                  @csrf
+                  <button type="submit" class="btn-qty" title="Tăng 1">+</button>
+                </form>
+              </div>
+            </td>
+
+            <td class="col-hide-md">
+              <span class="price">{{ number_format($price, 0, ',', '.') }}</span>
+              <span class="currency">VNĐ</span>
+            </td>
+
+            <td>
+              <span class="subtotal">{{ number_format($sub, 0, ',', '.') }}</span>
+              <span class="currency">VNĐ</span>
+            </td>
+
+            <td>
+              <div class="row-actions">
+                <a href="{{ route('sp.detail', $item['MASANPHAM']) }}" class="btn-soft">
+                  <i class="fas fa-info-circle"></i>&nbsp;Chi Tiết
+                </a>
+                <form method="POST" action="{{ route('cart.remove', $item['MASANPHAM']) }}">
+                  @csrf
+                  <button type="submit" class="btn-soft btn-danger-soft">
+                    <i class="fas fa-trash-alt"></i>&nbsp;Xóa
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        @empty
+          <tr>
+            <td colspan="7">
+              <div class="cart-empty">Giỏ hàng của bạn đang trống.</div>
+            </td>
+          </tr>
+        @endforelse
+      </tbody>
     </table>
 
-    {{-- Tổng kết giỏ hàng --}}
-    <div class="d-flex justify-content-between align-items-center mt-4">
-        <h4 class="text-danger fw-bold">Tổng Số Lượng: {{ $totalQty }}</h4>
-        <h4 class="text-danger fw-bold">Tổng Thành Tiền: {{ number_format($totalPrice, 0, ',', '.') }} VNĐ</h4>
+    {{-- Tổng kết --}}
+    <div class="cart-totals">
+      <h4 class="sum-qty">Tổng Số Lượng: {{ $totalQty }}</h4>
+      <h4 class="sum-money">Tổng Thành Tiền: {{ number_format($totalPrice, 0, ',', '.') }} VNĐ</h4>
     </div>
 
-    {{-- Nút Chức Năng --}}
-    <div class="text-end mt-4">
-        <a href="{{ route('all_product') }}" class="btn btn-secondary btn-lg custom-back-btn me-3 shadow-sm">
-            <i class="fas fa-arrow-left"></i> Trở lại danh sách
-        </a>
-        <a href="{{ route('checkout') }}" class="btn btn-success btn-lg custom-confirm-btn shadow-lg">
-            <i class="fas fa-check-circle"></i> Đặt Hàng
-        </a>
+    {{-- Nút chức năng --}}
+    <div class="cart-actions">
+      <a href="{{ route('all_product') }}" class="btn-outline">
+        <i class="fas fa-arrow-left"></i>&nbsp;Trở lại danh sách
+      </a>
+      <a href="{{ route('checkout') }}" class="btn-gradient">
+        <i class="fas fa-check-circle"></i>&nbsp;Đặt Hàng
+      </a>
     </div>
-</div>
+  </section>
+</main>
 @endsection
