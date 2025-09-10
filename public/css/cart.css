@@ -1,0 +1,295 @@
+/* ===== HandicraftShop — Cart (Rustic Light) =====
+   Tone: ivory/beige + wood + moss — khớp contact.css
+   Phạm vi: chỉ áp dụng khi trang có .page-cart
+*/
+
+/* --- Palette (copy từ contact.css để đồng bộ) --- */
+:root {
+    --bg-ivory-1: #f7f2ea;
+    --bg-ivory-2: #faf6f0;
+    --text: #3b352d;
+    --muted: #6f6559;
+    --card: #fffaf5;
+    --card-brd: #e7d6c4;
+    --shadow: 0 12px 28px rgba(120, 92, 58, 0.12);
+    --wood: #8c6d3b;
+    --moss: #6a8f55;
+    --wheat: #c8a97e;
+}
+
+/* Chỉ đổi nền khi có .page-cart (tránh ảnh hưởng trang khác) */
+body:has(.page-cart) {
+    color: var(--text);
+    background: radial-gradient(
+            900px 600px at 10% -10%,
+            rgba(200, 169, 126, 0.2),
+            transparent 60%
+        ),
+        radial-gradient(
+            800px 600px at 110% 0%,
+            rgba(106, 143, 85, 0.18),
+            transparent 60%
+        ),
+        linear-gradient(180deg, var(--bg-ivory-1), var(--bg-ivory-2)) fixed;
+}
+
+/* Khoảng cách tránh header fixed */
+.page-cart {
+    --nav-h: 72px;
+    padding-top: calc(var(--nav-h) + 16px);
+    padding-bottom: 56px;
+}
+
+/* ===== Shell / Section ===== */
+.cart-shell {
+    width: min(1180px, 94%);
+    margin: 0 auto;
+    padding: 18px 16px 24px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #fff7ee, #fffaf6);
+    border: 1px solid var(--card-brd);
+    box-shadow: var(--shadow);
+}
+
+/* Tiêu đề */
+.cart-title {
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--wood);
+    font-size: clamp(24px, 3.8vw, 34px);
+    margin: 4px 0 18px;
+    text-transform: uppercase;
+}
+
+/* ===== Table ===== */
+.cart-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px; /* hàng nổi card */
+}
+
+.cart-thead th {
+    background: #fff4ea;
+    color: var(--wood);
+    border: 1px solid var(--card-brd);
+    padding: 14px 12px;
+    font-weight: 800;
+    text-align: center;
+}
+.cart-thead th:first-child {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+.cart-thead th:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.cart-row {
+    background: var(--card);
+    border: 1px solid var(--card-brd);
+    border-radius: 12px;
+    box-shadow: 0 6px 14px rgba(120, 92, 58, 0.1);
+}
+.cart-row > td {
+    padding: 14px 12px;
+    text-align: center;
+    vertical-align: middle;
+}
+.cart-row:hover {
+    box-shadow: 0 10px 22px rgba(120, 92, 58, 0.15);
+    transform: translateY(-1px);
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #f0e5d8;
+    box-shadow: 0 6px 12px rgba(41, 37, 36, 0.08);
+}
+
+/* Rỗng */
+.cart-empty {
+    background: #fff7ee;
+    border: 1px dashed var(--card-brd);
+    color: var(--muted);
+    padding: 16px;
+    border-radius: 12px;
+}
+
+/* ===== Qty controls ===== */
+.qty-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.btn-qty {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e8dccd;
+    background: #fffdf8;
+    color: #5c5245;
+    transition: 0.18s;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(120, 92, 58, 0.1);
+}
+.btn-qty:hover {
+    background: linear-gradient(135deg, var(--wheat), var(--moss));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-1px) scale(1.04);
+}
+.qty-number {
+    min-width: 32px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* ===== Price text ===== */
+.price {
+    color: #2d7a35;
+    font-weight: 800;
+}
+.subtotal {
+    color: #b24b4b;
+    font-weight: 800;
+}
+
+/* ===== Row actions (chi tiết / xóa) ===== */
+.row-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+.btn-soft {
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-weight: 700;
+    border: 1px solid var(--card-brd);
+    background: #fffdf8;
+    color: #5c5245;
+    box-shadow: 0 6px 14px rgba(120, 92, 58, 0.1);
+    transition: 0.18s;
+}
+.btn-soft:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+}
+
+.btn-danger-soft {
+    border-color: #efc9c6;
+    color: #9c3030;
+    background: #fff1f0;
+}
+.btn-danger-soft:hover {
+    background: #fbe3e2;
+    color: #7f2323;
+}
+
+/* ===== Totals bar ===== */
+.cart-totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 18px 4px 6px;
+}
+.cart-totals h4 {
+    margin: 0;
+    font-weight: 800;
+}
+.cart-totals .sum-qty {
+    color: #c05858;
+}
+.cart-totals .sum-money {
+    color: #a84f3d;
+}
+
+/* ===== Footer actions ===== */
+.cart-actions {
+    display: flex;
+    gap: 14px;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+.btn-outline {
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    background: #fffdf8;
+    border: 2px solid #c9beb1;
+    color: #5c5245;
+    transition: 0.18s;
+    box-shadow: 0 8px 18px rgba(41, 37, 36, 0.08);
+}
+.btn-outline:hover {
+    transform: translateY(-2px);
+    background: #fff;
+}
+
+.btn-gradient {
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    color: #fff;
+    border: 0;
+    background: linear-gradient(135deg, var(--wheat), var(--moss));
+    box-shadow: 0 12px 24px rgba(41, 37, 36, 0.15);
+    transition: 0.18s;
+}
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
+/* ===== Alerts (nếu có) ===== */
+.alert {
+    margin: 12px 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.alert.warn {
+    background: #fff7ee;
+    color: #6a5e51;
+    border: 1px solid var(--card-brd);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 992px) {
+    .cart-shell {
+        padding: 14px 12px 18px;
+    }
+    .cart-actions {
+        justify-content: center;
+    }
+    .cart-totals {
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+@media (max-width: 720px) {
+    .cart-thead .col-hide-md {
+        display: none;
+    } /* dùng class này trên các cột muốn ẩn */
+    .cart-row .col-hide-md {
+        display: none;
+    }
+    .product-image {
+        width: 64px;
+        height: 64px;
+    }
+}

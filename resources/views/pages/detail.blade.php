@@ -8,6 +8,9 @@
 
 @section('content')
 <main>
+  {{-- CSRF cho fetch POST --}}
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
   <div class="container product-detail">
     <div class="row">
       <!-- Hình ảnh sản phẩm -->
@@ -21,24 +24,38 @@
       <div class="col-md-7 product-info">
         <h2 class="product-title">{{ $p->TENSANPHAM }}</h2>
         <p class="product-price">{{ number_format($p->GIABAN, 0, ',', '.') }} VNĐ</p>
+
+        @if(!empty($p->MOTA))
+          <p class="product-description">
+            <strong>Mô tả:</strong> {!! nl2br(e($p->MOTA)) !!}
+          </p>
+        @endif
+
         <p class="product-description">
-          <strong>Mô tả:</strong> {!! nl2br(e($p->MOTA)) !!}
-        </p>
-        <p class="product-description">
-          <strong>Số lượng:</strong> {{ $p->SOLUONGTON }} sản phẩm có sẵn
+          <strong>Số lượng còn:</strong> {{ (int) $p->SOLUONGTON }}
         </p>
 
-        <!-- Input cho số lượng và nút thêm vào giỏ -->
-        <div class="form-inline mt-3">
-          <input type="number" id="quantity"
-                 placeholder="Số lượng"
-                 value="1"
-                 min="1"
-                 max="{{ $p->SOLUONGTON }}"
-                 class="form-control quantity-input" />
-          <button class="btn btn-outline-success add-to-cart-btn"
-                  onclick="addToCart('{{ $p->MASANPHAM }}')">
-            Thêm vào giỏ hàng
+        <!-- Số lượng + nút thêm -->
+        <div class="form-inline mt-3 d-flex gap-2 align-items-center">
+          <input
+            type="number"
+            id="quantity"
+            class="form-control quantity-input"
+            placeholder="Số lượng"
+            value="1"
+            min="1"
+            max="{{ (int) $p->SOLUONGTON }}"
+            style="max-width:120px"
+          />
+
+          <button
+            type="button"
+            id="btnAddToCart"
+            class="btn btn-outline-success add-to-cart-btn"
+            onclick="addToCart('{{ $p->MASANPHAM }}')"
+            @if((int)$p->SOLUONGTON <= 0) disabled @endif
+          >
+            Chọn mua
           </button>
         </div>
 
@@ -52,6 +69,7 @@
     </div>
 
     <!-- Sản phẩm liên quan -->
+    @if(!empty($related) && count($related))
     <div class="row mt-5">
       <div class="col-md-12">
         <h3 class="related-products-title">SẢN PHẨM LIÊN QUAN</h3>
@@ -76,10 +94,61 @@
         </div>
       </div>
     </div>
+    @endif
   </div>
 </main>
 @endsection
 
 @push('scripts')
-  <script src="{{ asset('js/product_detail.js') }}"></script>
+<script>
+function clamp(n, min, max) {
+  n = Number(n);
+  if (Number.isNaN(n)) n = 1;
+  return Math.max(min, Math.min(max, n));
+}
+
+async function addToCart(productId) {
+  const btn = document.getElementById('btnAddToCart');
+  const qtyInput = document.getElementById('quantity');
+  const maxQty = Number(qtyInput.getAttribute('max')) || 9999;
+  const qty = clamp(qtyInput.value, 1, maxQty);
+
+  try {
+    btn.disabled = true;
+    btn.dataset._text = btn.innerHTML;
+    btn.innerHTML = 'Đang thêm...';
+
+    const res = await fetch(`{{ route('cart.add') }}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ product_id: productId, qty })
+    });
+
+    // backend nên trả { ok: true, message, cart_count }
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      const msg = (data && data.message) || 'Yêu cầu thất bại';
+      throw new Error(msg);
+    }
+
+    alert(data.message || 'Đã thêm vào giỏ!');
+    // Nếu có badge giỏ hàng (ví dụ <span id="cart-count">0</span>) thì cập nhật:
+    if (typeof data.cart_count !== 'undefined') {
+      const badge = document.getElementById('cart-count');
+      if (badge) badge.textContent = data.cart_count;
+    }
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Thêm vào giỏ thất bại. Vui lòng thử lại.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset._text || 'Thêm vào giỏ hàng';
+  }
+}
+</script>
 @endpush

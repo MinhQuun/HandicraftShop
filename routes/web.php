@@ -23,7 +23,20 @@ Route::view('/services', 'pages.services')->name('services');   // tạo file n�
 Route::view('/cart', 'pages.cart')->name('cart');   
 Route::view('/login', 'pages.auth')->name('login');   
 
-Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 
 Route::get('/lien-he', [ContactController::class, 'show'])->name('contact');
 Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
+
+// Xem giỏ
+Route::get('/cart', [CartController::class, 'show'])->name('cart');
+
+// Thêm vào giỏ (AJAX)
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+
+// Tăng/giảm/xoá
+Route::post('/cart/increase/{id}', [CartController::class, 'increase'])->name('cart.increase');
+Route::post('/cart/decrease/{id}', [CartController::class, 'decrease'])->name('cart.decrease');
+Route::post('/cart/remove/{id}',   [CartController::class, 'remove'])->name('cart.remove');
+
+// (Tuỳ chọn) Checkout
+Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');

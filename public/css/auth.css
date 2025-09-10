@@ -1,225 +1,551 @@
 @import url("https://fonts.googleapis.com/css?family=Montserrat:400,800");
 
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 /* ====== Cơ bản ====== */
 .auth-title {
-  font-weight: bold;
-  margin: 0;
+    font-weight: bold;
+    margin: 0;
 }
 
 .auth-subtitle {
-  font-size: 12px;
+    font-size: 12px;
 }
 
 .auth-text {
-  font-size: 14px;
-  font-weight: 100;
-  line-height: 20px;
-  letter-spacing: 0.5px;
-  margin: 20px 0 30px;
+    font-size: 14px;
+    font-weight: 100;
+    line-height: 20px;
+    letter-spacing: 0.5px;
+    margin: 20px 0 30px;
 }
 
 .auth-link {
-  color: #333;
-  font-size: 14px;
-  text-decoration: none;
-  margin: 15px 0;
+    color: #333;
+    font-size: 14px;
+    text-decoration: none;
+    margin: 15px 0;
 }
 
 /* ====== Button ====== */
 .auth-btn {
-  border-radius: 20px;
-  border: 1px solid transparent;
-  background-color: #0bc30ba8;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 12px 45px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  transition: transform 80ms ease-in;
-  cursor: pointer;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    background-color: #0bc30ba8;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 12px 45px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 80ms ease-in;
+    cursor: pointer;
 }
 
 .auth-btn:active {
-  transform: scale(0.95);
+    transform: scale(0.95);
 }
 
 .auth-btn:focus {
-  outline: none;
+    outline: none;
 }
 
 .auth-btn.ghost {
-  background-color: transparent;
-  border-color: #ffffff;
+    background-color: transparent;
+    border-color: #ffffff;
 }
 
 /* ====== Form ====== */
 .auth-form {
-  background-color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 0 40px;
-  height: 100%;
-  text-align: center;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 40px;
+    height: 100%;
+    text-align: center;
 }
 
 .auth-input {
-  background-color: #eee;
-  border: none;
-  padding: 12px 15px;
-  margin: 8px 0;
-  width: 100%;
-  border-radius: 10px;
+    background-color: #eee;
+    border: none;
+    padding: 12px 15px;
+    margin: 8px 0;
+    width: 100%;
+    border-radius: 10px;
 }
 
 /* ====== Container chính ====== */
 .auth-container {
-  background-color: #fff;
-  border-radius: 10px;
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  max-width: 850px;   /* vừa khung modal-lg */
-  min-height: 500px;  /* đủ chỗ form */
-  margin: auto;
-  box-shadow: none;   /* modal đã có shadow */
+    background-color: #fff;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 850px; /* vừa khung modal-lg */
+    min-height: 500px; /* đủ chỗ form */
+    margin: auto;
+    box-shadow: none; /* modal đã có shadow */
 }
 
 .auth-form-container {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  transition: all 0.6s ease-in-out;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
 }
 
 /* Sign In */
 .sign-in-container {
-  left: 0;
-  width: 50%;
-  z-index: 2;
+    left: 0;
+    width: 50%;
+    z-index: 2;
 }
 
 .auth-container.right-panel-active .sign-in-container {
-  transform: translateX(100%);
+    transform: translateX(100%);
 }
 
 /* Sign Up */
 .sign-up-container {
-  left: 0;
-  width: 50%;
-  opacity: 0;
-  z-index: 1;
+    left: 0;
+    width: 50%;
+    opacity: 0;
+    z-index: 1;
 }
 
 .auth-container.right-panel-active .sign-up-container {
-  transform: translateX(100%);
-  opacity: 1;
-  z-index: 5;
-  animation: show 0.6s;
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+    animation: show 0.6s;
 }
 
 @keyframes show {
-  0%, 49.99% {
-    opacity: 0;
-    z-index: 1;
-  }
-  50%, 100% {
-    opacity: 1;
-    z-index: 5;
-  }
+    0%,
+    49.99% {
+        opacity: 0;
+        z-index: 1;
+    }
+    50%,
+    100% {
+        opacity: 1;
+        z-index: 5;
+    }
 }
 
 /* ====== Overlay ====== */
 .auth-overlay-container {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 50%;
-  height: 100%;
-  overflow: hidden;
-  transition: transform 0.6s ease-in-out;
-  z-index: 100;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: transform 0.6s ease-in-out;
+    z-index: 100;
 }
 
 .auth-container.right-panel-active .auth-overlay-container {
-  transform: translateX(-100%);
+    transform: translateX(-100%);
 }
 
 .auth-overlay {
-  background: linear-gradient(45deg, #004583d9, #894747f5);
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  color: #ffffff;
-  position: relative;
-  left: -100%;
-  height: 100%;
-  width: 200%;
-  transform: translateX(0);
-  transition: transform 0.6s ease-in-out;
+    background: linear-gradient(45deg, #004583d9, #894747f5);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    color: #ffffff;
+    position: relative;
+    left: -100%;
+    height: 100%;
+    width: 200%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
 }
 
 .auth-container.right-panel-active .auth-overlay {
-  transform: translateX(50%);
+    transform: translateX(50%);
 }
 
 .auth-overlay-panel {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 0 40px;
-  text-align: center;
-  top: 0;
-  height: 100%;
-  width: 50%;
-  transform: translateX(0);
-  transition: transform 0.6s ease-in-out;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 40px;
+    text-align: center;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
 }
 
 .auth-overlay-left {
-  transform: translateX(-20%);
+    transform: translateX(-20%);
 }
 
 .auth-container.right-panel-active .auth-overlay-left {
-  transform: translateX(0);
+    transform: translateX(0);
 }
 
 .auth-overlay-right {
-  right: 0;
-  transform: translateX(0);
+    right: 0;
+    transform: translateX(0);
 }
 
 .auth-container.right-panel-active .auth-overlay-right {
-  transform: translateX(20%);
+    transform: translateX(20%);
 }
 
 /* ====== Social ====== */
 .auth-social-container {
-  margin: 20px 0;
+    margin: 20px 0;
 }
 
 .auth-social {
-  border: 1px solid #dddddd;
-  border-radius: 50%;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0 5px;
-  height: 40px;
-  width: 40px;
+    border: 1px solid #dddddd;
+    border-radius: 50%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 5px;
+    height: 40px;
+    width: 40px;
 }
 
 /* ====== Error ====== */
 .auth-error {
-  color: red !important;
-  font-size: 14px !important;
-  margin: -5px !important;
+    color: red !important;
+    font-size: 14px !important;
+    margin: -5px !important;
+}
+
+/* ====== Hover / Focus / Active states ====== */
+.auth-btn:hover {
+    filter: brightness(1.05);
+}
+.auth-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(11, 195, 11, 0.25);
+    background-color: #f5f7f5;
+}
+
+/* Hỗ trợ trạng thái hợp lệ / không hợp lệ (phối hợp với Laravel + Bootstrap) */
+.auth-input.is-invalid,
+.auth-input.input-validation-error {
+    border: 1px solid #dc3545;
+    background-color: #fff5f5;
+}
+.auth-input.is-valid {
+    border: 1px solid #28a745;
+    background-color: #f6fff6;
+}
+
+.auth-error {
+    color: #dc3545 !important;
+    font-size: 12px !important;
+    margin: 2px 0 0 !important;
+    text-align: left;
+}
+
+/* Thông báo nhỏ dưới input (success/info) */
+.auth-hint {
+    color: #6c757d;
+    font-size: 12px;
+    margin-top: 4px;
+    text-align: left;
+}
+
+/* ====== Modal tweaks (Bootstrap) ====== */
+.auth-modal .modal-content {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+}
+.auth-modal .modal-body {
+    padding: 0 !important;
+    background: transparent;
+}
+.auth-modal .btn-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    z-index: 1050;
+    filter: invert(1);
+    opacity: 0.7;
+}
+.auth-modal .btn-close:hover {
+    opacity: 1;
+}
+
+/* Backdrop blur nhẹ cho sang */
+.modal-backdrop.show {
+    backdrop-filter: blur(2px);
+}
+
+/* ====== Divider tiện dụng ====== */
+.auth-divider {
+    position: relative;
+    margin: 18px 0;
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+}
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: #e5e5e5;
+}
+.auth-divider::before {
+    left: 0;
+}
+.auth-divider::after {
+    right: 0;
+}
+
+/* ====== Nút social hover ====== */
+.auth-social:hover {
+    background: #f6f6f6;
+    border-color: #ccc;
+}
+
+/* ====== Toggle hiển thị mật khẩu (nếu dùng icon) ====== */
+.auth-input-wrap {
+    width: 100%;
+    position: relative;
+}
+.auth-input-wrap .auth-toggle-pass {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0.7;
+}
+.auth-input-wrap .auth-toggle-pass:hover {
+    opacity: 1;
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 992px) {
+    .auth-container {
+        max-width: 720px;
+        min-height: 520px;
+    }
+}
+
+@media (max-width: 768px) {
+    .auth-container {
+        max-width: 95vw;
+        min-height: 560px;
+        border-radius: 12px;
+    }
+
+    /* Stack dọc 2 form, overlay lên trên cùng */
+    .auth-form-container,
+    .sign-in-container,
+    .sign-up-container {
+        position: absolute;
+        width: 100%;
+    }
+
+    .sign-in-container {
+        transform: translateX(0) !important;
+        z-index: 3;
+    }
+    .auth-container.right-panel-active .sign-in-container {
+        transform: translateY(-100%) !important;
+    }
+
+    .sign-up-container {
+        transform: translateY(100%);
+        opacity: 0;
+        z-index: 2;
+    }
+    .auth-container.right-panel-active .sign-up-container {
+        transform: translateY(0);
+        opacity: 1;
+        z-index: 4;
+    }
+
+    .auth-overlay-container {
+        left: 0;
+        width: 100%;
+        height: 40%;
+        transform: none !important;
+    }
+    .auth-container.right-panel-active .auth-overlay-container {
+        transform: none !important;
+    }
+
+    .auth-overlay {
+        left: 0;
+        width: 100%;
+        height: 200%;
+        transform: translateY(0);
+    }
+    .auth-container.right-panel-active .auth-overlay {
+        transform: translateY(-50%);
+    }
+
+    .auth-overlay-panel {
+        width: 100%;
+        height: 50%;
+        padding: 0 24px;
+    }
+
+    .auth-form {
+        padding: 20px 24px 28px;
+    }
+}
+
+/* ====== Dark mode (theo prefers-color-scheme) ====== */
+@media (prefers-color-scheme: dark) {
+    .auth-form {
+        background-color: #101317;
+        color: #e9ecef;
+    }
+    .auth-input {
+        background-color: #1a1f25;
+        color: #e9ecef;
+    }
+    .auth-link {
+        color: #e9ecef;
+    }
+    .auth-overlay {
+        /* chuyển gradient cho dark theme */
+        background: linear-gradient(45deg, #0053a6, #9a3a3a);
+    }
+    .auth-btn.ghost {
+        border-color: #e9ecef;
+        color: #e9ecef;
+    }
+    .auth-modal .btn-close {
+        filter: invert(0);
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+        background: #2b2f36;
+    }
+}
+
+/* ====== Giảm animation nếu người dùng không thích chuyển động ====== */
+@media (prefers-reduced-motion: reduce) {
+    .auth-form-container,
+    .auth-overlay,
+    .auth-overlay-container,
+    .auth-overlay-panel {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* ====== RTL hỗ trợ cơ bản ====== */
+[dir="rtl"] .auth-input-wrap .auth-toggle-pass {
+    right: auto;
+    left: 10px;
+}
+[dir="rtl"] .auth-overlay-left {
+    transform: translateX(20%);
+}
+[dir="rtl"] .auth-container.right-panel-active .auth-overlay-left {
+    transform: translateX(0);
+}
+[dir="rtl"] .auth-overlay-right {
+    right: auto;
+    left: 0;
+}
+
+/* ====== Loader nhỏ cho nút submit (thêm class .is-loading vào .auth-btn) ====== */
+.auth-btn.is-loading {
+    pointer-events: none;
+    opacity: 0.9;
+    position: relative;
+}
+.auth-btn.is-loading::after {
+    content: "";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    transform: translateY(-50%);
+    animation: auth-spin 0.7s linear infinite;
+}
+@keyframes auth-spin {
+    to {
+        transform: translateY(-50%) rotate(360deg);
+    }
+}
+
+/* ====== Toast đơn giản (nếu muốn show thông báo trong modal) ====== */
+.auth-toast {
+    position: absolute;
+    left: 50%;
+    top: 12px;
+    transform: translateX(-50%);
+    background: #212529;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 1100;
+}
+.auth-toast.success {
+    background: #198754;
+}
+.auth-toast.error {
+    background: #dc3545;
+}
+.auth-social-container {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+.auth-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid #e3e3e3;
+    border-radius: 50%;
+}
+.auth-social i {
+    font-size: 16px;
+    color: #444;
+    line-height: 1;
+} /* màu icon */
+.auth-input-wrap {
+    position: relative;
+}
+.auth-toggle-pass {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}
+.auth-toggle-pass i {
+    font-size: 18px;
+    color: #555;
 }

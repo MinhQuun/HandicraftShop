@@ -1,4 +1,3 @@
-{{-- resources/views/partials/auth-modal.blade.php --}}
 <div class="modal fade auth-modal" id="authModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered auth-modal-dialog">
     <div class="modal-content auth-modal-content">
@@ -7,33 +6,54 @@
         <div class="auth-container" id="authContainer">
           <!-- Sign Up Form -->
           <div class="auth-form-container sign-up-container">
-            <form class="auth-form" action="{{ url('/Home/SignUp') }}" method="post">
+            <form class="auth-form" action="{{ url('/Home/SignUp') }}" method="post" autocomplete="off" novalidate>
               @csrf
               <h1 class="auth-title">Đăng Ký</h1>
 
               <div class="auth-social-container">
-                <a href="#" class="auth-social"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="auth-social"><i class="fab fa-google"></i></a>
-                <a href="#" class="auth-social"><i class="fab fa-linkedin-in"></i></a>
+                <a class="auth-social" href="#"><i class="fab fa-facebook-f"></i></a>
+                <a class="auth-social" href="#"><i class="fab fa-google"></i></a>
+                <a class="auth-social" href="#"><i class="fab fa-github"></i></a>
               </div>
 
               <span class="auth-subtitle">hoặc sử dụng email của bạn để đăng ký</span>
 
-              <input class="auth-input" type="text" name="TENNGUOIDUNG" placeholder="Họ Tên" required />
-              <input class="auth-input" type="text" name="TAIKHOAN"     placeholder="Tên Đăng Nhập" required />
-              <input class="auth-input" type="email" name="EMAIL"       placeholder="Email" required />
-              <input class="auth-input" type="password" name="MATKHAU"  placeholder="Mật Khẩu" required />
-              <input class="auth-input" type="text" name="SODIENTHOAI"  placeholder="Số Điện Thoại"
-                     required pattern="\d*" title="Chỉ được nhập số" />
+              <input class="auth-input @error('username') is-invalid @enderror"
+                    type="text" name="username" placeholder="Tên Đăng Nhập"
+                    value="{{ old('username') }}" required autocomplete="username">
 
-              {{-- Hiển thị lỗi --}}
-              @error('TAIKHOAN')    <div class="auth-error">{{ $message }}</div> @enderror
-              @error('EMAIL')       <div class="auth-error">{{ $message }}</div> @enderror
-              @error('SODIENTHOAI') <div class="auth-error">{{ $message }}</div> @enderror
+              @error('username') <div class="auth-error">{{ $message }}</div> @enderror
+
+              <input class="auth-input @error('email') is-invalid @enderror"
+                    type="email" name="email" placeholder="Email"
+                    value="{{ old('email') }}" required autocomplete="email">
+
+              @error('email') <div class="auth-error">{{ $message }}</div> @enderror
+
+              <div class="auth-input-wrap">
+                <input class="auth-input @error('password') is-invalid @enderror"
+                      type="password" name="password" placeholder="Mật Khẩu"
+                      required autocomplete="new-password">
+                <button type="button" class="auth-toggle-pass" aria-label="Hiện/Ẩn mật khẩu">
+                  <i class="far fa-eye"></i>
+                </button>
+              </div>
+              @error('password') <div class="auth-error">{{ $message }}</div> @enderror
+
+              <div class="auth-input-wrap">
+                <input class="auth-input @error('password_confirmation') is-invalid @enderror"
+                      type="password" name="password_confirmation" placeholder="Xác Nhận Mật Khẩu"
+                      required autocomplete="new-password">
+                <button type="button" class="auth-toggle-pass" aria-label="Hiện/Ẩn mật khẩu">
+                  <i class="far fa-eye"></i>
+                </button>
+              </div>
+              @error('password_confirmation') <div class="auth-error">{{ $message }}</div> @enderror
 
               <button type="submit" class="auth-btn">Đăng Ký</button>
             </form>
           </div>
+
 
           <!-- Sign In Form -->
           <div class="auth-form-container sign-in-container">
@@ -42,15 +62,22 @@
               <h1 class="auth-title">Đăng Nhập</h1>
 
               <div class="auth-social-container">
-                <a href="#" class="auth-social"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="auth-social"><i class="fab fa-google"></i></a>
-                <a href="#" class="auth-social"><i class="fab fa-linkedin-in"></i></a>
+                <a class="auth-social" href="#"><i class="fab fa-facebook-f"></i></a>
+                <a class="auth-social" href="#"><i class="fab fa-google"></i></a>
+                <a class="auth-social" href="#"><i class="fab fa-github"></i></a>
               </div>
 
               <span class="auth-subtitle">hoặc sử dụng tài khoản của bạn</span>
 
-              <input class="auth-input" type="text"     name="username" placeholder="Tên Đăng Nhập" required autofocus />
-              <input class="auth-input" type="password" name="password" placeholder="Mật Khẩu" required />
+              <input class="auth-input" type="text" name="username" placeholder="Tên Đăng Nhập" required autofocus />
+
+              <div class="auth-input-wrap">
+                <input class="auth-input" type="password" name="password" placeholder="Mật Khẩu" required />
+                <button type="button" class="auth-toggle-pass" aria-label="Hiện/Ẩn mật khẩu">
+                  <i class="far fa-eye"></i>
+                </button>
+              </div>
+
 
               @error('Password') 
                 <div class="auth-error">{{ $message }}</div>
