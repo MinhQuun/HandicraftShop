@@ -19,18 +19,28 @@ class CartController extends Controller
         session(['cart' => $cart]);
     }
 
+    /** 
+     * Lấy tổng số sản phẩm khác nhau trong giỏ (dùng cho icon cart)
+     * -> Mỗi sản phẩm chỉ +1 lần dù SOLUONG bao nhiêu
+     */
+    private function getCartCount(array $cart): int
+    {
+        return count($cart);
+    }
+
     /** Trang xem giỏ */
     public function show(Request $r)
     {
         $items = collect($this->getCart());
 
+        // Trong giỏ vẫn phải tính đúng số lượng và tổng tiền
         $totalQty   = (int) $items->sum('SOLUONG');
         $totalPrice = (int) $items->sum(fn($i) => (int)$i['SOLUONG'] * (int)$i['GIABAN']);
 
         return view('pages.cart', compact('items', 'totalQty', 'totalPrice'));
     }
 
-    /** Thêm vào giỏ (được gọi từ AJAX ở trang sản phẩm) */
+    /** Thêm vào giỏ (AJAX từ trang sản phẩm) */
     public function add(Request $r)
     {
         $data = $r->validate([
@@ -47,25 +57,31 @@ class CartController extends Controller
             return response()->json(['message' => 'Sản phẩm không tồn tại.'], 404);
         }
 
+        $maxStock = (int)($p->SOLUONGTON ?? 999999);
         $cart = $this->getCart();
 
         if (!isset($cart[$id])) {
+            // Nếu sản phẩm chưa có trong giỏ thì thêm mới
             $cart[$id] = [
                 'MASANPHAM'   => $p->MASANPHAM,
                 'TENSANPHAM'  => $p->TENSANPHAM,
                 'HINHANH'     => (string)($p->HINHANH ?? ''),
                 'GIABAN'      => (int)($p->GIABAN ?? 0),
-                'SOLUONG'     => $qty,
+                'SOLUONG'     => min($qty, $maxStock),
             ];
         } else {
-            $cart[$id]['SOLUONG'] += $qty;
+            // Nếu đã có thì chỉ tăng số lượng
+            $cart[$id]['SOLUONG'] = min(
+                $cart[$id]['SOLUONG'] + $qty,
+                $maxStock
+            );
         }
 
         $this->putCart($cart);
 
         return response()->json([
-            'message' => 'Đã thêm vào giỏ hàng!',
-            'count'   => array_sum(array_column($cart, 'SOLUONG')),
+            'message'    => 'Đã thêm vào giỏ hàng!',
+            'cart_count' => $this->getCartCount($cart), // chỉ tính số sản phẩm khác nhau
         ]);
     }
 
@@ -73,17 +89,27 @@ class CartController extends Controller
     public function increase(Request $r, string $id)
     {
         $cart = $this->getCart();
+
         if (isset($cart[$id])) {
-            $cart[$id]['SOLUONG'] += 1;
+            $p = SanPham::where('MASANPHAM', $id)->first();
+            $maxStock = (int)($p->SOLUONGTON ?? 999999);
+
+            $cart[$id]['SOLUONG'] = min(
+                $cart[$id]['SOLUONG'] + 1,
+                $maxStock
+            );
+
             $this->putCart($cart);
         }
+
         return back();
     }
 
-    /** Giảm 1 đơn vị (về 0 thì xoá) */
+    /** Giảm 1 đơn vị (<=0 thì xoá) */
     public function decrease(Request $r, string $id)
     {
         $cart = $this->getCart();
+
         if (isset($cart[$id])) {
             $cart[$id]['SOLUONG'] -= 1;
             if ($cart[$id]['SOLUONG'] <= 0) {
@@ -91,27 +117,30 @@ class CartController extends Controller
             }
             $this->putCart($cart);
         }
+
         return back();
     }
 
-    /** Xoá hẳn 1 dòng */
+    /** Xoá hẳn 1 sản phẩm khỏi giỏ */
     public function remove(Request $r, string $id)
     {
         $cart = $this->getCart();
+
         if (isset($cart[$id])) {
             unset($cart[$id]);
             $this->putCart($cart);
         }
+
         return back();
     }
 
-    /** (Tuỳ chọn) Trang xác nhận/checkout mock */
+    /** Trang checkout (mock) */
     public function checkout()
     {
-        // Ở đây chỉ demo — bạn có thể chuyển qua flow đặt hàng thực tế
         if (empty($this->getCart())) {
             return redirect()->route('cart')->with('message', 'Giỏ hàng trống.');
         }
-        return view('pages.checkout'); // tạo sau nếu cần
+
+        return view('pages.checkout');
     }
 }

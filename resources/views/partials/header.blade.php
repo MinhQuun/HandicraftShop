@@ -1,9 +1,11 @@
 @php
   // Lấy menu DanhMuc -> Loai bằng Eloquent
-  // (cần có Models: DanhMuc, Loai như mình đã gửi)
   $menus = \App\Models\DanhMuc::orderBy('TENDANHMUC')
             ->with(['loais' => fn($q) => $q->orderBy('TENLOAI')])
             ->get();
+
+  // Đếm số sản phẩm khác nhau trong giỏ (mỗi sản phẩm chỉ +1)
+  $cartCount = session('cart') ? count(session('cart')) : 0;
 @endphp
 
 <header class="header">
@@ -67,19 +69,19 @@
         </ul>
       </li>
 
-      {{-- Ô tìm kiếm (giữ style như bạn để) --}}
+      {{-- Ô tìm kiếm --}}
       <form action="{{ route('sp.search') }}" method="get" style="display:inline;">
         <input type="text" name="q" placeholder="Tìm kiếm..."
                style="width:250px;height:30px;border-radius:10px;padding-left:10px"
                value="{{ request('q') }}">
       </form>
 
-      {{-- Các link tĩnh khác (đổi sang route/url Laravel) --}}
+      {{-- Các link tĩnh --}}
       <li><a href="{{ route('services') }}">Dịch vụ</a></li>
       <li><a href="{{ route('contact') }}">Liên hệ</a></li>
       <li><a href="{{ route('about') }}">Về chúng tôi</a></li>
 
-      {{-- Auth: nếu dùng Breeze/Fortify có sẵn route('login') --}}
+      {{-- Auth --}}
       @guest
         <li>
           <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
@@ -90,11 +92,11 @@
         <li><a href="{{ route('home') }}">Xin chào, {{ auth()->user()->name }}</a></li>
       @endguest         
 
-      {{-- Giỏ hàng (tạm dùng route 'cart' hoặc url('/cart')) --}}
+      {{-- Giỏ hàng --}}
       <li>
         <a href="{{ route('cart') }}">
           <i class="fa-solid fa-cart-shopping"></i>
-          <span class="cart-count">0</span>
+          <span id="cart-count">{{ $cartCount }}</span>
         </a>
       </li>
     </ul>

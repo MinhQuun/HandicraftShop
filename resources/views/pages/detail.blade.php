@@ -101,54 +101,8 @@
 
 @push('scripts')
 <script>
-function clamp(n, min, max) {
-  n = Number(n);
-  if (Number.isNaN(n)) n = 1;
-  return Math.max(min, Math.min(max, n));
-}
-
-async function addToCart(productId) {
-  const btn = document.getElementById('btnAddToCart');
-  const qtyInput = document.getElementById('quantity');
-  const maxQty = Number(qtyInput.getAttribute('max')) || 9999;
-  const qty = clamp(qtyInput.value, 1, maxQty);
-
-  try {
-    btn.disabled = true;
-    btn.dataset._text = btn.innerHTML;
-    btn.innerHTML = 'Đang thêm...';
-
-    const res = await fetch(`{{ route('cart.add') }}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ product_id: productId, qty })
-    });
-
-    // backend nên trả { ok: true, message, cart_count }
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      const msg = (data && data.message) || 'Yêu cầu thất bại';
-      throw new Error(msg);
-    }
-
-    alert(data.message || 'Đã thêm vào giỏ!');
-    // Nếu có badge giỏ hàng (ví dụ <span id="cart-count">0</span>) thì cập nhật:
-    if (typeof data.cart_count !== 'undefined') {
-      const badge = document.getElementById('cart-count');
-      if (badge) badge.textContent = data.cart_count;
-    }
-  } catch (err) {
-    console.error(err);
-    alert(err.message || 'Thêm vào giỏ thất bại. Vui lòng thử lại.');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = btn.dataset._text || 'Thêm vào giỏ hàng';
-  }
-}
+  // Truyền route sang JS
+  window.cartAddUrl = "{{ route('cart.add') }}";
 </script>
+<script src="{{ asset('js/add_product_detail.js') }}"></script>
 @endpush
