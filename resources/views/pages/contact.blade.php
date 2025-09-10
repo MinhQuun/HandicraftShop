@@ -88,8 +88,14 @@
         <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
       </div>
 
-      <div class="mini-map">
-        <span><i class="fa-regular fa-map"></i> Bản đồ đang cập nhật</span>
+      <div class="map-embed" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;">
+        <iframe
+          src="https://www.google.com/maps?q=Trường+Đại+học+Công+Thương+TP.HCM+140+Lê+Trọng+Tấn&output=embed"
+          style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+          allowfullscreen=""
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
       </div>
     </aside>
   </section>

@@ -1,3 +1,26 @@
+1. Cài biến môi trường C:\xampp\php
+
+2. Cài đặt Composer: https://getcomposer.org/download/
+
+
+3. Thực thi lệnh composer install (bước này hơi lâu nha, phải mạng mạnh chứ không tải lâu,
+nên phải làm cái này trước)
+
+    3.1. Mở: C:\xampp\php 
+    3.2. Kiếm các file có tên: php.ini-development, php.ini-production
+    3.3. Mở bằng notepad
+    3.4. Tìm và bỏ dấu ; các lệnh sau đây:
+        - extension=zip
+        - extension=fileinfo
+        - extension=mbstring
+        - extension=openssl
+        - extension=intl       ; (không bắt buộc, nhưng Laravel hay dùng)
+        - extension=bcmath     ; (một số package cần)
+
+4. Thêm 1 file .env (vì file này bảo mật nên tui push lên, mọi người pull xuống
+cũng không thấy được, nên buộc phải tự tạo)
+
+
 # Khởi động server
 php artisan serve
 

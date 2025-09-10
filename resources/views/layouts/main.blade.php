@@ -13,21 +13,23 @@
   <script src="https://kit.fontawesome.com/cdbcf8b89b.js" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-
+  <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
   <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
   @stack('styles')
+ 
 </head>
 <body>
 
 
   @include('partials.header')
+  @include('partials.auth-modal')
 
 
   <main class="container-fluid p-0 @yield('main_class')">
     @yield('content')
   </main>
 
-
+  
   @include('partials.footer')
 
 
@@ -35,5 +37,6 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  @stack('scripts')
 </body>
 </html>

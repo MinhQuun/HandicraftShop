@@ -81,10 +81,14 @@
 
       {{-- Auth: nếu dùng Breeze/Fortify có sẵn route('login') --}}
       @guest
-        <li><a href="{{ route('login') }}">Đăng nhập / Đăng ký</a></li>
+        <li>
+          <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
+            Đăng nhập / Đăng ký
+          </a>
+        </li>
       @else
         <li><a href="{{ route('home') }}">Xin chào, {{ auth()->user()->name }}</a></li>
-      @endguest
+      @endguest         
 
       {{-- Giỏ hàng (tạm dùng route 'cart' hoặc url('/cart')) --}}
       <li>
