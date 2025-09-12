@@ -15,13 +15,11 @@
   <div class="row">
     @forelse ($sp as $item)
       @php
-        // Map theo schema cũ (IN HOA)
         $id    = $item->MASANPHAM ?? $item->id ?? '';
         $name  = $item->TENSANPHAM ?? $item->name ?? '';
         $img   = trim((string)($item->HINHANH ?? $item->image ?? ''));
         $price = $item->GIABAN ?? $item->price ?? 0;
 
-        // Ảnh: theo cấu trúc cũ bạn dùng /HinhAnh/
         $imgUrl = $img !== ''
           ? asset('assets/images/' . urlencode($img))
           : asset('HinhAnh/LOGO/Logo.jpg');
@@ -35,7 +33,8 @@
 
           <div class="button-group">
             <a href="{{ route('sp.detail', $id) }}" class="btn btn-outline-primary">Chi Tiết</a>
-            <button type="button" class="btn btn-success" onclick="addToCart('{{ $id }}')">
+            {{-- Gọi addToCart như trang All Products --}}
+            <button type="button" class="btn btn-success" onclick="addToCart(this, '{{ $id }}')">
               Chọn Mua
             </button>
           </div>
@@ -48,59 +47,41 @@
     @endforelse
   </div>
 
-  {{-- Phân trang custom (giữ nguyên class .pagination/.page-item/.page-link) --}}
+  {{-- Phân trang --}}
   @if ($sp->lastPage() > 1)
-  <nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
-      {{-- Trước --}}
-      @if ($sp->currentPage() > 1)
-        <li class="page-item">
-          <a class="page-link" href="{{ $sp->url($sp->currentPage() - 1) }}">Trước</a>
-        </li>
-      @endif
+    <nav aria-label="Page navigation" class="mt-4">
+      <ul class="pagination justify-content-center">
+        @if ($sp->currentPage() > 1)
+          <li class="page-item">
+            <a class="page-link" href="{{ $sp->url($sp->currentPage() - 1) }}">Trước</a>
+          </li>
+        @endif
 
-      {{-- Số trang --}}
-      @for ($i = 1; $i <= $sp->lastPage(); $i++)
-        <li class="page-item {{ $i === $sp->currentPage() ? 'active' : '' }}">
-          <a class="page-link" href="{{ $sp->url($i) }}">{{ $i }}</a>
-        </li>
-      @endfor
+        @for ($i = 1; $i <= $sp->lastPage(); $i++)
+          <li class="page-item {{ $i === $sp->currentPage() ? 'active' : '' }}">
+            <a class="page-link" href="{{ $sp->url($i) }}">{{ $i }}</a>
+          </li>
+        @endfor
 
-      {{-- Sau --}}
-      @if ($sp->currentPage() < $sp->lastPage())
-        <li class="page-item">
-          <a class="page-link" href="{{ $sp->url($sp->currentPage() + 1) }}">Sau</a>
-        </li>
-      @endif
-    </ul>
-  </nav>
+        @if ($sp->currentPage() < $sp->lastPage())
+          <li class="page-item">
+            <a class="page-link" href="{{ $sp->url($sp->currentPage() + 1) }}">Sau</a>
+          </li>
+        @endif
+      </ul>
+    </nav>
   @endif
 </main>
 
-{{-- CSRF cho fetch POST --}}
+{{-- CSRF --}}
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
 @push('scripts')
 <script>
-async function addToCart(productId) {
-  try {
-    const res = await fetch(`{{ route('cart.add') }}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ product_id: productId, qty: 1 })
-    });
-    if (!res.ok) throw new Error('Request failed');
-    const data = await res.json();
-    alert(data.message || 'Đã thêm vào giỏ!');
-  } catch (e) {
-    console.error(e);
-    alert('Thêm vào giỏ thất bại. Vui lòng thử lại.');
-  }
-}
+  // Truyền route sang JS
+  window.cartAddUrl = "{{ route('cart.add') }}";
 </script>
+{{-- Dùng lại file JS chung --}}
+<script src="{{ asset('js/add_product.js') }}"></script>
 @endpush
