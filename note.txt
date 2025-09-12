@@ -29,3 +29,6 @@ php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
+
+5. Nhập lệnh  composer require laravel/ui để cài laravel/ui
+6. Nhập lên npm install để cài đặt

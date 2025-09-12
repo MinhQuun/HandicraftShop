@@ -83,14 +83,29 @@
 
       {{-- Auth --}}
       @guest
-        <li>
-          <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
-            Đăng nhập / Đăng ký
-          </a>
-        </li>
+          <li>
+              <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
+                  Đăng nhập / Đăng ký
+              </a>
+          </li>
       @else
-        <li><a href="{{ route('home') }}">Xin chào, {{ auth()->user()->name }}</a></li>
-      @endguest         
+          <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="fa-solid fa-user me-1"></i>
+                  {{ auth()->user()->name }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                  <li><a class="dropdown-item" href="{{ route('users.show', auth()->user()->id) }}">Thông tin cá nhân</a></li>
+                  <li>
+                      <form action="{{ route('logout') }}" method="POST">
+                          @csrf
+                          <button type="submit" class="dropdown-item">Đăng xuất</button>
+                      </form>
+                  </li>
+              </ul>
+          </li>
+      @endguest
+            
 
       {{-- Giỏ hàng --}}
       <li>

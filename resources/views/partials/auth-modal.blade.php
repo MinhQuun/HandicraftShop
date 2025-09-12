@@ -6,7 +6,7 @@
         <div class="auth-container" id="authContainer">
           <!-- Sign Up Form -->
           <div class="auth-form-container sign-up-container">
-            <form class="auth-form" action="{{ url('/Home/SignUp') }}" method="post" autocomplete="off" novalidate>
+            <form class="auth-form" action="{{ route('users.store') }}" method="post">
               @csrf
               <h1 class="auth-title">Đăng Ký</h1>
 
@@ -18,18 +18,25 @@
 
               <span class="auth-subtitle">hoặc sử dụng email của bạn để đăng ký</span>
 
-              <input class="auth-input @error('username') is-invalid @enderror"
-                    type="text" name="username" placeholder="Tên Đăng Nhập"
-                    value="{{ old('username') }}" required autocomplete="username">
+              {{-- Họ tên --}}
+              <input class="auth-input @error('name') is-invalid @enderror"
+                    type="text" name="name" placeholder="Họ và Tên"
+                    value="{{ old('name') }}" required autocomplete="name">
+              @error('name') <div class="auth-error">{{ $message }}</div> @enderror
 
-              @error('username') <div class="auth-error">{{ $message }}</div> @enderror
-
+              {{-- Email --}}
               <input class="auth-input @error('email') is-invalid @enderror"
                     type="email" name="email" placeholder="Email"
                     value="{{ old('email') }}" required autocomplete="email">
-
               @error('email') <div class="auth-error">{{ $message }}</div> @enderror
 
+              {{-- Số điện thoại --}}
+              <input class="auth-input @error('phone') is-invalid @enderror"
+                    type="text" name="phone" placeholder="Số Điện Thoại"
+                    value="{{ old('phone') }}" required autocomplete="tel">
+              @error('phone') <div class="auth-error">{{ $message }}</div> @enderror
+
+              {{-- Mật khẩu --}}
               <div class="auth-input-wrap">
                 <input class="auth-input @error('password') is-invalid @enderror"
                       type="password" name="password" placeholder="Mật Khẩu"
@@ -40,6 +47,7 @@
               </div>
               @error('password') <div class="auth-error">{{ $message }}</div> @enderror
 
+              {{-- Xác nhận mật khẩu --}}
               <div class="auth-input-wrap">
                 <input class="auth-input @error('password_confirmation') is-invalid @enderror"
                       type="password" name="password_confirmation" placeholder="Xác Nhận Mật Khẩu"
@@ -53,11 +61,12 @@
               <button type="submit" class="auth-btn">Đăng Ký</button>
             </form>
           </div>
+                    
 
 
           <!-- Sign In Form -->
           <div class="auth-form-container sign-in-container">
-            <form class="auth-form" action="{{ url('/Home/Login') }}" method="post">
+            <form class="auth-form" action="{{ route('users.login') }}" method="post">
               @csrf
               <h1 class="auth-title">Đăng Nhập</h1>
 
@@ -69,7 +78,8 @@
 
               <span class="auth-subtitle">hoặc sử dụng tài khoản của bạn</span>
 
-              <input class="auth-input" type="text" name="username" placeholder="Tên Đăng Nhập" required autofocus />
+              <input class="auth-input" type="email" name="email" placeholder="Email" required autofocus />
+
 
               <div class="auth-input-wrap">
                 <input class="auth-input" type="password" name="password" placeholder="Mật Khẩu" required />
