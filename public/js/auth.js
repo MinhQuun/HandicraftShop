@@ -1,4 +1,4 @@
-// Toggle đăng nhập / đăng ký (ID đúng: authContainer)
+// Toggle đăng nhập / đăng ký
 (() => {
     const signUpButton = document.getElementById("signUp");
     const signInButton = document.getElementById("signIn");
@@ -13,43 +13,35 @@
     }
 })();
 
-// Tự động focus nếu có lỗi validation
-document.addEventListener("DOMContentLoaded", function () {
-    var errorFields = document.querySelectorAll(
-        ".field-validation-error input, .field-validation-error textarea"
-    );
-    if (errorFields.length > 0) {
-        errorFields[0].focus();
+// Event delegation: hiện/ẩn mật khẩu
+document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".auth-toggle-pass");
+    if (!btn) return;
+
+    const wrap = btn.closest(".auth-input-wrap");
+    const input =
+        wrap &&
+        wrap.querySelector('input[type="password"], input[type="text"]');
+    if (!input) return;
+
+    // Toggle type
+    input.type = input.type === "password" ? "text" : "password";
+
+    // Đổi icon (tương thích FA5/6)
+    const icon = btn.querySelector("i");
+    if (icon) {
+        icon.classList.toggle("fa-eye");
+        icon.classList.toggle("fa-eye-slash");
+
+        // đảm bảo có 1 prefix
+        if (
+            !icon.classList.contains("far") &&
+            !icon.classList.contains("fas")
+        ) {
+            icon.classList.add("far");
+        }
     }
 });
-
-// Hiện / Ẩn mật khẩu (Font Awesome 5)
-(() => {
-    document.querySelectorAll(".auth-toggle-pass").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            const input = btn
-                .closest(".auth-input-wrap")
-                ?.querySelector("input");
-            const icon = btn.querySelector("i");
-            if (!input || !icon) return;
-
-            const show = input.type === "password";
-            input.type = show ? "text" : "password";
-
-            // Toggle class cho FA5: fa-eye <-> fa-eye-slash
-            icon.classList.toggle("fa-eye", !show);
-            icon.classList.toggle("fa-eye-slash", show);
-
-            // Đảm bảo có prefix 'far' hoặc 'fas'
-            if (
-                !icon.classList.contains("far") &&
-                !icon.classList.contains("fas")
-            ) {
-                icon.classList.add("far");
-            }
-        });
-    });
-})();
 
 // Loader khi submit form
 document.querySelectorAll(".auth-form").forEach((form) => {

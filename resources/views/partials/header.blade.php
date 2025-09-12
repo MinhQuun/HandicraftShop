@@ -72,8 +72,8 @@
       {{-- Ô tìm kiếm --}}
       <form action="{{ route('sp.search') }}" method="get" style="display:inline;">
         <input type="text" name="q" placeholder="Tìm kiếm..."
-               style="width:250px;height:30px;border-radius:10px;padding-left:10px"
-               value="{{ request('q') }}">
+              style="width:250px;height:30px;border-radius:10px;padding-left:10px"
+              value="{{ request('q') }}">
       </form>
 
       {{-- Các link tĩnh --}}
@@ -83,29 +83,36 @@
 
       {{-- Auth --}}
       @guest
-          <li>
-              <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
-                  Đăng nhập / Đăng ký
-              </a>
-          </li>
-      @else
-          <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="fa-solid fa-user me-1"></i>
-                  {{ auth()->user()->name }}
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                  <li><a class="dropdown-item" href="{{ route('users.show', auth()->user()->id) }}">Thông tin cá nhân</a></li>
-                  <li>
-                      <form action="{{ route('logout') }}" method="POST">
-                          @csrf
-                          <button type="submit" class="dropdown-item">Đăng xuất</button>
-                      </form>
-                  </li>
-              </ul>
-          </li>
+        <li>
+          <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
+              Đăng nhập / Đăng ký
+          </a>
+        </li>
       @endguest
-            
+
+      @auth
+        <li class="auth-dropdown has-children">
+          <a href="#">
+            <i class="fa-solid fa-user me-1"></i>
+            {{ auth()->user()->name }}
+            <i class="fa-solid fa-angle-down"></i>
+          </a>
+
+          <ul class="mega-sub">
+            <li>
+              <a href="{{ route('users.show', auth()->user()->id) }}">
+                Thông tin cá nhân
+              </a>
+            </li>
+            <li>
+              <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="auth-logout-btn">Đăng xuất</button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      @endauth
 
       {{-- Giỏ hàng --}}
       <li>

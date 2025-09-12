@@ -549,3 +549,28 @@
     font-size: 18px;
     color: #555;
 }
+/* === ENLARGE AUTH MODAL === */
+
+/* Cách chuẩn cho Bootstrap 5+: tăng --bs-modal-width của .modal-lg */
+.auth-modal .modal-lg {
+    --bs-modal-width: 1000px; /* 960–1040px là đẹp */
+}
+
+/* Desktop rất rộng thì nới thêm */
+@media (min-width: 1400px) {
+    .auth-modal .modal-lg {
+        --bs-modal-width: 1120px;
+    }
+}
+
+/* Fallback cho bản Bootstrap cũ (nếu biến CSS trên không áp dụng) */
+.auth-modal .modal-dialog.modal-lg {
+    max-width: 1000px; /* khớp con số ở trên */
+    width: calc(100% - 32px); /* chừa lề 16px mỗi bên */
+}
+
+/* Để nội dung bên trong fill theo khung modal mới (đừng tự bó lại) */
+.auth-modal .auth-container {
+    max-width: 100%; /* bỏ giới hạn 850px trước đây */
+    min-height: 560px; /* có thể tăng 580–600 nếu muốn thoáng hơn */
+}
