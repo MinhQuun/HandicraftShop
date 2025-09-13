@@ -2,7 +2,6 @@
 
 2. Cài đặt Composer: https://getcomposer.org/download/
 
-
 3. Thực thi lệnh composer install (bước này hơi lâu nha, phải mạng mạnh chứ không tải lâu,
 nên phải làm cái này trước)
 
@@ -20,6 +19,9 @@ nên phải làm cái này trước)
 4. Thêm 1 file .env (vì file này bảo mật nên tui push lên, mọi người pull xuống
 cũng không thấy được, nên buộc phải tự tạo)
 
+5. Nhập lệnh  composer require laravel/ui để cài laravel/ui
+
+6. Nhập lên npm install để cài đặt
 
 # Khởi động server
 php artisan serve
@@ -29,6 +31,3 @@ php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
-
-5. Nhập lệnh  composer require laravel/ui để cài laravel/ui
-6. Nhập lên npm install để cài đặt
