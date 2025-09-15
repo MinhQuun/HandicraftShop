@@ -412,35 +412,7 @@
     }
 }
 
-/* ====== Dark mode (theo prefers-color-scheme) ====== */
-@media (prefers-color-scheme: dark) {
-    .auth-form {
-        background-color: #101317;
-        color: #e9ecef;
-    }
-    .auth-input {
-        background-color: #1a1f25;
-        color: #e9ecef;
-    }
-    .auth-link {
-        color: #e9ecef;
-    }
-    .auth-overlay {
-        /* chuyển gradient cho dark theme */
-        background: linear-gradient(45deg, #0053a6, #9a3a3a);
-    }
-    .auth-btn.ghost {
-        border-color: #e9ecef;
-        color: #e9ecef;
-    }
-    .auth-modal .btn-close {
-        filter: invert(0);
-    }
-    .auth-divider::before,
-    .auth-divider::after {
-        background: #2b2f36;
-    }
-}
+
 
 /* ====== Giảm animation nếu người dùng không thích chuyển động ====== */
 @media (prefers-reduced-motion: reduce) {

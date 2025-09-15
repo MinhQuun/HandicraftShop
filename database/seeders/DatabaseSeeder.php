@@ -18,5 +18,7 @@ class DatabaseSeeder extends Seeder
         // $this->call([
         // ImportSqlSeeder::class,
         // ]);
+        $this->call(QuyenSeeder::class);
+        $this->call([UserSeeder::class,]);
     }
 }

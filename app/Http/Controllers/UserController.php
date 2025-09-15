@@ -35,10 +35,8 @@ class UserController extends Controller
         $request->validate([
             'name'     => ['required','string','min:2','max:255'],
             'email'    => ['required','email:rfc,dns','max:255','unique:users,email'],
-            // ≥ 6 ký tự, bắt buộc xác nhận qua field password_confirmation
-            'password' => ['required','confirmed', Password::min(6)],
-            // SĐT Việt Nam 10 số, bắt đầu bằng 0 (vd: 09xxxxxxxx)
-            'phone'    => ['nullable','regex:/^0\d{9}$/'],
+            'password' => ['required','confirmed', Password::min(6)], // ≥ 6 ký tự
+            'phone'    => ['nullable','regex:/^0\d{9}$/'], // SĐT Việt Nam 10 số
         ],[
             'name.required'      => 'Vui lòng nhập họ và tên.',
             'name.min'           => 'Họ và tên phải có ít nhất :min ký tự.',
@@ -51,6 +49,7 @@ class UserController extends Controller
             'phone.regex'        => 'Số điện thoại phải gồm 10 số và bắt đầu bằng số 0.',
         ]);
 
+        // Tạo user
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
@@ -58,10 +57,21 @@ class UserController extends Controller
             'phone'    => $request->phone,
         ]);
 
+        // === Gán quyền mặc định "KhachHang" ===
+        $roleId = \DB::table('QUYEN')->where('TENQUYEN', 'KhachHang')->value('MAQUYEN');
+        if ($roleId) {
+            \DB::table('QUYEN_NGUOIDUNG')->insert([
+                'user_id' => $user->id,
+                'MAQUYEN' => $roleId,
+            ]);
+        }
+
+        // Đăng nhập luôn sau khi đăng ký
         Auth::login($user);
+
         return redirect()->route('home')->with('success', 'Đăng ký thành công!');
     }
-    
+
     public function login(Request $request)
     {
         // Validate dữ liệu nhập vào
