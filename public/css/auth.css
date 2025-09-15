@@ -412,11 +412,6 @@
     }
 }
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 90558c159b72845825cbdd61359ec272b0176c9a
 /* ====== Giảm animation nếu người dùng không thích chuyển động ====== */
 @media (prefers-reduced-motion: reduce) {
     .auth-form-container,

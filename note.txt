@@ -20,6 +20,11 @@ nên phải làm cái này trước)
 4. Thêm 1 file .env (vì file này bảo mật nên tui push lên, mọi người pull xuống
 cũng không thấy được, nên buộc phải tự tạo)
 
+5. Chạy lệnh  composer require laravel/ui  để cài laravel/ui
+
+6. Chạy lệnh  npm install  để cài đặt
+
+7. Chạy lệnh  php artisan db:seed để tạo user phân quyền mặc định 
 
 # Khởi động server
 php artisan serve
@@ -30,5 +35,5 @@ php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
-5. Nhập lệnh  composer require laravel/ui để cài laravel/ui
-6. Nhập lên npm install để cài đặt
+
+
