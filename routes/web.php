@@ -26,17 +26,18 @@ Route::get('/lien-he', [ContactController::class, 'show'])->name('contact.form')
 Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
 
 // ================== GIỎ HÀNG ==================
-Route::get('/cart', [CartController::class, 'show'])->name('cart');
-Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-Route::post('/cart/increase/{id}', [CartController::class, 'increase'])->name('cart.increase');
-Route::post('/cart/decrease/{id}', [CartController::class, 'decrease'])->name('cart.decrease');
-Route::post('/cart/remove/{id}',   [CartController::class, 'remove'])->name('cart.remove');
-Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
+Route::middleware('auth')->group(function () {
+    Route::get('/cart', [CartController::class, 'show'])->name('cart');
+    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/increase/{id}', [CartController::class, 'increase'])->name('cart.increase');
+    Route::post('/cart/decrease/{id}', [CartController::class, 'decrease'])->name('cart.decrease');
+    Route::post('/cart/remove/{id}',   [CartController::class, 'remove'])->name('cart.remove');
+    Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
+});
+
+
 
 // ================== USER AUTH ==================
-// Hiển thị form login & register
-Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');
-Route::get('/register', [UserController::class, 'showRegisterForm'])->name('register');
 
 // Xử lý login/register/logout
 Route::post('/login', [UserController::class, 'login'])->name('users.login');

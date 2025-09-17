@@ -82,6 +82,7 @@
 <script>
   // Truyền route từ Laravel sang JS
   window.cartAddUrl = "{{ route('cart.add') }}";
+  window.isLoggedIn = @json(Auth::check()); 
 </script>
 <script src="{{ asset('js/add_product.js') }}"></script>
 

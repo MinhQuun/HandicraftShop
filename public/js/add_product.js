@@ -21,6 +21,19 @@ async function addToCart(btn, productId) {
       body: JSON.stringify({ product_id: productId, qty: 1 })
     });
 
+    // Nếu chưa đăng nhập -> Laravel trả về 401 Unauthorized
+    if (res.status === 401) {
+      // Hiển thị modal đăng nhập/đăng ký
+      const modal = document.getElementById('authModal');
+      if (modal) {
+        const modalInstance = new bootstrap.Modal(modal);
+        modalInstance.show();
+      } else {
+        alert('Vui lòng đăng nhập để sử dụng giỏ hàng!');
+      }
+      return;
+    }
+
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.message || 'Yêu cầu thất bại');
 

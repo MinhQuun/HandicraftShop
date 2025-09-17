@@ -114,13 +114,21 @@
         </li>
       @endauth
 
-      {{-- Giỏ hàng --}}
+            {{-- Giỏ hàng --}}
       <li>
-        <a href="{{ route('cart') }}">
-          <i class="fa-solid fa-cart-shopping"></i>
-          <span id="cart-count">{{ $cartCount }}</span>
-        </a>
+        @auth
+          <a href="{{ route('cart') }}">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span id="cart-count">{{ $cartCount }}</span>
+          </a>
+        @else
+          <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span id="cart-count">{{ $cartCount }}</span>
+          </a>
+        @endauth
       </li>
+
     </ul>
   </div>
 </header>

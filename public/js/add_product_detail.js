@@ -32,6 +32,18 @@ async function addToCart(productId) {
       body: JSON.stringify({ product_id: productId, qty })
     });
 
+    // Nếu chưa đăng nhập → mở modal auth
+    if (res.status === 401) {
+      const modal = document.getElementById('authModal');
+      if (modal) {
+        const authModal = new bootstrap.Modal(modal);
+        authModal.show();
+      } else {
+        alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ.');
+      }
+      return;
+    }
+
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const msg = (data && data.message) || 'Yêu cầu thất bại';

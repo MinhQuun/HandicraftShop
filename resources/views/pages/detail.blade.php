@@ -103,6 +103,7 @@
 <script>
   // Truyền route sang JS
   window.cartAddUrl = "{{ route('cart.add') }}";
+  window.isLoggedIn = @json(Auth::check()); 
 </script>
 <script src="{{ asset('js/add_product_detail.js') }}"></script>
 @endpush
