@@ -10,9 +10,8 @@ class RoleMiddleware
     public function handle($request, Closure $next, ...$roles)
     {
         $user = Auth::user();
-
         if (!$user) {
-            return redirect('/login');
+            return redirect()->route('home')->with('error','Bạn cần đăng nhập.');
         }
 
         foreach ($roles as $role) {
@@ -20,7 +19,6 @@ class RoleMiddleware
                 return $next($request);
             }
         }
-
-        return abort(403, 'Bạn không có quyền truy cập chức năng này');
+        abort(403, 'Bạn không có quyền truy cập chức năng này');
     }
 }

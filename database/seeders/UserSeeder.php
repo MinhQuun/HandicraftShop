@@ -15,10 +15,11 @@ class UserSeeder extends Seeder
         // B1: Đảm bảo có đủ 3 quyền
         // ==============================
         $roles = [
-            '1' => 'Admin',
-            '2' => 'NhanVien',
-            '3' => 'KhachHang',
+            'Q01' => 'admin',
+            'Q02' => 'nhanvien',
+            'Q03' => 'khachhang',
         ];
+
 
         foreach ($roles as $maQuyen => $tenQuyen) {
             DB::table('QUYEN')->updateOrInsert(
@@ -36,49 +37,44 @@ class UserSeeder extends Seeder
                 'name'  => 'Quân',
                 'phone' => '0123456789',
                 'password' => Hash::make('123456'),
-                'role'  => '1'
+                'role'  => 'Q01'
             ],
             [
                 'email' => 'doan@gmail.com',
                 'name'  => 'Đoan',
                 'phone' => '0987654321',
                 'password' => Hash::make('123456'),
-                'role'  => '2'
+                'role'  => 'Q02'
             ],
             [
                 'email' => 'vy@gmail.com',
                 'name'  => 'Vy',
                 'phone' => '0987654322',
                 'password' => Hash::make('123456'),
-                'role'  => '2'
+                'role'  => 'Q02'
             ],
             [
                 'email' => 'yen@gmail.com',
                 'name'  => 'Yến',
                 'phone' => '0987654323',
                 'password' => Hash::make('123456'),
-                'role'  => '2'
+                'role'  => 'Q02'
             ],
             [
                 'email' => 'khachhang@example.com',
                 'name'  => 'KhachHang',
                 'phone' => '0911222333',
                 'password' => Hash::make('123456'),
-                'role'  => '3'
+                'role'  => 'Q03'
             ],
         ];
 
         foreach ($users as $u) {
             $user = User::firstOrCreate(
                 ['email' => $u['email']],
-                [
-                    'name' => $u['name'],
-                    'phone' => $u['phone'],
-                    'password' => $u['password'],
-                ]
+                ['name' => $u['name'], 'phone' => $u['phone'], 'password' => $u['password']]
             );
 
-            // Gán quyền vào bảng QUYEN_NGUOIDUNG
             DB::table('QUYEN_NGUOIDUNG')->updateOrInsert(
                 ['user_id' => $user->id, 'MAQUYEN' => $u['role']],
                 []

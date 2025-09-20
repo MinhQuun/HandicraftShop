@@ -49,28 +49,21 @@ Route::resource('users', UserController::class)->except(['create', 'store']);
 
 // ================== PHÂN QUYỀN ==================
 // Admin quản lý tất cả
-Route::middleware(['role:admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+use App\Http\Middleware\RoleMiddleware;
 
-    // Quản lý người dùng
-    Route::resource('users', UserController::class)->only(['index','edit','update','destroy']);
-});
+Route::middleware(['auth', RoleMiddleware::class . ':admin'])
+    ->get('/admin/dashboard', fn() => view('admin.dashboard'))
+    ->name('admin.dashboard');
+
 
 // Nhân viên (chỉ được 1 số chức năng)
-Route::middleware(['role:nhanvien'])->group(function () {
-    Route::get('/nhanvien/dashboard', function () {
-        return view('nhanvien.dashboard');
-    })->name('nhanvien.dashboard');
-
-    // Ví dụ: quản lý đơn hàng
-    // Route::resource('orders', OrderController::class);
-});
+Route::middleware(['auth', RoleMiddleware::class . ':nhanvien'])
+    ->get('/nhanvien/dashboard', fn() => view('nhanvien.dashboard'))
+    ->name('nhanvien.dashboard');
 
 // Khách hàng (có thể thêm route riêng nếu cần)
-Route::middleware(['role:khachhang'])->group(function () {
-    Route::get('/khach/dashboard', function () {
-        return view('khach.dashboard');
-    })->name('khach.dashboard');
-});
+// Route::middleware(['role:khachhang'])->group(function () {
+//     Route::get('/khach/dashboard', function () {
+//         return view('khach.dashboard');
+//     })->name('khach.dashboard');
+// });

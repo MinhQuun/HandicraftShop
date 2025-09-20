@@ -10,9 +10,9 @@ class QuyenSeeder extends Seeder
     public function run(): void
     {
         DB::table('QUYEN')->insertOrIgnore([
-            ['MAQUYEN' => 1, 'TENQUYEN' => 'admin'],
-            ['MAQUYEN' => 2, 'TENQUYEN' => 'nhanvien'],
-            ['MAQUYEN' => 3, 'TENQUYEN' => 'khachhang'],
-        ]);
+            ['MAQUYEN' => 'Q01', 'TENQUYEN' => 'admin'],
+            ['MAQUYEN' => 'Q02', 'TENQUYEN' => 'nhanvien'],
+            ['MAQUYEN' => 'Q03', 'TENQUYEN' => 'khachhang'],
+            ]);
     }
 }

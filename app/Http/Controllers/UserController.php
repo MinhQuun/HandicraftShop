@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\DB;
+
 
 class UserController extends Controller
 {
@@ -16,7 +18,8 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all(); // Lấy tất cả user
-        return view('/', compact('users'));
+        return view('users.index', compact('users'));
+        //return view('/', compact('users'));
     }
 
     /**
@@ -58,9 +61,9 @@ class UserController extends Controller
         ]);
 
         // === Gán quyền mặc định "KhachHang" ===
-        $roleId = \DB::table('QUYEN')->where('TENQUYEN', 'KhachHang')->value('MAQUYEN');
+        $roleId = DB::table('QUYEN')->where('TENQUYEN', 'KhachHang')->value('MAQUYEN');
         if ($roleId) {
-            \DB::table('QUYEN_NGUOIDUNG')->insert([
+            DB::table('QUYEN_NGUOIDUNG')->insert([
                 'user_id' => $user->id,
                 'MAQUYEN' => $roleId,
             ]);
@@ -74,28 +77,49 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        // Validate dữ liệu nhập vào
         $credentials = $request->validate([
-        'email'    => ['required','email'],
-        'password' => ['required'],
+            'email'    => ['required','email'],
+            'password' => ['required'],
         ],[
-        'email.required'    => 'Vui lòng nhập email.',
-        'email.email'       => 'Email không hợp lệ.',
-        'password.required' => 'Vui lòng nhập mật khẩu.',
+            'email.required'    => 'Vui lòng nhập email.',
+            'email.email'       => 'Email không hợp lệ.',
+            'password.required' => 'Vui lòng nhập mật khẩu.',
         ]);
 
-        // Thử đăng nhập
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // chống session fixation
-            return redirect()->intended('/')->with('success', 'Đăng nhập thành công!');
+            $request->session()->regenerate();
+
+            $user = Auth::user();
+            $role = DB::table('QUYEN_NGUOIDUNG')
+                ->join('QUYEN', 'QUYEN.MAQUYEN', '=', 'QUYEN_NGUOIDUNG.MAQUYEN')
+                ->where('user_id', $user->id)
+                ->value('TENQUYEN');
+
+            $role = strtolower($role ?? '');
+
+            // Map đích đến theo role
+            $destinations = [
+                'admin'     => route('admin.dashboard'),
+                'nhanvien'  => route('nhanvien.dashboard'),
+                // Nếu muốn về trang chủ khách:
+                'khachhang' => route('home'),
+                // Nếu bạn có dashboard khách: đổi dòng trên thành:
+                // 'khachhang' => route('khach.dashboard'),
+            ];
+
+            $fallback = $destinations[$role] ?? route('home');
+
+            // Nếu user vừa bị chặn bởi trang cần đăng nhập -> quay lại trang đó,
+            // còn không thì về đúng đích theo role.
+            return redirect()->intended($fallback)->with('success', 'Đăng nhập thành công!');
         }
 
-        // Sai email hoặc password
         return back()
             ->withErrors(['email' => 'Email hoặc mật khẩu không đúng.'])
             ->with('error', 'Email hoặc mật khẩu không đúng.')
             ->onlyInput('email');
     }
+
 
     public function logout(Request $request)
     {
