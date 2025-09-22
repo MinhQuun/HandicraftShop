@@ -1,0 +1,235 @@
+/* ===================== PALETTE ===================== */
+:root {
+    --bg-ivory-1: #f7f2ea;
+    --bg-ivory-2: #faf6f0;
+    --card: #fffaf5;
+    --card-brd: #e7d6c4;
+    --text: #3b352d;
+    --muted: #6f6559;
+    --wood: #8c6d3b;
+    --moss: #6a8f55;
+    --wheat: #c8a97e;
+    --shadow: 0 16px 32px rgba(120, 92, 58, 0.14);
+}
+
+/* ===================== BASE ===================== */
+.admin-body {
+    color: var(--text);
+    background: radial-gradient(
+            900px 600px at 10% -10%,
+            rgba(200, 169, 126, 0.18),
+            transparent 60%
+        ),
+        radial-gradient(
+            800px 600px at 110% 0%,
+            rgba(106, 143, 85, 0.15),
+            transparent 60%
+        ),
+        linear-gradient(180deg, var(--bg-ivory-1), var(--bg-ivory-2)) fixed;
+}
+
+/* ===================== TOPBAR ===================== */
+.admin-topbar {
+    background: linear-gradient(90deg, #574b3f, #7a6141);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+.admin-topbar .navbar-brand {
+    color: #fff;
+}
+.admin-topbar .navbar-brand:hover {
+    color: #fff;
+    opacity: 0.9;
+}
+
+/* ===================== LAYOUT ===================== */
+.admin-wrapper {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 56px);
+}
+@media (max-width: 992px) {
+    .admin-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
+
+.admin-sidebar {
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 56px);
+    background: linear-gradient(180deg, #fffdf9, #fffaf5);
+    border-right: 1px solid var(--card-brd);
+    box-shadow: var(--shadow);
+    z-index: 1020;
+    transform: translateX(0);
+    transition: transform 0.25s ease;
+}
+.admin-sidebar .nav-link {
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 0.55rem 0.75rem;
+    color: var(--text);
+}
+.admin-sidebar .nav-link:hover {
+    background: #fffdf9;
+    border-color: var(--card-brd);
+}
+.admin-sidebar .nav-link.active {
+    background: linear-gradient(135deg, var(--wood), var(--moss));
+    color: #fff;
+}
+@media (max-width: 992px) {
+    .admin-sidebar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 56px;
+        transform: translateX(-100%);
+    }
+    .admin-sidebar.open {
+        transform: translateX(0);
+    }
+}
+
+.admin-main {
+    padding: 20px;
+}
+
+/* ===================== PAGE HEADER ===================== */
+.page-header .kicker {
+    display: inline-block;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(200, 169, 126, 0.12);
+    border: 1px solid var(--card-brd);
+    color: var(--muted);
+}
+.page-header .title {
+    margin: 10px 0 4px;
+    font-weight: 800;
+    line-height: 1.1;
+    font-size: clamp(26px, 4.2vw, 34px);
+    background: linear-gradient(90deg, #6a5e51, var(--wood), var(--moss));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.page-header .muted {
+    color: var(--muted);
+}
+
+/* ===================== DASHBOARD STATS ===================== */
+
+/* Card lớn, thoáng, đều nhau */
+.stat-card {
+    width: 100%;
+    min-height: 160px;
+    padding: 20px;
+    border-radius: 18px;
+    background: var(--card);
+    border: 1px solid var(--card-brd);
+    box-shadow: var(--shadow);
+    display: grid;
+    grid-template-columns: 60px 1fr auto; /* icon | text-block | button */
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.25s, box-shadow 0.25s, background 0.25s, border-color 0.25s;
+    cursor: pointer;
+}
+
+/* Hover */
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(180deg, #fff, #fffaf5);
+    border-color: var(--wheat);
+}
+
+/* Icon */
+.stat-card .icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(140, 109, 59, 0.15), rgba(106, 143, 85, 0.15));
+    color: var(--wood);
+    font-size: 26px;
+    flex-shrink: 0;
+}
+
+/* Khối chữ (số + nhãn xếp dọc) */
+.stat-card > div:nth-child(2) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* căn trái */
+    justify-content: center;
+    min-width: 0; /* fix overflow */
+}
+
+/* Số */
+.stat-card .n {
+    font-weight: 900;
+    font-size: clamp(2.2rem, 4vw, 3.25rem);
+    line-height: 1.2;
+    margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--wood), var(--moss));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Nhãn */
+.stat-card .t {
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.3;
+    white-space: normal; /* cho phép xuống dòng nếu cần */
+}
+
+/* Nút */
+.stat-card .btn-ghost {
+    min-width: 84px;
+    text-align: center;
+    padding: 8px 16px;
+    justify-self: end; /* căn phải */
+}
+
+
+/* ===================== PILL BUTTONS (chip & ghost) ===================== */
+.chip,
+.btn-ghost,
+.btn.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    text-decoration: none;
+    background: #f8f8f8;
+    color: var(--text);
+    border: 1px solid #ddd;
+    transition: all 0.25s;
+}
+.chip:hover,
+.btn-ghost:hover,
+.btn.btn-ghost:hover,
+.stat-card .btn-ghost:hover {
+    background: linear-gradient(135deg, var(--wood), var(--moss));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ===================== QUICK LINKS BOX ===================== */
+.quick-links {
+    border: 1px solid var(--card-brd);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    border-radius: 16px;
+}

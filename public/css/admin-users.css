@@ -1,0 +1,259 @@
+/* ================== Theme tokens ================== */
+:root {
+    --bg-ivory-1: #f7f2ea;
+    --bg-ivory-2: #faf6f0;
+    --card: #fffaf5;
+    --card-brd: #e7d6c4;
+    --text: #3b352d;
+    --muted: #6f6559;
+    --accent-wood: #8c6d3b;
+    --accent-moss: #6a8f55;
+    --accent-wheat: #c8a97e;
+}
+
+/* ================== Header ================== */
+.admin-users .au-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.admin-users .title {
+    margin: 0;
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--accent-wood);
+}
+.admin-users .subtitle {
+    margin: 4px 0 0;
+    color: var(--muted);
+}
+
+/* ================== Card & table shell ================== */
+.card {
+    border: 1px solid var(--card-brd);
+    background: linear-gradient(180deg, #fffdf9, #fffaf5);
+    box-shadow: 0 10px 24px rgba(120, 92, 58, 0.08);
+}
+.table thead th {
+    background: #fff9f3;
+    border-bottom: 1px solid var(--card-brd);
+    color: var(--text);
+    font-weight: 600;
+}
+.table tbody td {
+    vertical-align: middle;
+    color: var(--text);
+}
+.table tbody tr:hover {
+    background: #fffdf6;
+}
+
+/* Cố định bố cục cột & chống tràn chữ */
+.table-fixed {
+    table-layout: fixed;
+    width: 100%;
+}
+.table-fixed th,
+.table-fixed td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Cho phép ô Quyền tràn để hiện select + nút */
+.table-fixed td.role-cell {
+    overflow: visible;
+    position: relative;
+    z-index: 2;
+}
+
+/* ================== Column “Quyền” — Bản hợp nhất ================== */
+.role-cell {
+    padding-right: 6px;
+}
+
+.role-wrap {
+    display: grid;
+    grid-template-columns: 84px 140px 84px; /* Badge | Select | Lưu */
+    align-items: center;
+    gap: 6px;
+}
+
+.role-wrap .badge {
+    display: inline-block;
+    text-align: center;
+    width: 84px;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.8rem;
+    line-height: 1.1;
+}
+
+.role-select {
+    width: 140px;
+    max-width: 140px;
+    min-width: 140px;
+}
+
+.role-save {
+    width: 84px;
+    padding: 0.3rem 0.5rem;
+    line-height: 1.1;
+    display: none; /* ẩn mặc định */
+}
+.role-wrap.show-save .role-save {
+    display: inline-block; /* chỉ hiện khi có class .show-save */
+}
+
+/* ================== Column “Thao tác” ================== */
+.td-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    white-space: nowrap;
+}
+.td-actions .action-btn {
+    min-width: auto;
+    padding: 0.25rem 0.5rem;
+    line-height: 1.1;
+}
+
+/* ================== Buttons ================== */
+.btn-primary {
+    background: var(--accent-moss);
+    border-color: var(--accent-moss);
+}
+.btn-primary:hover {
+    filter: brightness(0.95);
+}
+
+.btn-outline-primary {
+    color: var(--accent-moss);
+    border-color: var(--accent-moss);
+}
+.btn-outline-primary:hover {
+    background: var(--accent-moss);
+    color: #fff;
+}
+.btn-outline-danger {
+    border-color: #c0392b;
+    color: #c0392b;
+}
+.btn-outline-danger:hover {
+    background: #c0392b;
+    color: #fff;
+}
+
+/* Soft buttons trong bảng */
+.btn-success-soft {
+    background: #ecf7ef;
+    border: 1px solid #b7dfc0;
+    color: #2f7d3f;
+}
+.btn-success-soft:hover {
+    filter: brightness(0.96);
+}
+
+.btn-primary-soft {
+    background: #edf2ff;
+    border: 1px solid #c8d3ff;
+    color: #2f58ad;
+}
+.btn-primary-soft:hover {
+    filter: brightness(0.96);
+}
+
+.btn-danger-soft {
+    background: #ffecec;
+    border: 1px solid #ffc8c8;
+    color: #c0392b;
+}
+.btn-danger-soft:hover {
+    filter: brightness(0.96);
+}
+
+.btn-ghost {
+    border: 1px dashed rgba(0, 0, 0, 0.2);
+    background: transparent;
+}
+.btn-ghost:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+/* ================== Inputs ================== */
+.form-select:focus,
+.form-control:focus {
+    border-color: var(--accent-wood);
+    box-shadow: 0 0 0 0.2rem rgba(140, 109, 59, 0.15);
+}
+
+/* ================== Quick chips ================== */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--card-brd);
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #fffdf9;
+    color: var(--text);
+    text-decoration: none;
+}
+.chip:hover {
+    background: linear-gradient(135deg, var(--accent-wood), var(--accent-moss));
+    color: #fff;
+    border-color: transparent;
+}
+
+/* ================== Small polish ================== */
+.admin-users .au-filter {
+    margin: 10px 0 16px;
+}
+.table .form-select.form-select-sm {
+    padding-right: 1.75rem;
+} /* chừa chỗ caret */
+.badge {
+    font-weight: 600;
+}
+
+/* ================== Responsive ================== */
+/* ≤1200px: giữ select gọn, tránh chèn nút */
+@media (max-width: 1200px) {
+    .role-wrap {
+        grid-template-columns: 78px 132px 78px;
+        gap: 6px;
+    }
+    .role-wrap .badge {
+        width: 78px;
+        font-size: 0.78rem;
+    }
+    .role-select {
+        width: 132px;
+        max-width: 132px;
+        min-width: 132px;
+    }
+    .role-save {
+        width: 78px;
+    }
+    .td-actions .action-btn {
+        max-width: 84px;
+    }
+}
+
+/* ≤992px: cho phép wrap nút thao tác nếu chật */
+@media (max-width: 992px) {
+    .td-actions {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    .role-select {
+        min-width: 132px;
+    }
+}
+
+/* ≤768px: ưu tiên scroll ngang bảng */
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+    }
+}

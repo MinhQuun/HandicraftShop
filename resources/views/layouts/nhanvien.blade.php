@@ -2,45 +2,84 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <title>@yield('title','Admin')</title>
+  <title>@yield('title','Nhân viên')</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  {{-- CSS riêng cho admin --}}
-  <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
-  {{-- Bootstrap (nếu cần) --}}
+  {{-- Bootstrap --}}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+  {{-- CSS riêng --}}
+  {{-- <link rel="stylesheet" href="{{ asset('css/admin.css') }}"> --}}
+  @stack('styles')
 </head>
-<body class="bg-light">
-  <nav class="navbar navbar-dark bg-dark">
+<body class="admin-body">
+
+  {{-- TOPBAR --}}
+  <nav class="admin-topbar navbar navbar-expand-lg">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{{ route('admin.dashboard') }}">Nhan vien Panel</a>
-      <div class="d-flex gap-2">
-        <a class="btn btn-outline-light btn-sm" href="{{ route('home') }}">Về trang khách</a>
-        <form action="{{ route('logout') }}" method="post" class="d-inline">
-          @csrf
-          <button class="btn btn-danger btn-sm">Đăng xuất</button>
-        </form>
+      <button class="btn btn-outline-light d-lg-none me-2" id="btnSidebar">
+        <i class="bi bi-list"></i>
+      </button>
+
+      <a class="navbar-brand fw-bold" href="{{ route('admin.dashboard') }}">
+        <i class="bi bi-speedometer2 me-1"></i> Admin Panel
+      </a>
+
+      <div class="ms-auto d-flex align-items-center">
+        {{-- user dropdown (chỉ Logout) --}}
+        <div class="dropdown">
+          <button class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-1"></i>
+            {{ Auth::user()->name ?? 'Tài khoản' }}
+          </button>
+          <div class="dropdown-menu dropdown-menu-end">
+            <form action="{{ route('logout') }}" method="post" class="px-3 py-1">
+              @csrf
+              <button class="btn btn-danger w-100">
+                <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
 
-  <div class="container-fluid">
-    <div class="row">
-      <aside class="col-12 col-md-3 col-lg-2 p-3 border-end bg-white">
-        {{-- Menu trái cho admin --}}
-        <ul class="nav flex-column small">
-          <li class="nav-item"><a class="nav-link" href="{{ route('admin.dashboard') }}">Tổng quan</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ route('users.index') }}">Người dùng</a></li>
-          {{-- thêm các mục: đơn hàng, sản phẩm, khuyến mãi... --}}
+  <div class="admin-wrapper">
+    {{-- SIDEBAR --}}
+    <aside id="adminSidebar" class="admin-sidebar">
+      <div class="px-3 py-3">
+        <div class="text-muted small mb-2">Điều hướng</div>
+        <ul class="nav flex-column gap-1">
+          <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
+                href="{{ route('admin.dashboard') }}">
+              <i class="bi bi-grid me-2"></i> Tổng quan
+            </a>
+          </li>
+          <li class="nav-item mt-2 text-muted small">Quản trị</li>
+          <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
+                href="{{ route('admin.users.index') }}">
+              <i class="bi bi-people me-2"></i> Người dùng
+            </a>
+          </li>
         </ul>
-      </aside>
-      <main class="col p-4">
-        @yield('content')
-      </main>
-    </div>
+      </div>
+    </aside>
+
+    {{-- MAIN --}}
+    <main class="admin-main">
+      @yield('content')
+    </main>
   </div>
 
-  {{-- JS --}}
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.getElementById('btnSidebar')?.addEventListener('click', () => {
+      document.getElementById('adminSidebar')?.classList.toggle('open');
+    });
+  </script>
   @stack('scripts')
 </body>
 </html>

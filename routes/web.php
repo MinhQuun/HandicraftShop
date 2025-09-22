@@ -1,10 +1,12 @@
 <?php
-
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Admin\UserAdminController;
+use App\Http\Middleware\RoleMiddleware;
 
 // ================== TRANG CHỦ ==================
 Route::get('/', [ProductController::class, 'home'])->name('home');
@@ -48,22 +50,34 @@ Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 Route::resource('users', UserController::class)->except(['create', 'store']);
 
 // ================== PHÂN QUYỀN ==================
-// Admin quản lý tất cả
-use App\Http\Middleware\RoleMiddleware;
+// ================== Admin ===================
+Route::prefix('admin')
+    ->middleware(['auth', RoleMiddleware::class . ':admin'])
+    ->group(function () {
+        // Dashboard -> tính thống kê
+        Route::get('/dashboard', function () {
+            $adminId     = DB::table('QUYEN')->whereRaw('LOWER(TENQUYEN)="admin"')->value('MAQUYEN');
+            $nhanvienId  = DB::table('QUYEN')->whereRaw('LOWER(TENQUYEN)="nhanvien"')->value('MAQUYEN');
+            $khachhangId = DB::table('QUYEN')->whereRaw('LOWER(TENQUYEN)="khachhang"')->value('MAQUYEN');
 
-Route::middleware(['auth', RoleMiddleware::class . ':admin'])
-    ->get('/admin/dashboard', fn() => view('admin.dashboard'))
-    ->name('admin.dashboard');
+            $counts = [
+                'admin'     => (int) DB::table('QUYEN_NGUOIDUNG')->where('MAQUYEN',$adminId)->count(),
+                'nhanvien'  => (int) DB::table('QUYEN_NGUOIDUNG')->where('MAQUYEN',$nhanvienId)->count(),
+                'khachhang' => (int) DB::table('QUYEN_NGUOIDUNG')->where('MAQUYEN',$khachhangId)->count(),
+                'total'     => (int) \App\Models\User::count(),
+            ];
+            return view('admin.dashboard', compact('counts'));
+        })->name('admin.dashboard');
 
+        // Quản lý người dùng
+        Route::get('/users',              [UserAdminController::class, 'index'])->name('admin.users.index');
+        Route::post('/users',             [UserAdminController::class, 'store'])->name('admin.users.store');
+        Route::put('/users/{user}',       [UserAdminController::class, 'update'])->name('admin.users.update');
+        Route::delete('/users/{user}',    [UserAdminController::class, 'destroy'])->name('admin.users.destroy');
+        Route::post('/users/{user}/role', [UserAdminController::class, 'updateRole'])->name('admin.users.updateRole');
+    });
 
-// Nhân viên (chỉ được 1 số chức năng)
+// Nhân viên (sau này mới dùng)
 Route::middleware(['auth', RoleMiddleware::class . ':nhanvien'])
     ->get('/nhanvien/dashboard', fn() => view('nhanvien.dashboard'))
     ->name('nhanvien.dashboard');
-
-// Khách hàng (có thể thêm route riêng nếu cần)
-// Route::middleware(['role:khachhang'])->group(function () {
-//     Route::get('/khach/dashboard', function () {
-//         return view('khach.dashboard');
-//     })->name('khach.dashboard');
-// });
