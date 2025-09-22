@@ -15,7 +15,7 @@
       <div class="icon"><i class="bi bi-people"></i></div>
       <div>
         <div class="n">{{ $counts['total'] ?? 0 }}</div>
-        <div class="t">Tổng người dùng</div>
+        <div class="t">Người dùng</div>
       </div>
       <a href="{{ route('admin.users.index') }}" class="btn btn-ghost">Chi tiết</a>
     </div>

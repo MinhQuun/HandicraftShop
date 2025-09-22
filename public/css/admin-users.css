@@ -42,9 +42,23 @@
     font-weight: 600;
 }
 .table tbody td {
-    vertical-align: middle;
     color: var(--text);
+    vertical-align: middle;
+    border-bottom: 1px solid var(--card-brd);
+    padding: 12px 8px;
+    line-height: 1.5;
 }
+
+/* ================== Fix lệch dòng ================== */
+.table > thead > tr > th,
+.table > tbody > tr > td {
+    vertical-align: middle;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--card-brd);
+    line-height: 1.5;
+}
+
 .table tbody tr:hover {
     background: #fffdf6;
 }
@@ -68,16 +82,17 @@
     z-index: 2;
 }
 
-/* ================== Column “Quyền” — Bản hợp nhất ================== */
+/* ================== Column “Quyền” ================== */
 .role-cell {
     padding-right: 6px;
 }
 
 .role-wrap {
     display: grid;
-    grid-template-columns: 84px 140px 84px; /* Badge | Select | Lưu */
+    grid-template-columns: 84px 140px 84px;
     align-items: center;
     gap: 6px;
+    height: 100%;
 }
 
 .role-wrap .badge {
@@ -99,10 +114,10 @@
     width: 84px;
     padding: 0.3rem 0.5rem;
     line-height: 1.1;
-    display: none; /* ẩn mặc định */
+    display: none;
 }
 .role-wrap.show-save .role-save {
-    display: inline-block; /* chỉ hiện khi có class .show-save */
+    display: inline-block;
 }
 
 /* ================== Column “Thao tác” ================== */
@@ -111,11 +126,18 @@
     justify-content: flex-end;
     gap: 6px;
     white-space: nowrap;
+    align-items: center;
 }
+
+/* Giữ chiều cao và canh giữa cho nút */
 .td-actions .action-btn {
-    min-width: auto;
     padding: 0.25rem 0.5rem;
     line-height: 1.1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 32px;
 }
 
 /* ================== Buttons ================== */
@@ -211,13 +233,12 @@
 }
 .table .form-select.form-select-sm {
     padding-right: 1.75rem;
-} /* chừa chỗ caret */
+}
 .badge {
     font-weight: 600;
 }
 
 /* ================== Responsive ================== */
-/* ≤1200px: giữ select gọn, tránh chèn nút */
 @media (max-width: 1200px) {
     .role-wrap {
         grid-template-columns: 78px 132px 78px;
@@ -239,8 +260,6 @@
         max-width: 84px;
     }
 }
-
-/* ≤992px: cho phép wrap nút thao tác nếu chật */
 @media (max-width: 992px) {
     .td-actions {
         flex-wrap: wrap;
@@ -250,8 +269,6 @@
         min-width: 132px;
     }
 }
-
-/* ≤768px: ưu tiên scroll ngang bảng */
 @media (max-width: 768px) {
     .table-responsive {
         overflow-x: auto;

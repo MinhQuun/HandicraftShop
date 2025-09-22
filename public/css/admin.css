@@ -182,12 +182,14 @@
     -webkit-text-fill-color: transparent;
 }
 
-/* Nhãn */
+/* Nhãn - NGĂN CHẶN XUỐNG DÒNG */
 .stat-card .t {
     color: var(--muted);
     font-size: 1rem;
     line-height: 1.3;
-    white-space: normal; /* cho phép xuống dòng nếu cần */
+    white-space: nowrap; /* NGĂN CHẶN XUỐNG DÒNG */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Hiển thị ... nếu quá dài */
 }
 
 /* Nút */
@@ -197,7 +199,6 @@
     padding: 8px 16px;
     justify-self: end; /* căn phải */
 }
-
 
 /* ===================== PILL BUTTONS (chip & ghost) ===================== */
 .chip,
