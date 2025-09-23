@@ -77,7 +77,31 @@ Route::prefix('admin')
         Route::post('/users/{user}/role', [UserAdminController::class, 'updateRole'])->name('admin.users.updateRole');
     });
 
-// Nhân viên (sau này mới dùng)
-Route::middleware(['auth', RoleMiddleware::class . ':nhanvien'])
-    ->get('/nhanvien/dashboard', fn() => view('nhanvien.dashboard'))
-    ->name('nhanvien.dashboard');
+// ================== Nhân viên ==================
+Route::prefix('staff')
+    ->middleware(['auth', RoleMiddleware::class . ':nhanvien'])
+    ->name('staff.')
+    ->group(function () {
+        // Dashboard
+        Route::get('/dashboard', function () {
+            // sau này sẽ tính thống kê đơn hàng, sản phẩm...
+            return view('staff.dashboard', [
+                'stats' => [
+                    'products'       => DB::table('SANPHAM')->count(),
+                    'suppliers'     => DB::table('NHACUNGCAP')->count(),
+                    'orders_pending' => DB::table('DONHANG')->where('TRANGTHAI','Chờ xử lý')->count(),
+                    'customers'      => DB::table('KHACHHANG')->count(),
+                ]
+            ]);
+        })->name('dashboard');
+
+        // Các module quản lý (stub trước)
+        Route::view('/products', 'staff.stub')->name('products.index');
+        Route::view('/suppliers', 'staff.stub')->name('suppliers.index');
+        Route::view('/promotions', 'staff.stub')->name('promotions.index');
+        Route::view('/orders', 'staff.stub')->name('orders.index');
+        Route::view('/customers', 'staff.stub')->name('customers.index');
+        Route::view('/reviews', 'staff.stub')->name('reviews.index');
+        Route::view('/payments', 'staff.stub')->name('payments.index');
+    });
+

@@ -24,10 +24,9 @@ cũng không thấy được, nên buộc phải tự tạo)
 
 6. Chạy lệnh  npm install  để cài đặt
 
-7. Chạy lệnh  php artisan db:seed để tạo user phân quyền mặc định 
+7. Chạy lệnh để tạo user phân quyền mặc định: php artisan db:seed  
 
-# Khởi động server
-php artisan serve
+9. Khởi động server: php artisan serve
 
 # Clear cache (nếu lỗi view/config)
 php artisan cache:clear

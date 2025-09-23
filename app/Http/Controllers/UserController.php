@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\DB;
-
+use App\Services\EnsureCustomerProfile;
 
 class UserController extends Controller
 {
@@ -52,27 +52,32 @@ class UserController extends Controller
             'phone.regex'        => 'Số điện thoại phải gồm 10 số và bắt đầu bằng số 0.',
         ]);
 
-        // Tạo user
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'phone'    => $request->phone,
-        ]);
-
-        // === Gán quyền mặc định "KhachHang" ===
-        $roleId = DB::table('QUYEN')->where('TENQUYEN', 'KhachHang')->value('MAQUYEN');
-        if ($roleId) {
-            DB::table('QUYEN_NGUOIDUNG')->insert([
-                'user_id' => $user->id,
-                'MAQUYEN' => $roleId,
+        return DB::transaction(function () use ($request) {
+            // 1) Tạo user
+            $user = \App\Models\User::create([
+                'name'     => $request->name,
+                'email'    => $request->email,
+                'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+                'phone'    => $request->phone,
             ]);
-        }
 
-        // Đăng nhập luôn sau khi đăng ký
-        Auth::login($user);
+            // 2) Lấy MAQUYEN 'khachhang' (so sánh lowercase để an toàn)
+            $roleId = DB::table('QUYEN')
+                ->whereRaw('LOWER(TENQUYEN) = ?', ['khachhang'])
+                ->value('MAQUYEN');
 
-        return redirect()->route('home')->with('success', 'Đăng ký thành công!');
+            if ($roleId) {
+                // GÁN QUYỀN CHỈ 1 LẦN → không dùng insert thủ công nữa
+                $user->assignRole($roleId); // dùng belongsToMany + syncWithoutDetaching
+                // 3) Đảm bảo có hồ sơ KHACHHANG
+                app(EnsureCustomerProfile::class)->handle($user);
+            }
+
+            // 4) Đăng nhập
+            \Illuminate\Support\Facades\Auth::login($user);
+
+            return redirect()->route('home')->with('success', 'Đăng ký thành công!');
+        });
     }
 
     public function login(Request $request)
@@ -100,7 +105,7 @@ class UserController extends Controller
             // Map đích đến theo role
             $destinations = [
                 'admin'     => route('admin.dashboard'),
-                'nhanvien'  => route('nhanvien.dashboard'),
+                'nhanvien'  => route('staff.dashboard'),
                 // Nếu muốn về trang chủ khách:
                 'khachhang' => route('home'),
                 // Nếu bạn có dashboard khách: đổi dòng trên thành:
@@ -113,6 +118,17 @@ class UserController extends Controller
             // còn không thì về đúng đích theo role.
             return redirect()->intended($fallback)->with('success', 'Đăng nhập thành công!');
         }
+
+        $user = Auth::user();
+        $role = DB::table('QUYEN_NGUOIDUNG')
+            ->join('QUYEN','QUYEN.MAQUYEN','=','QUYEN_NGUOIDUNG.MAQUYEN')
+            ->where('user_id', $user->id)
+            ->value('TENQUYEN');
+
+        if (mb_strtolower((string) $role) === 'khachhang') {
+            app(\App\Services\EnsureCustomerProfile::class)->handle($user);
+        }
+
 
         return back()
             ->withErrors(['email' => 'Email hoặc mật khẩu không đúng.'])

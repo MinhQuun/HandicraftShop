@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Quyen;
+use App\Models\KhachHang;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Quyen;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -66,5 +69,10 @@ class User extends Authenticatable
     public function removeRole(string $maQuyen): void
     {
         $this->roles()->detach($maQuyen);
+    }
+
+    public function khachHang(): HasOne
+    {
+        return $this->hasOne(KhachHang::class, 'user_id', 'id');
     }
 }

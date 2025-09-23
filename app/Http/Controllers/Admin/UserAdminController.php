@@ -98,6 +98,12 @@ class UserAdminController extends Controller
 
         $u->roles()->sync([$r->MAQUYEN]);
 
+        $ten = DB::table('QUYEN')->where('MAQUYEN', $r->MAQUYEN)->value('TENQUYEN');
+        if (mb_strtolower((string) $ten) === 'khachhang') {
+            app(\App\Services\EnsureCustomerProfile::class)->handle($u);
+        }
+
+
         return back()->with('success','Tạo người dùng thành công.');
     }
 
@@ -162,19 +168,28 @@ class UserAdminController extends Controller
         return back()->with('success','Cập nhật quyền thành công.');
     }
 
-
     /** ============ DESTROY (xoá) ============ */
     public function destroy(User $user)
     {
-        $admin = $this->roleId('admin');
+        $admin  = $this->roleId('admin');
+        $khach  = $this->roleId('khachhang');
 
-        $isAdmin = $user->roles()->where('QUYEN.MAQUYEN', $admin)->exists();
+        $isAdmin  = $user->roles()->where('QUYEN.MAQUYEN', $admin)->exists();
+        $isKhach  = $user->roles()->where('QUYEN.MAQUYEN', $khach)->exists();
 
-        // Không cho xóa admin
+        // 1. Không cho xóa admin
         if ($isAdmin) {
             return back()->with('error','Không thể xoá tài khoản có quyền Admin.');
         }
 
+        // 2. Nếu là khách hàng: kiểm tra đơn hàng
+        if ($isKhach && $user->khachHang) {
+            if ($user->khachHang->donHangs()->exists()) {
+                return back()->with('error','Khách hàng đã có đơn hàng, không thể xoá.');
+            }
+        }
+
+        // Nếu qua được rule thì xoá bình thường
         $user->roles()->detach();
         $user->delete();
 
