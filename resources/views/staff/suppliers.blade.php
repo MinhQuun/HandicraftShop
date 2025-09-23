@@ -31,16 +31,18 @@
                 <button class="btn btn-outline-primary">Lọc</button>
                 <a href="{{ route('staff.suppliers.index') }}" class="btn btn-outline-secondary">Xoá lọc</a>
             </div>
-            <div class="col-md-3 text-end">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreate">
-                <i class="bi bi-plus-circle me-1"></i> Thêm mới
-                </button>
-            </div>
             </form>
         </div>
     </div>
 
     <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="m-0">Danh sách nhà cung cấp</h5>
+            <button type="button" class="btn btn-primary btn-add" data-bs-toggle="modal" data-bs-target="#modalCreate">
+                <i class="bi bi-plus-circle me-1"></i> Thêm mới
+            </button>
+        </div>
+
         <div class="table-responsive">
             <table class="table align-middle mb-0 table-hover suppliers-table">
                 <thead>

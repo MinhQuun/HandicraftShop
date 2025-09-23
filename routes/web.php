@@ -7,7 +7,9 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Middleware\RoleMiddleware;
+
 use App\Http\Controllers\Staff\SupplierController;
+use App\Http\Controllers\Staff\ProductController as StaffProductController;
 
 // ================== TRANG CHỦ ==================
 Route::get('/', [ProductController::class, 'home'])->name('home');
@@ -101,9 +103,14 @@ Route::prefix('staff')
         Route::post('/suppliers',       [SupplierController::class, 'store'])->name('suppliers.store');
         Route::put('/suppliers/{id}',   [SupplierController::class, 'update'])->name('suppliers.update');
         Route::delete('/suppliers/{id}',[SupplierController::class, 'destroy'])->name('suppliers.destroy');
-        
+
+        // Quản lý sản phẩm
+        Route::get('/products',        [StaffProductController::class, 'index'])->name('products.index');
+        Route::post('/products',       [StaffProductController::class, 'store'])->name('products.store');
+        Route::put('/products/{id}',   [StaffProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{id}',[StaffProductController::class, 'destroy'])->name('products.destroy');
+
         // Các module quản lý (stub trước)
-        Route::view('/products', 'staff.stub')->name('products.index');
         Route::view('/promotions', 'staff.stub')->name('promotions.index');
         Route::view('/orders', 'staff.stub')->name('orders.index');
         Route::view('/customers', 'staff.stub')->name('customers.index');
