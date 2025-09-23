@@ -7,6 +7,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Controllers\Staff\SupplierController;
 
 // ================== TRANG CHỦ ==================
 Route::get('/', [ProductController::class, 'home'])->name('home');
@@ -95,9 +96,14 @@ Route::prefix('staff')
             ]);
         })->name('dashboard');
 
+        // Quản lý nhà cung cấp
+        Route::get('/suppliers',        [SupplierController::class, 'index'])->name('suppliers.index');
+        Route::post('/suppliers',       [SupplierController::class, 'store'])->name('suppliers.store');
+        Route::put('/suppliers/{id}',   [SupplierController::class, 'update'])->name('suppliers.update');
+        Route::delete('/suppliers/{id}',[SupplierController::class, 'destroy'])->name('suppliers.destroy');
+        
         // Các module quản lý (stub trước)
         Route::view('/products', 'staff.stub')->name('products.index');
-        Route::view('/suppliers', 'staff.stub')->name('suppliers.index');
         Route::view('/promotions', 'staff.stub')->name('promotions.index');
         Route::view('/orders', 'staff.stub')->name('orders.index');
         Route::view('/customers', 'staff.stub')->name('customers.index');

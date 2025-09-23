@@ -11,23 +11,23 @@
 <div class="row g-3 mb-4 stat-row">
   <div class="col-md-6 col-lg-3">
     <div class="s-card">
-      <div class="icon"><i class="bi bi-box-seam"></i></div>
-      <div class="meta">
-        <div class="n">{{ $stats['products'] ?? 0 }}</div>
-        <div class="t">Sản phẩm</div>
-      </div>
-      <a href="{{ route('staff.products.index') }}" class="btn btn-ghost">Chi tiết</a>
-    </div>
-  </div>
-
-  <div class="col-md-6 col-lg-3">
-    <div class="s-card">
       <div class="icon"><i class="bi bi-collection"></i></div>
       <div class="meta">
         <div class="n">{{ $stats['suppliers'] ?? 0 }}</div>
         <div class="t">Nhà cung cấp</div>
       </div>
       <a href="{{ route('staff.suppliers.index') }}" class="btn btn-ghost">Chi tiết</a>
+    </div>
+  </div>
+  
+  <div class="col-md-6 col-lg-3">
+    <div class="s-card">
+      <div class="icon"><i class="bi bi-box-seam"></i></div>
+      <div class="meta">
+        <div class="n">{{ $stats['products'] ?? 0 }}</div>
+        <div class="t">Sản phẩm</div>
+      </div>
+      <a href="{{ route('staff.products.index') }}" class="btn btn-ghost">Chi tiết</a>
     </div>
   </div>
 
