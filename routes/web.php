@@ -1,9 +1,11 @@
 <?php
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\ContactController;
+
+use App\Http\Controllers\Customer\ProductController;
+use App\Http\Controllers\Customer\CartController;
+use App\Http\Controllers\Customer\ContactController;
+
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Middleware\RoleMiddleware;

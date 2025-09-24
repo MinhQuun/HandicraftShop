@@ -13,15 +13,17 @@
     <span class="kicker">Handicraft Shop • Nhóm 10</span>
     <h1>Về Chúng Tôi</h1>
     <p>
-      Nền tảng mua sắm các sản phẩm <strong>mỹ nghệ thủ công Việt Nam</strong>,
-      phát triển trong học phần <em>Lập trình mã nguồn mở (PHP &amp; MySQL)</em> – GVHD: ThS. Nguyễn Khắc Duy.
+      <strong>Handicraft Shop</strong> là website học phần <em>Lập trình mã nguồn mở (PHP &amp; MySQL)</em>,
+      tập trung giới thiệu và bán các sản phẩm <strong>mỹ nghệ thủ công Việt Nam</strong>. Mục tiêu của dự án là
+      thực hành quy trình phát triển web đầy đủ: thiết kế CSDL, xây dựng tính năng, tối ưu giao diện và trải nghiệm.
+      (GVHD: ThS. Nguyễn Khắc Duy)
     </p>
 
-    {{-- (Tuỳ chọn) Dãy số liệu nhanh --}}
+    {{-- Số liệu nhanh (chỉ-dấu trạng thái, không dùng % hay đếm “50+”) --}}
     <div class="stats">
-      <div class="stat"><span class="n">2</span><span class="t">Danh mục cấp</span></div>
-      <div class="stat"><span class="n">50+</span><span class="t">Sản phẩm demo</span></div>
-      <div class="stat"><span class="n">100%</span><span class="t">Responsive</span></div>
+      <div class="stat"><span class="n">3</span><span class="t">Phân hệ: Khách • Nhân viên • Admin</span></div>
+      <div class="stat"><span class="n">v1.0</span><span class="t">Bản phát hành lớp học</span></div>
+      <div class="stat"><span class="n">Đang phát triển</span><span class="t">Hoàn thiện &amp; mở rộng</span></div>
     </div>
   </section>
 
@@ -32,25 +34,26 @@
       <h2>Đề tài</h2>
       <div class="divider"></div>
       <p>
-        <strong>Website bán hàng Mỹ Nghệ</strong>: xây dựng một cửa hàng trực tuyến cho các sản phẩm thủ công
-        (mây, tre, cói, lục bình…), cho phép người dùng duyệt danh mục, xem chi tiết, thêm giỏ hàng và đặt mua.
+        <strong>Website bán hàng Mỹ Nghệ</strong>: xây dựng cửa hàng trực tuyến cho sản phẩm thủ công
+        (mây, tre, cói, lục bình…). Người dùng có thể duyệt theo danh mục, xem chi tiết, thêm vào giỏ
+        và đặt mua; dữ liệu đơn hàng được lưu để theo dõi xử lý.
       </p>
 
       <h2 style="margin-top:18px;">Mô tả</h2>
       <div class="divider"></div>
       <p>
-        Hệ thống hướng đến trải nghiệm đơn giản, rõ ràng và phù hợp với đặc thù sản phẩm thủ công: trình bày đẹp,
-        phân loại theo <em>Danh mục</em> và <em>Chất liệu</em>, tối ưu tìm kiếm và hiển thị hình ảnh.
-        Bên quản trị có thể quản lý sản phẩm, đơn hàng và khách hàng.
+        Kiến trúc theo <em>2 cấp danh mục</em> (Danh mục &rarr; Loại/Chất liệu) giúp tìm sản phẩm nhanh.
+        Giao diện nhấn mạnh hình ảnh, bố cục rõ ràng, phù hợp đặc thù hàng thủ công. Phía quản trị có màn hình
+        quản lý sản phẩm, đơn hàng, khách hàng; phía nhân viên có công cụ tác nghiệp (lọc, tìm, phân trang, modal).
       </p>
 
       <h2 style="margin-top:18px;">Chức năng chính</h2>
       <div class="divider"></div>
       <ul class="about-list">
-        <li>Danh mục – Loại (2 cấp): duyệt theo Chất liệu, Lồng bàn, Giỏ…, tìm kiếm sản phẩm.</li>
-        <li>Giỏ hàng, đặt hàng (COD/ghi nhận đơn), theo dõi trạng thái đơn.</li>
-        <li>Trang quản trị: quản lý danh mục, loại, sản phẩm, đơn hàng, khách hàng.</li>
-        <li>Giao diện responsive, icon Font Awesome, jQuery hỗ trợ tương tác cơ bản.</li>
+        <li>Duyệt theo <strong>Danh mục &rarr; Loại/Chất liệu</strong>, tìm kiếm sản phẩm.</li>
+        <li><strong>Giỏ hàng &amp; Đặt hàng</strong> (ghi nhận thông tin đơn, trạng thái).</li>
+        <li><strong>Quản trị &amp; Nhân viên</strong>: CRUD danh mục/loại/sản phẩm, quản lý đơn, khách hàng.</li>
+        <li><strong>Giao diện responsive</strong>, dùng Bootstrap 5, Font Awesome; tương tác cơ bản bằng JS.</li>
       </ul>
 
       <h2 style="margin-top:18px;">Công nghệ sử dụng</h2>
@@ -74,8 +77,8 @@
       <h2 style="margin-top:18px;">Liên hệ</h2>
       <div class="divider"></div>
       <p class="contact-note">
-        Mọi góp ý cho website xin gửi qua trang
-        <a href="{{ route('contact') }}">Liên hệ</a>. Chúng mình luôn trân trọng ý kiến để hoàn thiện dự án tốt hơn.
+        Mọi góp ý cho website xin gửi qua trang <a href="{{ route('contact') }}">Liên hệ</a>.
+        Nhóm luôn trân trọng ý kiến để hoàn thiện dự án tốt hơn.
       </p>
     </aside>
   </section>
