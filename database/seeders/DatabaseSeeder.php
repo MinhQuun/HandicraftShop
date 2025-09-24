@@ -20,5 +20,9 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call(QuyenSeeder::class);
         $this->call([UserSeeder::class,]);
+        
+        $this->call([
+            KhachHangSeeder::class,
+        ]);
     }
 }

@@ -65,18 +65,7 @@
           </li>
 
           <li class="nav-item mt-2 text-muted small">Sản phẩm</li>
-          {{-- <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('staff.categories.*') ? 'active' : '' }}"
-                href="{{ route('staff.categories.index') }}">
-              <i class="bi bi-collection me-2"></i> Danh mục
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('staff.types.*') ? 'active' : '' }}"
-                href="{{ route('staff.types.index') }}">
-              <i class="bi bi-tags me-2"></i> Loại
-            </a>
-          </li> --}}
+          
           <li class="nav-item">
             <a class="nav-link {{ request()->routeIs('staff.suppliers.*') ? 'active' : '' }}"
                 href="{{ route('staff.suppliers.index') }}">
