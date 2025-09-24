@@ -113,15 +113,15 @@
                 </td>
                 <td class="text-end">
                     <button
-                    class="btn btn-sm btn-primary-soft me-1 btn-edit"
-                    data-bs-toggle="modal" data-bs-target="#modalEdit"
-                    data-id="{{ $id }}"
-                    data-name="{{ $name }}"
-                    data-price="{{ $price }}"
-                    data-stock="{{ $stock }}"
-                    data-category="{{ $p->MALOAI ?? $p->loai->MALOAI ?? $p->category_id ?? '' }}"
-                    data-image="{{ $img }}"
-                    title="Sửa">
+                        class="btn btn-sm btn-primary-soft me-1 btn-edit"
+                        data-bs-toggle="modal" data-bs-target="#modalEdit"
+                        data-id="{{ $id }}"
+                        data-name="{{ $name }}"
+                        data-price="{{ $price }}"
+                        data-stock="{{ $stock }}"
+                        data-category="{{ $p->MALOAI ?? $p->loai->MALOAI ?? $p->category_id ?? '' }}"
+                        data-image="{{ $img }}"
+                        title="Sửa">
                     <i class="bi bi-pencil"></i>
                     </button>
 
@@ -195,18 +195,15 @@
             <div class="col-md-6">
                 <label class="form-label">Loại</label>
                 <select name="MALOAI" class="form-select" required>
-                @isset($categories)
-                    <select name="loai" class="form-select">
-                        <option value="">-- Tất cả loại --</option>
+                    @isset($categories)
                         @foreach($categories as $cat)
-                        <option value="{{ $cat->MALOAI }}"
-                                {{ ($loai ?? request('loai')) == $cat->MALOAI ? 'selected' : '' }}>
-                            {{ $cat->TENLOAI }}
+                        <option value="{{ $cat->MALOAI ?? $cat->id }}">
+                            {{ $cat->TENLOAI ?? $cat->name }}
                         </option>
                         @endforeach
-                    </select>
-                @endisset
+                    @endisset
                 </select>
+
             </div>
             <div class="col-md-6">
                 <label class="form-label">Hình ảnh</label>
@@ -264,9 +261,9 @@
                 <label class="form-label">Hình ảnh (tuỳ chọn)</label>
                 <input id="e_image" type="file" name="HINHANH" class="form-control" accept="image/*">
                 <div class="mt-2 d-flex align-items-center gap-2">
-                <img class="thumb" src="{{ asset('assets/images/'.$p->HINHANH) }}" alt="{{ $p->TENSANPHAM }}">
-                {{-- <img id="e_preview" class="thumb" style="display:none;" alt="preview"> --}}
-                <span id="e_imgname" class="text-muted small"></span>
+                    {{-- <img class="thumb" src="{{ asset('assets/images/'.$p->HINHANH) }}" alt="{{ $p->TENSANPHAM }}"> --}}
+                    <img id="e_preview" class="thumb" style="display:none;" alt="preview">
+                    <span id="e_imgname" class="text-muted small"></span>
                 </div>
             </div>
             <div class="col-12">

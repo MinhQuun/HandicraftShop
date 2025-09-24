@@ -253,3 +253,15 @@
     transform: translateY(-2px);
     filter: brightness(1.02);
 }
+/* Card khung bảng */
+.card {
+    border-radius: 16px;
+    border: 1px solid var(--card-brd);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+.card-header {
+    background: linear-gradient(180deg, #f9feff, #f4fbfd);
+    border-bottom: 1px solid var(--card-brd);
+}

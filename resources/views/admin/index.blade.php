@@ -2,142 +2,186 @@
 @section('title','Quản lý người dùng')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/admin-users.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin-users.css') }}">
 @endpush
 
 @section('content')
-    {{-- Flash messages để JS đọc và hiện SweetAlert2 --}}
-    <div id="flash-data"
-         data-success="{{ session('success') }}"
-         data-error="{{ session('error') }}"></div>
+    {{-- FLASH data (giống staff) --}}
+    <div id="flash"
+        data-success="{{ session('success') }}"
+        data-error="{{ session('error') }}"
+        data-info="{{ session('info') }}"
+        data-warning="{{ session('warning') }}">
+    </div>
 
-    <div class="admin-users">
-        <div class="au-header">
-            <div>
-                <h2 class="title">Quản lý tài khoản</h2>
-                <p class="subtitle">Thêm / sửa / xoá & phân quyền người dùng</p>
-            </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreate">Thêm mới</button>
-        </div>
+    {{-- Header đồng bộ staff --}}
+    <section class="page-header">
+        <span class="kicker">Admin</span>
+        <h1 class="title">Quản lý người dùng</h1>
+        <p class="muted">Thêm, sửa, xoá & phân quyền tài khoản.</p>
+    </section>
 
-        <form class="au-filter row g-2 align-items-center" method="get">
-            <div class="col-md-6">
-                <input class="form-control" name="q" value="{{ $q }}" placeholder="Tìm theo tên, email, điện thoại...">
-            </div>
-            <div class="col-md-3">
-                <select name="role" class="form-select">
-                    <option value="">— Tất cả quyền —</option>
-                    @foreach($roles as $r)
-                        <option value="{{ strtolower($r->TENQUYEN) }}" {{ $roleFilter===strtolower($r->TENQUYEN)?'selected':'' }}>
+    {{-- Bộ lọc / tìm kiếm (đồng bộ staff-products) --}}
+    <div class="card users-filter mb-3">
+        <div class="card-body">
+            <form class="row g-2 align-items-center" method="get" action="{{ route('admin.users.index') }}">
+                <div class="col-lg-5">
+                    <input class="form-control" name="q" value="{{ $q ?? request('q') }}"
+                        placeholder="Tìm theo tên, email, điện thoại...">
+                </div>
+                <div class="col-lg-3">
+                    <select name="role" class="form-select">
+                        @php $rf = $roleFilter ?? request('role'); @endphp
+                        <option value="">— Tất cả quyền —</option>
+                        @foreach($roles as $r)
+                        @php $val = strtolower($r->TENQUYEN); @endphp
+                        <option value="{{ $val }}" {{ $rf===$val ? 'selected' : '' }}>
                             {{ $r->TENQUYEN }} ({{ $r->MAQUYEN }})
                         </option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-3 d-flex gap-2">
-                <button class="btn btn-outline-primary">Lọc</button>
-                <a class="btn btn-outline-secondary" href="{{ route('admin.users.index') }}">Xoá lọc</a>
-            </div>
-        </form>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-lg-2 d-flex gap-2 justify-content-lg-end">
+                    <button class="btn btn-outline-primary">Lọc</button>
+                    <a class="btn btn-outline-secondary" href="{{ route('admin.users.index') }}">Xoá lọc</a>
+                </div>
+                {{-- <div class="col-lg-2 text-lg-end">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreate">
+                        <i class="bi bi-plus-circle me-1"></i> Thêm mới
+                    </button>
+                </div> --}}
+            </form>
+        </div>
+    </div>
 
-        <div class="card shadow-sm">
-            <div class="table-responsive">
-                <table class="table align-middle mb-0 table-fixed">
-                    <colgroup>
-                        <col style="width:50px;">    {{-- ID --}}
-                        <col style="width:16%;">     {{-- Họ tên  --}}
-                        <col style="width:21%;">     {{-- Email  --}}
-                        <col style="width:11%;">     {{-- Điện thoại  --}}
-                        <col style="width:30%;">     {{-- Quyền  --}}
-                        <col style="width:12%;">     {{-- Thao tác  --}}
-                    </colgroup>
-
-                    <thead>
+    {{-- Bảng dữ liệu (đồng bộ staff: card, thead, hover, soft buttons) --}}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="m-0">Danh sách người dùng</h5>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreate">
+                <i class="bi bi-plus-circle me-1"></i> Thêm mới
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover users-table table-fixed">
+                <colgroup>
+                    <col style="width:60px;">
+                    <col style="width:16%;">
+                    <col style="width:20%;">
+                    <col style="width:12%;">
+                    <col style="width:32%;">
+                    <col style="width:12%;">
+                </colgroup>
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Họ tên</th>
                         <th>Email</th>
-                        <th>Điện thoại</th>
+                        <th>SĐT</th>
                         <th>Quyền</th>
                         <th class="text-end">Thao tác</th>
                     </tr>
-                    </thead>
-                    <tbody>
+                </thead>
+                <tbody>
                     @forelse($users as $u)
                         @php
-                            $firstRole = optional($u->roles->first());
-                            $roleId    = $firstRole->MAQUYEN ?? null;
-                            $roleName  = strtolower($firstRole->TENQUYEN ?? '');
-                            $isAdmin   = $roleId === $adminId;
-                            $isKhach   = $roleId === $khachhangId;
+                        $firstRole = optional($u->roles->first());
+                        $roleId    = $firstRole->MAQUYEN ?? null;
+                        $isAdmin   = $roleId === ($adminId ?? null);
+                        $isKhach   = $roleId === ($khachhangId ?? null);
                         @endphp
                         <tr>
-                            <td>{{ $u->id }}</td>
-                            <td class="text-truncate">{{ $u->name }}</td>
-                            <td class="text-truncate">{{ $u->email }}</td>
-                            <td class="text-truncate">{{ $u->phone }}</td>
+                        <td>{{ $u->id }}</td>
+                        <td class="text-truncate" title="{{ $u->name }}">{{ $u->name }}</td>
+                        <td class="text-truncate" title="{{ $u->email }}">{{ $u->email }}</td>
+                        <td class="text-truncate" title="{{ $u->phone }}">{{ $u->phone }}</td>
 
-                            {{-- QUYỀN: bố cục cố định Badge | Select | Lưu --}}
-                            <td class="role-cell">
-                                <form action="{{ route('admin.users.updateRole',$u) }}" method="post">
-                                    @csrf
-                                    <div class="role-wrap">
-                                        <span class="badge rounded-pill
-                                            {{ $isAdmin ? 'text-bg-danger' : ($isKhach ? 'text-bg-secondary' : 'text-bg-success') }}">
-                                            {{ $firstRole->TENQUYEN ?? '—' }}
-                                        </span>
+                        {{-- Cột Quyền: Badge | Select | Lưu (giữ bố cục cố định) --}}
+                        <td class="role-cell">
+                            <form action="{{ route('admin.users.updateRole',$u) }}" method="post">
+                            @csrf
+                            <div class="role-wrap">
+                                <span class="badge rounded-pill
+                                {{ $isAdmin ? 'text-bg-danger' : ($isKhach ? 'text-bg-secondary' : 'text-bg-success') }}">
+                                {{ $firstRole->TENQUYEN ?? '—' }}
+                                </span>
 
-                                        <select name="MAQUYEN"
-                                                class="form-select form-select-sm role-select"
-                                                data-lock="{{ $isAdmin ? 'admin' : '' }}"
-                                                data-staff="{{ $nhanvienId }}"
-                                                data-khach="{{ $khachhangId }}"
-                                                {{ $isKhach ? 'disabled title=Khách hàng không được đổi quyền' : '' }}>
-                                            @foreach($roles as $r)
-                                                <option value="{{ $r->MAQUYEN }}"
-                                                        {{ $roleId===$r->MAQUYEN ? 'selected' : '' }}
-                                                        @if($roleId === $nhanvienId && $r->MAQUYEN === $khachhangId)
-                                                            disabled title="Nhân viên không thể hạ xuống Khách hàng"
-                                                        @endif>
-                                                    {{ $r->TENQUYEN }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                <select name="MAQUYEN"
+                                        class="form-select form-select-sm role-select"
+                                        data-lock="{{ $isAdmin ? 'admin' : '' }}"
+                                        data-staff="{{ $nhanvienId ?? '' }}"
+                                        data-khach="{{ $khachhangId ?? '' }}"
+                                        {{ $isKhach ? 'disabled title=Khách hàng không được đổi quyền' : '' }}>
+                                @foreach($roles as $r)
+                                    <option value="{{ $r->MAQUYEN }}"
+                                            {{ $roleId===$r->MAQUYEN ? 'selected' : '' }}
+                                            @if(($roleId ?? null) === ($nhanvienId ?? null) && $r->MAQUYEN === ($khachhangId ?? null))
+                                            disabled title="Nhân viên không thể hạ xuống Khách hàng"
+                                            @endif>
+                                    {{ $r->TENQUYEN }}
+                                    </option>
+                                @endforeach
+                                </select>
 
-                                        <button class="btn btn-sm btn-success-soft role-save" {{ $isKhach ? 'disabled' : '' }}>
-                                            <i class="bi bi-check2-circle me-1"></i>Lưu
-                                        </button>
-                                    </div>
-                                </form>
-                            </td>
-
-                            {{-- THAO TÁC: nút đồng cỡ, không nhảy --}}
-                            <td class="td-actions text-end">
-                                <button class="btn btn-sm btn-primary-soft action-btn"
-                                        data-bs-toggle="modal" data-bs-target="#modalEdit"
-                                        data-id="{{ $u->id }}" data-name="{{ $u->name }}"
-                                        data-email="{{ $u->email }}" data-phone="{{ $u->phone }}">
-                                    <i class="bi bi-pencil-square me-1"></i>Sửa
+                                <button class="btn btn-sm btn-success-soft role-save" {{ $isKhach ? 'disabled' : '' }}>
+                                <i class="bi bi-check2-circle me-1"></i>Lưu
                                 </button>
+                            </div>
+                            </form>
+                        </td>
 
-                                {{-- Bỏ confirm() inline – JS sẽ hiện SweetAlert2 --}}
-                                <form action="{{ route('admin.users.destroy',$u) }}" method="post" class="d-inline">
-                                    @csrf @method('delete')
-                                    <button class="btn btn-sm btn-danger-soft action-btn"
-                                            {{ $isAdmin ? 'disabled title=Không thể xoá Admin' : '' }}>
-                                        <i class="bi bi-trash me-1"></i>Xoá
-                                    </button>
-                                </form>
-                            </td>
+                        {{-- Thao tác: soft buttons, cố định kích thước --}}
+                        <td class="td-actions text-end">
+                            <button class="btn btn-sm btn-primary-soft action-btn"
+                                    data-bs-toggle="modal" data-bs-target="#modalEdit"
+                                    data-id="{{ $u->id }}"
+                                    data-name="{{ $u->name }}"
+                                    data-email="{{ $u->email }}"
+                                    data-phone="{{ $u->phone }}">
+                            <i class="bi bi-pencil me-1"></i>
+                            </button>
+
+                            <form action="{{ route('admin.users.destroy',$u) }}" method="post" class="d-inline form-delete">
+                            @csrf @method('delete')
+                            <button class="btn btn-sm btn-danger-soft action-btn"
+                                    {{ $isAdmin ? 'disabled title=Không thể xoá Admin' : '' }}>
+                                <i class="bi bi-trash me-1"></i>
+                            </button>
+                            </form>
+                        </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center text-muted">Không có dữ liệu</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted py-4">Không có dữ liệu</td></tr>
                     @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="p-3">{{ $users->links() }}</div>
+                </tbody>
+            </table>
         </div>
+
+        {{-- Phân trang custom (đồng phong cách staff) --}}
+        @php($sp = $users)
+        @if ($sp->lastPage() > 1)
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+            @if ($sp->currentPage() > 1)
+                <li class="page-item">
+                <a class="page-link" href="{{ $sp->url($sp->currentPage() - 1) }}">Trước</a>
+                </li>
+            @endif
+
+            @for ($i = 1; $i <= $sp->lastPage(); $i++)
+                <li class="page-item {{ $i === $sp->currentPage() ? 'active' : '' }}">
+                <a class="page-link" href="{{ $sp->url($i) }}">{{ $i }}</a>
+                </li>
+            @endfor
+
+            @if ($sp->currentPage() < $sp->lastPage())
+                <li class="page-item">
+                <a class="page-link" href="{{ $sp->url($sp->currentPage() + 1) }}">Sau</a>
+                </li>
+            @endif
+            </ul>
+        </nav>
+        @endif
     </div>
 
     {{-- Modal tạo --}}
@@ -166,7 +210,6 @@
                         <label class="form-label">Mật khẩu</label>
                         <input type="password" name="password" class="form-control" minlength="6" required>
                     </div>
-                    {{-- Thêm xác nhận mật khẩu để khớp rule confirmed --}}
                     <div class="col-md-6">
                         <label class="form-label">Xác nhận mật khẩu</label>
                         <input type="password" name="password_confirmation" class="form-control" minlength="6" required>
@@ -174,9 +217,9 @@
                     <div class="col-md-6">
                         <label class="form-label">Quyền</label>
                         <select name="MAQUYEN" class="form-select" required>
-                            @foreach($roles as $r)
-                                <option value="{{ $r->MAQUYEN }}">{{ $r->TENQUYEN }} ({{ $r->MAQUYEN }})</option>
-                            @endforeach
+                        @foreach($roles as $r)
+                            <option value="{{ $r->MAQUYEN }}">{{ $r->TENQUYEN }} ({{ $r->MAQUYEN }})</option>
+                        @endforeach
                         </select>
                     </div>
                 </div>
@@ -191,7 +234,8 @@
     {{-- Modal sửa --}}
     <div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
-            <form id="formEdit" class="modal-content" method="post">
+            <form id="formEdit" class="modal-content" method="post"
+                    data-action-template="{{ route('admin.users.update', ':id') }}">
                 @csrf @method('put')
                 <div class="modal-header">
                     <h5 class="modal-title">Sửa người dùng</h5>
@@ -214,7 +258,6 @@
                         <label class="form-label">Đổi mật khẩu (tuỳ chọn)</label>
                         <input type="password" name="password" class="form-control" minlength="6" placeholder="Để trống nếu không đổi">
                     </div>
-                    {{-- Thêm xác nhận mật khẩu (tuỳ chọn) để khớp confirmed --}}
                     <div class="col-md-6">
                         <label class="form-label">Xác nhận mật khẩu (tuỳ chọn)</label>
                         <input type="password" name="password_confirmation" class="form-control" minlength="6" placeholder="Để trống nếu không đổi">
@@ -230,5 +273,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/admin-users.js') }}"></script>
+    <script src="{{ asset('js/admin-users.js') }}"></script>
 @endpush

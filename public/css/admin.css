@@ -1,15 +1,20 @@
 /* ===================== PALETTE ===================== */
 :root {
-    --bg-ivory-1: #f7f2ea;
-    --bg-ivory-2: #faf6f0;
-    --card: #fffaf5;
-    --card-brd: #e7d6c4;
-    --text: #3b352d;
-    --muted: #6f6559;
-    --wood: #8c6d3b;
-    --moss: #6a8f55;
-    --wheat: #c8a97e;
-    --shadow: 0 16px 32px rgba(120, 92, 58, 0.14);
+    /* Staff palette */
+    --bg-ivory-1: #f1f7fb; /* = staff bg-sky-1 */
+    --bg-ivory-2: #eef6f7; /* = staff bg-sky-2 */
+    --card: #ffffff;
+    --card-brd: #d7e6ee;
+    --text: #23323a;
+    --muted: #617481;
+
+    /* Map sang màu Staff */
+    --wood: #3a86ff; /* = staff blue */
+    --moss: #1aa3a3; /* = staff teal */
+    --wheat: #5e60ce; /* = staff indigo */
+    --indigo: #5e60ce; /* thêm để dùng cho title */
+
+    --shadow: 0 16px 32px rgba(37, 103, 131, 0.14);
 }
 
 /* ===================== BASE ===================== */
@@ -30,9 +35,10 @@
 
 /* ===================== TOPBAR ===================== */
 .admin-topbar {
-    background: linear-gradient(90deg, #574b3f, #7a6141);
+    background: linear-gradient(90deg, #145466, #177b7b);
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
+
 .admin-topbar .navbar-brand {
     color: #fff;
 }
@@ -108,7 +114,7 @@
     border: 1px solid var(--card-brd);
     color: var(--muted);
 }
-.page-header .title {
+/* .page-header .title {
     margin: 10px 0 4px;
     font-weight: 800;
     line-height: 1.1;
@@ -117,7 +123,14 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+} */
+.page-header .title {
+    background: linear-gradient(90deg, var(--indigo), var(--wood), var(--moss));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
 }
+
 .page-header .muted {
     color: var(--muted);
 }
@@ -137,7 +150,8 @@
     grid-template-columns: 60px 1fr auto; /* icon | text-block | button */
     align-items: center;
     gap: 16px;
-    transition: transform 0.25s, box-shadow 0.25s, background 0.25s, border-color 0.25s;
+    transition: transform 0.25s, box-shadow 0.25s, background 0.25s,
+        border-color 0.25s;
     cursor: pointer;
 }
 
@@ -156,7 +170,11 @@
     border-radius: 12px;
     display: grid;
     place-items: center;
-    background: linear-gradient(135deg, rgba(140, 109, 59, 0.15), rgba(106, 143, 85, 0.15));
+    background: linear-gradient(
+        135deg,
+        rgba(140, 109, 59, 0.15),
+        rgba(106, 143, 85, 0.15)
+    );
     color: var(--wood);
     font-size: 26px;
     flex-shrink: 0;
