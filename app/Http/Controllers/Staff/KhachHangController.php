@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class KhachHangController extends Controller
 {
@@ -57,13 +58,28 @@ class KhachHangController extends Controller
      */
     public function store(Request $r)
     {
+        $r->merge([
+            'SODIENTHOAI' => $r->filled('SODIENTHOAI')
+                ? preg_replace('/\D+/', '', $r->SODIENTHOAI)
+                : null,
+        ]);
+
         $r->validate([
-            'HOTEN'        => ['required', 'string', 'min:2', 'max:50'],
-            'EMAIL'        => ['required', 'email:rfc,dns', 'max:255', 'unique:users,email'],
-            'SODIENTHOAI'  => ['nullable', 'regex:/^0\d{9}$/'],
-            'password'     => ['nullable', 'confirmed', Password::min(6)],
+            'HOTEN'        => ['required','string','min:2','max:50'],
+            'EMAIL'        => ['required','email:rfc,dns','max:255','unique:users,email'],
+            'SODIENTHOAI'  => ['bail','required','regex:/^0\d{9}$/', Rule::unique('KHACHHANG','SODIENTHOAI'),],
+            'password'     => ['nullable','confirmed', Password::min(6)], 
         ],[
-            'SODIENTHOAI.regex' => 'Số điện thoại phải gồm 10 số và bắt đầu bằng số 0.',
+            'HOTEN.required'       => 'Vui lòng nhập họ và tên.',
+            'HOTEN.min'            => 'Họ và tên phải có ít nhất :min ký tự.',
+            'EMAIL.required'       => 'Vui lòng nhập email.',
+            'EMAIL.email'          => 'Email không hợp lệ.',
+            'EMAIL.unique'         => 'Email đã được sử dụng.',
+            'SODIENTHOAI.required' => 'Vui lòng nhập số điện thoại.',
+            'SODIENTHOAI.regex'    => 'Số điện thoại phải gồm 10 số và bắt đầu bằng số 0.',
+            'SODIENTHOAI.unique'   => 'Số điện thoại này đã tồn tại.',
+            'password.confirmed'   => 'Xác nhận mật khẩu không khớp.',
+            'password.min'         => 'Mật khẩu phải từ :min ký tự trở lên.',
         ]);
 
         $roleId = $this->roleId('khachhang');
@@ -128,13 +144,26 @@ class KhachHangController extends Controller
     /** UPDATE: cập nhật hồ sơ KH + sync sang users (nếu có) + đổi mật khẩu (tuỳ chọn) */
     public function update(Request $r, KhachHang $customer)
     {
+        $r->merge([
+            'SODIENTHOAI' => $r->filled('SODIENTHOAI')
+                ? preg_replace('/\D+/', '', $r->SODIENTHOAI)
+                : null,
+        ]);
+
         $r->validate([
-            'HOTEN'        => ['required', 'string', 'min:2', 'max:50'],
-            'EMAIL'        => ['nullable', 'email:rfc,dns', 'max:255'],
-            'SODIENTHOAI'  => ['nullable', 'regex:/^0\d{9}$/'],
-            'password'     => ['nullable', 'confirmed', Password::min(6)],
+            'HOTEN'        => ['required','string','min:2','max:50'],
+            'EMAIL'        => ['nullable','email:rfc,dns','max:255'],
+            'SODIENTHOAI'  => ['bail','required','regex:/^0\d{9}$/', Rule::unique('KHACHHANG','SODIENTHOAI')->ignore($customer->MAKHACHHANG, 'MAKHACHHANG'),],
+            'password'     => ['nullable','confirmed', Password::min(6)], 
         ],[
-            'SODIENTHOAI.regex' => 'Số điện thoại phải gồm 10 số và bắt đầu bằng số 0.',
+            'HOTEN.required'       => 'Vui lòng nhập họ và tên.',
+            'HOTEN.min'            => 'Họ và tên phải có ít nhất :min ký tự.',
+            'EMAIL.email'          => 'Email không hợp lệ.',
+            'SODIENTHOAI.required' => 'Vui lòng nhập số điện thoại.',
+            'SODIENTHOAI.regex'    => 'Số điện thoại phải gồm 10 số và bắt đầu bằng số 0.',
+            'SODIENTHOAI.unique'   => 'Số điện thoại này đã tồn tại.',
+            'password.confirmed'   => 'Xác nhận mật khẩu không khớp.',
+            'password.min'         => 'Mật khẩu phải từ :min ký tự trở lên.',
         ]);
 
         DB::beginTransaction();

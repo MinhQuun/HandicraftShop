@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Đảm bảo dropdown filter đóng & không đè lên modal
+    // ===== Utilities
+    const $doc = document.documentElement;
+    const hasBootstrap = typeof window.bootstrap !== "undefined";
+
     function blurFilterSelects() {
         document
             .querySelectorAll(
@@ -8,11 +11,13 @@ document.addEventListener("DOMContentLoaded", () => {
             .forEach((el) => el.blur());
     }
 
+    // ===== Nút "Thêm mới" → đóng dropdown filter trước khi mở modal
     const btnCreate = document.querySelector('[data-bs-target="#modalCreate"]');
     if (btnCreate) {
         btnCreate.addEventListener("click", blurFilterSelects);
     }
 
+    // ===== Modal Create
     const modalCreate = document.getElementById("modalCreate");
     if (modalCreate) {
         modalCreate.addEventListener("show.bs.modal", () => {
@@ -25,37 +30,50 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ===== Modal Edit: đổ dữ liệu + set action =====
+    // ===== Modal Edit
     const editModal = document.getElementById("modalEdit");
     if (editModal) {
         editModal.addEventListener("show.bs.modal", (evt) => {
-            const btn = evt.relatedTarget;
-            const id = btn?.getAttribute("data-id");
-            const name = btn?.getAttribute("data-name") || "";
-            const email = btn?.getAttribute("data-email") || "";
-            const phone = btn?.getAttribute("data-phone") || "";
-            // const hasUser = btn?.getAttribute("data-hasuser") === "1";
-
-            editModal.querySelector("#e_name").value = name;
-            editModal.querySelector("#e_email").value = email;
-            editModal.querySelector("#e_phone").value = phone;
-
-            // set form action
             const form = editModal.querySelector("#formEdit");
-            const tpl = form.getAttribute("data-action-template") || "";
-            form.action = tpl.replace(":id", id);
+            const tpl = form?.getAttribute("data-action-template") || "";
 
-            // clear reset password inputs
-            const pw = editModal.querySelector("#e_password");
-            if (pw) pw.value = "";
-            const pw2 = editModal.querySelector(
-                'input[name="password_confirmation"]'
-            );
-            if (pw2) pw2.value = "";
+            // Nếu mở từ nút "Sửa" trên bảng (có relatedTarget) → đổ dữ liệu từ data-*
+            if (evt.relatedTarget) {
+                const btn = evt.relatedTarget;
+                const id = btn.getAttribute("data-id");
+                const name = btn.getAttribute("data-name") || "";
+                const email = btn.getAttribute("data-email") || "";
+                const phone = btn.getAttribute("data-phone") || "";
+
+                // Chỉ set value khi mở từ button; nếu mở vì lỗi validate,
+                // các giá trị old() đã được Blade render sẵn, không đè lên.
+                const iName = editModal.querySelector("#e_name");
+                const iEmail = editModal.querySelector("#e_email");
+                const iPhone = editModal.querySelector("#e_phone");
+                if (iName) iName.value = name;
+                if (iEmail) iEmail.value = email;
+                if (iPhone) iPhone.value = phone;
+
+                if (form && tpl) form.action = tpl.replace(":id", id);
+
+                // Clear 2 ô mật khẩu
+                const pw = editModal.querySelector("#e_password");
+                const pw2 = editModal.querySelector(
+                    'input[name="password_confirmation"]'
+                );
+                if (pw) pw.value = "";
+                if (pw2) pw2.value = "";
+            } else {
+                // Nếu mở vì lỗi validate (không có relatedTarget),
+                // đặt action theo editing_id mà Blade đã set vào dataset
+                const editId = $doc.dataset.editId || "";
+                if (form && tpl && editId)
+                    form.action = tpl.replace(":id", editId);
+            }
         });
     }
 
-    // ===== SweetAlert2 Confirm Delete =====
+    // ===== SweetAlert2 Confirm Delete
     document.querySelectorAll("form.form-delete").forEach((f) => {
         f.addEventListener("submit", function (e) {
             e.preventDefault();
@@ -76,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // ===== Toast từ flash session =====
+    // ===== Toast từ flash session
     const flash = document.getElementById("flash");
     if (flash && window.Swal) {
         const msg =
@@ -100,6 +118,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 timer: 2200,
                 timerProgressBar: true,
             });
+        }
+    }
+
+    // ===== Tự mở lại đúng modal khi có lỗi validate (server-side)
+    if (hasBootstrap && document.querySelector(".modal")) {
+        const errCount = parseInt($doc.dataset.laravelErrors || "0", 10);
+        const whichForm = $doc.dataset.laravelForm || "";
+        if (errCount > 0) {
+            if (whichForm === "create") {
+                const m = document.getElementById("modalCreate");
+                if (m) new bootstrap.Modal(m).show();
+            } else if (whichForm === "edit") {
+                const m = document.getElementById("modalEdit");
+                if (m) new bootstrap.Modal(m).show();
+            }
         }
     }
 });

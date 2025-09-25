@@ -6,6 +6,21 @@
 @endpush
 
 @section('content')
+    @php
+        $errCount = $errors->count();
+        $formName = old('_form'); // 'create' hoặc 'edit'
+        $editingId = old('editing_id'); // id đang sửa (nếu có)
+    @endphp
+
+    {{-- Cấu hình cho JS (tự mở lại modal khi có lỗi) --}}
+    @push('scripts')
+    <script>
+        document.documentElement.dataset.laravelErrors = "{{ $errCount }}";
+        document.documentElement.dataset.laravelForm   = "{{ $formName }}";
+        document.documentElement.dataset.editId        = "{{ $editingId }}";
+    </script>
+    @endpush
+
     <section class="page-header">
         <span class="kicker">Nhân viên</span>
         <h1 class="title">Quản lý Khách hàng</h1>
@@ -100,7 +115,7 @@
                             </button>
 
                             <form action="{{ route('staff.customers.destroy', $makh) }}"
-                                    method="post" class="d-inline form-delete">
+                                method="post" class="d-inline form-delete">
                                 @csrf @method('delete')
                                 <button class="btn btn-sm btn-danger-soft" title="Xoá">
                                     <i class="bi bi-trash"></i>
@@ -147,6 +162,8 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <form class="modal-content" method="post" action="{{ route('staff.customers.store') }}">
                 @csrf
+                <input type="hidden" name="_form" value="create">
+
                 <div class="modal-header">
                     <h5 class="modal-title">Thêm Khách hàng</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -155,28 +172,48 @@
                 <div class="modal-body row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Họ tên</label>
-                        <input type="text" name="HOTEN" class="form-control" required>
+                        <input type="text" name="HOTEN"
+                                value="{{ old('HOTEN') }}"
+                                class="form-control @error('HOTEN') is-invalid @enderror"
+                                required>
+                        @error('HOTEN')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Email (đăng nhập)</label>
-                        <input type="email" name="EMAIL" class="form-control" required>
+                        <input type="email" name="EMAIL"
+                                value="{{ old('EMAIL') }}"
+                                class="form-control @error('EMAIL') is-invalid @enderror"
+                                required
+                                title="Vui lòng nhập đúng định dạng email, ví dụ: ten@gmail.com">
+                        @error('EMAIL')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Số điện thoại</label>
-                        <input type="text" name="SODIENTHOAI" class="form-control" placeholder="0xxxxxxxxx">
+                        <input type="tel" name="SODIENTHOAI"
+                                value="{{ old('SODIENTHOAI') }}"
+                                class="form-control @error('SODIENTHOAI') is-invalid @enderror"
+                                required pattern="0\d{9}" minlength="10" maxlength="10" placeholder="0xxxxxxxxx"
+                                title="Số điện thoại phải bắt đầu bằng số 0 và đủ 10 số">
+                        @error('SODIENTHOAI')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Mật khẩu</label>
-                        <input type="password" name="password" class="form-control" placeholder="Ít nhất 6 ký tự">
+                        <input type="password" name="password"
+                                class="form-control @error('password') is-invalid @enderror"
+                                placeholder="Ít nhất 6 ký tự">
+                        @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Xác nhận mật khẩu</label>
                         <input type="password" name="password_confirmation" class="form-control">
                     </div>
+
                     <div class="col-12">
-                        <small class="text-muted">
-                            Nếu để trống mật khẩu, hệ thống sẽ tạo mật khẩu tạm và có thể yêu cầu khách đổi sau.
-                        </small>
+                        <small class="text-muted">Nếu để trống mật khẩu, hệ thống sẽ tạo mật khẩu tạm và có thể yêu cầu khách đổi sau.</small>
                     </div>
                 </div>
 
@@ -194,6 +231,9 @@
             <form id="formEdit" class="modal-content" method="post"
                     data-action-template="{{ route('staff.customers.update', ':id') }}">
                 @csrf @method('put')
+                <input type="hidden" name="_form" value="edit">
+                <input type="hidden" name="editing_id" value="{{ old('editing_id') }}">
+
                 <div class="modal-header">
                     <h5 class="modal-title">Sửa Khách hàng</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -202,21 +242,41 @@
                 <div class="modal-body row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Họ tên</label>
-                        <input id="e_name" type="text" name="HOTEN" class="form-control" required>
+                        <input id="e_name" type="text" name="HOTEN"
+                                value="{{ old('HOTEN') }}"
+                                class="form-control @error('HOTEN') is-invalid @enderror"
+                                required>
+                        @error('HOTEN')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Email</label>
-                        <input id="e_email" type="email" name="EMAIL" class="form-control">
+                        <input id="e_email" type="email" name="EMAIL"
+                                value="{{ old('EMAIL') }}"
+                                class="form-control @error('EMAIL') is-invalid @enderror"
+                                title="Vui lòng nhập đúng định dạng email, ví dụ: ten@gmail.com">
+                        @error('EMAIL')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Số điện thoại</label>
-                        <input id="e_phone" type="text" name="SODIENTHOAI" class="form-control" placeholder="0xxxxxxxxx">
+                        <input id="e_phone" type="tel" name="SODIENTHOAI"
+                                value="{{ old('SODIENTHOAI') }}"
+                                class="form-control @error('SODIENTHOAI') is-invalid @enderror"
+                                required pattern="0\d{9}" minlength="10" maxlength="10" placeholder="0xxxxxxxxx"
+                                title="Số điện thoại phải bắt đầu bằng số 0 và đủ 10 số">
+                        @error('SODIENTHOAI')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Đặt lại mật khẩu (tuỳ chọn)</label>
-                        <input id="e_password" type="password" name="password" class="form-control" placeholder="Ít nhất 6 ký tự">
-                        <input type="password" name="password_confirmation" class="form-control mt-2" placeholder="Xác nhận mật khẩu">
+                        <input id="e_password" type="password" name="password"
+                                class="form-control @error('password') is-invalid @enderror"
+                                placeholder="Ít nhất 6 ký tự">
+                        <input type="password" name="password_confirmation"
+                                class="form-control mt-2" placeholder="Xác nhận mật khẩu">
                         <small class="text-muted d-block mt-1">Để trống nếu không đổi mật khẩu.</small>
+                        @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
                 </div>
 
@@ -230,5 +290,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/staff-customers.js') }}"></script>
+<script src="{{ asset('js/staff-customers.js') }}"></script>
 @endpush
