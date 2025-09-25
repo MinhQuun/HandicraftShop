@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $q    = trim($request->get('q', ''));   // tìm theo tên sp / tên loại
+        $q    = trim($request->get('q', ''));   // tìm theo tên sp / tên loại / NCC
         $loai = $request->get('loai');          // MALOAI filter
 
         $products = DB::table('SANPHAM as s')
@@ -21,8 +21,9 @@ class ProductController extends Controller
             ->when($q, function ($query) use ($q) {
                 $like = '%'.$q.'%';
                 $query->where(function ($x) use ($like) {
-                    $x->where('s.TENSANPHAM', 'like', $like)   // <-- tên sản phẩm
-                    ->orWhere('l.TENLOAI', 'like', $like);    // <-- tên loại
+                    $x->where('s.TENSANPHAM', 'like', $like)   // tên sản phẩm
+                      ->orWhere('l.TENLOAI', 'like', $like)    // tên loại
+                      ->orWhere('n.TENNHACUNGCAP', 'like', $like); // tên NCC
                 });
             })
             ->when($loai, fn($q2) => $q2->where('s.MALOAI', $loai)) // lọc theo MALOAI
@@ -38,30 +39,32 @@ class ProductController extends Controller
                 'l.TENLOAI',
                 'n.TENNHACUNGCAP'
             )
-            ->orderBy('s.MASANPHAM', 'asc') // tăng dần như bạn muốn
+            ->orderBy('s.MASANPHAM', 'asc')
             ->paginate(8)
             ->withQueryString();
 
-        // Lấy danh sách loại cho combobox
         $categories = DB::table('LOAI')
             ->select('MALOAI','TENLOAI')
             ->orderBy('TENLOAI')
             ->get();
 
+        $suppliers = DB::table('NHACUNGCAP')
+            ->select('MANHACUNGCAP','TENNHACUNGCAP')
+            ->orderBy('TENNHACUNGCAP')
+            ->get();
+
         return view('staff.products', [
             'products'   => $products,
-            'categories' => $categories,   // <-- truyền đúng biến mà view đang dùng
+            'categories' => $categories,
+            'suppliers'  => $suppliers,
             'q'          => $q,
             'loai'       => $loai,
         ]);
     }
 
-
     public function store(Request $request)
     {
         $data = $request->validate([
-            // PK không auto → bắt buộc nhập & duy nhất
-            'MASANPHAM'    => ['required','string','max:10', Rule::unique('SANPHAM','MASANPHAM')],
             'TENSANPHAM'   => ['required','string','max:255'],
             'GIABAN'       => ['required','numeric','min:0'],
             'SOLUONGTON'   => ['nullable','integer','min:0'],
@@ -74,9 +77,21 @@ class ProductController extends Controller
 
         if (!isset($data['SOLUONGTON'])) $data['SOLUONGTON'] = 0;
 
+        // === Sinh mã tự động ===
+        $row = DB::selectOne("
+            SELECT MAX(CAST(SUBSTRING(MASANPHAM, 3) AS UNSIGNED)) AS last_num
+            FROM SANPHAM
+            WHERE MASANPHAM REGEXP '^SP[0-9]+$'
+        ");
+        $next = (int)($row->last_num ?? 0) + 1;
+        $data['MASANPHAM'] = 'SP'.str_pad($next, 3, '0', STR_PAD_LEFT);
+
+        // === Lưu ảnh vào public/assets/images ===
         if ($request->hasFile('HINHANH')) {
-            $path = $request->file('HINHANH')->store('HinhAnh', 'public');
-            $data['HINHANH'] = basename($path);
+            $file = $request->file('HINHANH');
+            $name = $this->makePrettyFileName($file);
+            $file->move(public_path('assets/images'), $name);
+            $data['HINHANH'] = $name;
         }
 
         DB::table('SANPHAM')->insert($data);
@@ -89,8 +104,6 @@ class ProductController extends Controller
         $row = DB::table('SANPHAM')->where('MASANPHAM', $id)->first();
         if (!$row) return back()->with('error','Không tìm thấy sản phẩm.');
 
-        // Chấp nhận input từ form là GIABAN/SOLUONGTON (đúng schema).
-        // Nếu form cũ đang gửi GIA/TONKHO thì map sang cho an toàn.
         $payload = $request->all();
         if (isset($payload['GIA']) && !isset($payload['GIABAN'])) {
             $payload['GIABAN'] = $payload['GIA'];
@@ -111,11 +124,15 @@ class ProductController extends Controller
         ])->validate();
 
         if ($request->hasFile('HINHANH')) {
-            $path = $request->file('HINHANH')->store('HinhAnh', 'public');
-            $data['HINHANH'] = basename($path);
+            $file = $request->file('HINHANH');
+            $name = $this->makePrettyFileName($file);
+            $file->move(public_path('assets/images'), $name);
+            $data['HINHANH'] = $name;
 
+            // Xóa ảnh cũ
             if (!empty($row->HINHANH)) {
-                Storage::disk('public')->delete('HinhAnh/'.$row->HINHANH);
+                $oldPath = public_path('assets/images/'.$row->HINHANH);
+                if (file_exists($oldPath)) @unlink($oldPath);
             }
         }
 
@@ -130,11 +147,31 @@ class ProductController extends Controller
         if (!$row) return back()->with('error','Không tìm thấy sản phẩm.');
 
         if (!empty($row->HINHANH)) {
-            Storage::disk('public')->delete('HinhAnh/'.$row->HINHANH);
+            $oldPath = public_path('assets/images/'.$row->HINHANH);
+            if (file_exists($oldPath)) @unlink($oldPath);
         }
 
         DB::table('SANPHAM')->where('MASANPHAM', $id)->delete();
 
         return redirect()->route('staff.products.index')->with('success', 'Đã xoá sản phẩm.');
+    }
+
+    private function makePrettyFileName($file, $dir = null)
+    {
+        $dir = $dir ?: public_path('assets/images');
+        $ext  = strtolower($file->getClientOriginalExtension()); // jpg, png...
+        $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME); 
+        $slug = Str::slug($base, '-'); 
+        if ($slug === '') $slug = 'image';
+
+        $slug = Str::limit($slug, 60, '');
+
+        $name = $slug.'.'.$ext;
+        $i = 2;
+        while (file_exists($dir.DIRECTORY_SEPARATOR.$name)) {
+            $name = $slug.'-'.$i.'.'.$ext; 
+            $i++;
+        }
+        return $name;
     }
 }

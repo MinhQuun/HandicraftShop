@@ -9,21 +9,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const btnCreate = document.querySelector('[data-bs-target="#modalCreate"]');
-    if (btnCreate) {
-        btnCreate.addEventListener("click", blurFilterSelects);
-    }
+    if (btnCreate) btnCreate.addEventListener("click", blurFilterSelects);
 
     const modalCreate = document.getElementById("modalCreate");
     if (modalCreate) {
         modalCreate.addEventListener("show.bs.modal", () => {
-            // Đóng bất kỳ select nào đang mở phía sau
             blurFilterSelects();
-            // Tránh focus vào <select> khiến dropdown tự bật
             document.activeElement && document.activeElement.blur();
         });
-
         modalCreate.addEventListener("shown.bs.modal", () => {
-            // Chủ động focus vào ô tên sản phẩm
             const nameInput = modalCreate.querySelector(
                 'input[name="TENSANPHAM"]'
             );
@@ -41,14 +35,22 @@ document.addEventListener("DOMContentLoaded", () => {
             const price = btn?.getAttribute("data-price") || 0;
             const stock = btn?.getAttribute("data-stock") || 0;
             const cat = btn?.getAttribute("data-category") || "";
+            const sup = btn?.getAttribute("data-supplier") || "";
+            const desc = btn?.getAttribute("data-desc") || "";
             const img = btn?.getAttribute("data-image") || "";
 
             editModal.querySelector("#e_name").value = name;
             editModal.querySelector("#e_price").value = price;
             editModal.querySelector("#e_stock").value = stock;
 
-            const sel = editModal.querySelector("#e_category");
-            if (sel && cat !== "") sel.value = cat;
+            const selCat = editModal.querySelector("#e_category");
+            if (selCat && cat !== "") selCat.value = cat;
+
+            const selSup = editModal.querySelector("#e_supplier");
+            if (selSup) selSup.value = sup;
+
+            const descEl = editModal.querySelector("#e_desc");
+            if (descEl) descEl.value = desc;
 
             // Preview ảnh hiện tại (nếu có)
             const preview = editModal.querySelector("#e_preview");
@@ -56,22 +58,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (img) {
                 let src = img.trim();
-
                 if (/^https?:\/\//i.test(src)) {
-                    // ảnh full URL
+                    // full URL, giữ nguyên
                 } else if (
                     src.startsWith("/assets/") ||
                     src.startsWith("assets/")
                 ) {
                     src = "/" + src.replace(/^\/+/, "");
                 } else {
-                    // chỉ là tên file => dùng thư mục public/assets/images
+                    // chỉ tên file => dùng public/assets/images
                     const BASE = window.APP_IMAGE_BASE || "/assets/images/";
                     src = BASE.replace(/\/+$/, "/") + src.replace(/^\/+/, "");
                 }
-
-                preview.src = src;
-                preview.style.display = "inline-block";
+                if (preview) {
+                    preview.src = src;
+                    preview.style.display = "inline-block";
+                }
                 if (label) label.textContent = src.split("/").pop();
             } else {
                 if (preview) {
@@ -107,7 +109,6 @@ document.addEventListener("DOMContentLoaded", () => {
         f.addEventListener("submit", function (e) {
             e.preventDefault();
             if (!window.Swal) return f.submit();
-
             Swal.fire({
                 title: "Xoá sản phẩm?",
                 text: "Thao tác này không thể hoàn tác.",
