@@ -80,8 +80,11 @@ class ProductController extends Controller
     /** Chi tiết sản phẩm (nếu cần) */
     public function detail(string $id)
     {
-        $p = SanPham::where('MASANPHAM', $id)->firstOrFail();
-        $related = SanPham::where('MALOAI', $p->MALOAI)
+        $p = \App\Models\SanPham::with(['nhaCungCap', 'loai'])
+            ->where('MASANPHAM', $id)
+            ->firstOrFail();
+
+        $related = \App\Models\SanPham::where('MALOAI', $p->MALOAI)
             ->where('MASANPHAM', '!=', $id)->take(8)->get();
 
         return view('pages.detail', compact('p', 'related'));
