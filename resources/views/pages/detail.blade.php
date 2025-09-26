@@ -4,8 +4,6 @@
 
 @push('styles')
   <link rel="stylesheet" href="{{ asset('css/detail.css') }}">
-  {{-- Đã có .btn-qty / .btn-gradient / .btn-outline trong detail.css nên không cần cart.css --}}
-  {{-- <link rel="stylesheet" href="{{ asset('css/cart.css') }}"> --}}
 @endpush
 
 @section('content')
@@ -13,7 +11,14 @@
     {{-- CSRF cho fetch POST --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <div class="container product-detail" data-stock="{{ (int) $p->SOLUONGTON }}">
+    <div
+      class="container product-detail"
+      data-stock="{{ (int) $p->SOLUONGTON }}"
+      data-cart-add-url="{{ route('cart.add') }}"
+      data-review-create-url="{{ route('reviews.store', $p->MASANPHAM) }}"
+      data-is-logged-in="{{ Auth::check() ? '1' : '0' }}"
+      data-login-url="{{ url('/login') }}"  
+    >
       <div class="row">
         <!-- Hình ảnh sản phẩm -->
         <div class="col-md-5 product-image">
@@ -34,7 +39,7 @@
 
           <p class="product-price">{{ number_format($p->GIABAN, 0, ',', '.') }} VNĐ</p>
 
-          {{-- Chỉ hiển thị thông tin khách hàng hiểu được: Loại (tên) & Nhà cung cấp --}}
+          {{-- Loại & Nhà cung cấp --}}
           <div class="product-meta">
             @php
               $tenLoai = optional($p->loai)->TENLOAI;
@@ -60,8 +65,7 @@
                 </span>
               </div>
             @endif
-        </div>
-
+          </div>
 
           @if(!empty($p->MOTA))
             <p class="product-description">
@@ -73,26 +77,25 @@
             <strong>Số lượng còn:</strong> {{ (int) $p->SOLUONGTON }}
           </p>
 
-          {{-- Cụm số lượng + nút mua (giống phong cách trang giỏ hàng) --}}
+          {{-- Qty + nút mua --}}
           <div class="detail-actions mt-2">
             <div class="qty-box">
-              <button class="btn-qty" type="button" onclick="changeQty(-1)" title="Giảm 1">−</button>
+              <button class="btn-qty" type="button" data-action="qty-dec" title="Giảm 1">−</button>
               <span id="qtyNumber" class="qty-number">1</span>
-              <button class="btn-qty" type="button" onclick="changeQty(1)" title="Tăng 1">+</button>
+              <button class="btn-qty" type="button" data-action="qty-inc" title="Tăng 1">+</button>
             </div>
 
             <button
               type="button"
               id="btnAddToCart"
               class="btn-gradient add-to-cart-btn"
-              onclick="addToCart('{{ $p->MASANPHAM }}')"
+              data-action="add-to-cart"
               @if((int) $p->SOLUONGTON <= 0) disabled @endif
             >
               <i class="fas fa-cart-plus"></i>&nbsp;Chọn mua
             </button>
           </div>
 
-          {{-- Nút trở lại: đặt riêng ở dưới cùng --}}
           <div class="mt-4">
             <a href="javascript:void(0);" onclick="window.history.back();" class="btn-outline back-btn">
               <i class="fas fa-arrow-left"></i>&nbsp;Trở lại danh sách
@@ -100,6 +103,120 @@
           </div>
         </div>
       </div>
+
+      {{-- ====== ĐÁNH GIÁ SẢN PHẨM (chen giữa) ====== --}}
+      <div id="reviews" class="mt-5">
+        <h3 class="section-title">ĐÁNH GIÁ SẢN PHẨM</h3>
+
+        {{-- Tổng quan rating --}}
+        <div class="row g-3 align-items-center review-summary">
+          <div class="col-12 col-md-3 text-center">
+            <div class="review-score">{{ number_format($ratingAvg, 1) }}</div>
+            <div class="review-stars">
+              @for ($i=1; $i<=5; $i++)
+                <i class="fas fa-star {{ $i <= round($ratingAvg) ? 'active' : '' }}"></i>
+              @endfor
+            </div>
+            <div class="review-count text-muted">({{ $ratingCount }} đánh giá)</div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            @foreach([5,4,3,2,1] as $s)
+              @php
+                $pct = $ratingCount ? round(($breakdown[$s] ?? 0) * 100 / $ratingCount) : 0;
+              @endphp
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="star-label">{{$s}} ★</span>
+                <div class="progress flex-grow-1" style="height:8px;">
+                  <div class="progress-bar" role="progressbar" style="width: {{$pct}}%"></div>
+                </div>
+                <span class="star-pct">{{$pct}}%</span>
+              </div>
+            @endforeach
+          </div>
+
+          <div class="col-12 col-md-3 text-center">
+            @if (Auth::check())
+              <button class="btn-gradient" data-bs-toggle="collapse" data-bs-target="#reviewForm">
+                <i class="fas fa-pen"></i> Viết đánh giá
+              </button>
+            @else
+              <a
+                class="btn-outline"
+                href="{{ route('login', ['redirect' => request()->fullUrl().'#reviews']) }}"
+                data-action="open-login">
+                  <i class="fas fa-sign-in-alt"></i> Đăng nhập để đánh giá
+              </a>
+
+            @endif
+          </div>
+        </div>
+
+        {{-- Form đánh giá --}}
+        @if (Auth::check())
+        <div id="reviewForm" class="collapse mt-3">
+          <form id="create-review-form" class="review-form" data-masp="{{ $p->MASANPHAM }}">
+            <div class="rating-input">
+              <label>Chấm điểm:</label>
+              <div class="stars-input" data-value="5" id="starsInput">
+                @for ($i=1; $i<=5; $i++)
+                  <i class="far fa-star" data-star="{{$i}}"></i>
+                @endfor
+              </div>
+              <input type="hidden" name="DIEMSO" id="score" value="5" />
+            </div>
+
+            <div class="mt-2">
+              <label class="form-label">Nhận xét</label>
+              <textarea class="form-control" name="NHANXET" id="comment" rows="3" maxlength="1000"
+                placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+              <button type="button" class="btn-gradient" data-action="submit-review">
+                Gửi đánh giá
+              </button>
+              <button type="button" class="btn-outline" data-bs-toggle="collapse" data-bs-target="#reviewForm">
+                Hủy
+              </button>
+            </div>
+          </form>
+        </div>
+        @endif
+
+        {{-- Danh sách đánh giá --}}
+        <div class="review-list mt-4">
+          @forelse ($reviews as $rv)
+            <div class="review-item">
+              <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                  <div class="reviewer-name">
+                    {{ $rv->khachHang?->HOTEN ?? 'Người dùng' }}
+                  </div>
+                  <div class="review-stars small">
+                    @for ($i=1; $i<=5; $i++)
+                      <i class="fas fa-star {{ $i <= (int)$rv->DIEMSO ? 'active' : '' }}"></i>
+                    @endfor
+                    <span class="text-muted ms-2">{{ \Carbon\Carbon::parse($rv->NGAYDANHGIA)->format('d/m/Y H:i') }}</span>
+                  </div>
+                </div>
+              </div>
+              @if(!empty($rv->NHANXET))
+                <div class="review-content mt-2">
+                  {!! nl2br(e($rv->NHANXET)) !!}
+                </div>
+              @endif
+            </div>
+          @empty
+            <p class="text-muted">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+          @endforelse
+
+          <div class="mt-3">
+            {{ $reviews->fragment('reviews')->links() }}
+          </div>
+        </div>
+      </div>
+      {{-- ====== END: ĐÁNH GIÁ SẢN PHẨM ====== --}}
 
       <!-- Sản phẩm liên quan -->
       @if(!empty($related) && count($related))
@@ -132,11 +249,6 @@
 @endsection
 
 @push('scripts')
-<script>
-  // Config cho JS
-  window.cartAddUrl  = "{{ route('cart.add') }}";
-  window.isLoggedIn  = @json(Auth::check());
-  window.STOCK_MAX   = {{ (int) $p->SOLUONGTON }};
-</script>
-<script src="{{ asset('js/add_product_detail.js') }}"></script>
+  {{-- Đổi sang file JS mới đã tách --}}
+  <script src="{{ asset('js/add_product_detail.js') }}"></script>
 @endpush

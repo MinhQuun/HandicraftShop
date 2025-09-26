@@ -84,9 +84,27 @@ class ProductController extends Controller
             ->where('MASANPHAM', $id)
             ->firstOrFail();
 
+        $reviews = \App\Models\DanhGia::with('khachHang')
+            ->where('MASANPHAM', $id)
+            ->orderByDesc('NGAYDANHGIA')
+            ->paginate(5)
+            ->withQueryString();
+
+        $ratingAvg = (float) (\App\Models\DanhGia::where('MASANPHAM', $id)->avg('DIEMSO') ?? 0);
+        $ratingCount = (int) \App\Models\DanhGia::where('MASANPHAM', $id)->count();
+
+        $breakdown = \App\Models\DanhGia::where('MASANPHAM', $id)
+            ->selectRaw('DIEMSO, COUNT(*) as c')
+            ->groupBy('DIEMSO')
+            ->pluck('c', 'DIEMSO')
+            ->all();
+
         $related = \App\Models\SanPham::where('MALOAI', $p->MALOAI)
             ->where('MASANPHAM', '!=', $id)->take(8)->get();
 
-        return view('pages.detail', compact('p', 'related'));
+        return view('pages.detail', compact(
+            'p', 'related', 'reviews', 'ratingAvg', 'ratingCount', 'breakdown'
+        ));
     }
+
 }

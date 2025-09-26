@@ -1,10 +1,12 @@
 <?php
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 use App\Http\Controllers\Customer\ProductController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\ContactController;
+use App\Http\Controllers\Customer\ReviewController;
 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\UserAdminController;
@@ -23,6 +25,9 @@ Route::get('/danh-muc', [ProductController::class, 'byCategory'])->name('categor
 Route::get('/loai/{maLoai}', [ProductController::class, 'byType'])->name('sp.byType');
 Route::get('/tim-kiem', [ProductController::class, 'search'])->name('sp.search');
 Route::get('/san-pham/{id}', [ProductController::class, 'detail'])->name('sp.detail');
+Route::post('/sp/{id}/danh-gia', [ReviewController::class, 'store'])
+    ->middleware('auth')
+    ->name('reviews.store');
 
 // ================== TRANG TĨNH ==================
 Route::view('/about-us', 'pages.about_us')->name('about');
@@ -48,8 +53,17 @@ Route::middleware('auth')->group(function () {
 // ================== USER AUTH ==================
 
 // Xử lý login/register/logout
+Route::get('/login', function (Request $request) {
+    $redir = $request->query('redirect', url()->previous());
+    // Trang chủ sẽ nhận ?open=login để tự mở modal; auth.js sẽ đọc và bật modal
+    return redirect()->to(route('home') . '?open=login&redirect=' . urlencode($redir));
+})->name('login');
+
 Route::post('/login', [UserController::class, 'login'])->name('users.login');
+
+Route::get('/register', [UserController::class, 'create'])->name('register');
 Route::post('/register', [UserController::class, 'store'])->name('users.store');
+
 Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
 // ================== USER CRUD ==================

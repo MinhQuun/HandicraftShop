@@ -411,3 +411,61 @@
 .section-title:hover::after {
     width: 60px;
 }
+/* ==== Reviews ==== */
+.review-summary {
+    background: var(--ivory);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+}
+.review-score {
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--moss);
+    line-height: 1;
+}
+.review-stars i {
+    color: #c9beb1;
+}
+.review-stars i.active {
+    color: #f5a524;
+}
+.star-label {
+    min-width: 48px;
+    font-weight: 700;
+    color: var(--muted);
+}
+.progress {
+    background: #efe6da;
+}
+.progress-bar {
+    background: linear-gradient(90deg, var(--wood), var(--moss));
+}
+
+.review-form .stars-input i {
+    font-size: 20px;
+    cursor: pointer;
+    color: #c9beb1;
+}
+.review-form .stars-input i.active {
+    color: #f5a524;
+}
+.review-item {
+    background: var(--ivory-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+}
+.reviewer-name {
+    font-weight: 800;
+    color: var(--wood);
+}
+.review-content {
+    color: var(--text);
+}
+#starsInput i {
+    cursor: pointer;
+}

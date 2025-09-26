@@ -8,6 +8,7 @@
           <div class="auth-form-container sign-up-container">
             <form class="auth-form" action="{{ route('users.store') }}" method="post">
               @csrf
+              <input type="hidden" name="redirect" value="{{ request('redirect', url()->full()) }}">
               <h1 class="auth-title">Đăng Ký</h1>
 
               <div class="auth-social-container">
@@ -76,6 +77,7 @@
           <div class="auth-form-container sign-in-container">
             <form class="auth-form" action="{{ route('users.login') }}" method="post">
               @csrf
+              <input type="hidden" name="redirect" value="{{ request('redirect', url()->full()) }}">
               <h1 class="auth-title">Đăng Nhập</h1>
 
               <div class="auth-social-container">

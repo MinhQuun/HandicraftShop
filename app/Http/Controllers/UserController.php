@@ -80,6 +80,26 @@ class UserController extends Controller
         });
     }
 
+    public function showLogin(Request $request)
+    {
+        if (Auth::check()) {
+            $user = Auth::user();
+            $role = DB::table('QUYEN_NGUOIDUNG')
+                ->join('QUYEN','QUYEN.MAQUYEN','=','QUYEN_NGUOIDUNG.MAQUYEN')
+                ->where('user_id', $user->id)
+                ->value('TENQUYEN');
+            $roleLower = mb_strtolower((string) $role);
+
+            if ($roleLower === 'admin')    return redirect()->route('admin.dashboard');
+            if ($roleLower === 'nhanvien') return redirect()->route('staff.dashboard');
+            return redirect()->route('home');
+        }
+
+        return view('auth.login', [
+            'redirect' => $request->query('redirect'),
+        ]);
+    }
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -91,51 +111,44 @@ class UserController extends Controller
             'password.required' => 'Vui lòng nhập mật khẩu.',
         ]);
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-
-            $user = Auth::user();
-            $role = DB::table('QUYEN_NGUOIDUNG')
-                ->join('QUYEN', 'QUYEN.MAQUYEN', '=', 'QUYEN_NGUOIDUNG.MAQUYEN')
-                ->where('user_id', $user->id)
-                ->value('TENQUYEN');
-
-            $role = strtolower($role ?? '');
-
-            // Map đích đến theo role
-            $destinations = [
-                'admin'     => route('admin.dashboard'),
-                'nhanvien'  => route('staff.dashboard'),
-                // Nếu muốn về trang chủ khách:
-                'khachhang' => route('home'),
-                // Nếu bạn có dashboard khách: đổi dòng trên thành:
-                // 'khachhang' => route('khach.dashboard'),
-            ];
-
-            $fallback = $destinations[$role] ?? route('home');
-
-            // Nếu user vừa bị chặn bởi trang cần đăng nhập -> quay lại trang đó,
-            // còn không thì về đúng đích theo role.
-            return redirect()->intended($fallback)->with('success', 'Đăng nhập thành công!');
+        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+            return back()->withErrors(['email' => 'Email hoặc mật khẩu không đúng.'])
+                        ->with('error', 'Email hoặc mật khẩu không đúng.')
+                        ->onlyInput('email');
         }
+
+        $request->session()->regenerate();
 
         $user = Auth::user();
         $role = DB::table('QUYEN_NGUOIDUNG')
             ->join('QUYEN','QUYEN.MAQUYEN','=','QUYEN_NGUOIDUNG.MAQUYEN')
             ->where('user_id', $user->id)
             ->value('TENQUYEN');
+        $roleLower = mb_strtolower((string) $role);
 
-        if (mb_strtolower((string) $role) === 'khachhang') {
+        if ($roleLower === 'khachhang') {
             app(\App\Services\EnsureCustomerProfile::class)->handle($user);
         }
 
+        // map đích
+        $destinations = [
+            'admin'     => route('admin.dashboard'),
+            'nhanvien'  => route('staff.dashboard'),
+            'khachhang' => route('home'),
+        ];
+        $fallback = $destinations[$roleLower] ?? route('home');
 
-        return back()
-            ->withErrors(['email' => 'Email hoặc mật khẩu không đúng.'])
-            ->with('error', 'Email hoặc mật khẩu không đúng.')
-            ->onlyInput('email');
+        // LẤY redirect nếu có
+        $redirect = $request->input('redirect', $request->query('redirect'));
+
+        // ⟵⟵ CHỈ khách hàng mới ưu tiên redirect
+        if ($roleLower === 'khachhang' && $redirect) {
+            return redirect()->to($redirect)->with('success','Đăng nhập thành công!');
+        }
+
+        // Admin/NV luôn về dashboard
+        return redirect()->intended($fallback)->with('success','Đăng nhập thành công!');
     }
-
 
     public function logout(Request $request)
     {

@@ -72,4 +72,8 @@ class SanPham extends Model
         return $img !== '' ? asset('assets/images/' . $img)
                         : asset('HinhAnh/LOGO/Logo.jpg');
     }
+    public function danhGias()
+    {
+        return $this->hasMany(\App\Models\DanhGia::class, 'MASANPHAM', 'MASANPHAM');
+    }
 }
