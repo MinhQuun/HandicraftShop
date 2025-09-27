@@ -61,13 +61,6 @@ class KhachHangSeeder extends Seeder
             $kh->EMAIL        = $user->email;
             $kh->SODIENTHOAI  = $user->phone;
             $kh->save();
-
-            // 4. Thêm địa chỉ giao hàng mẫu (cho dễ test view sau này)
-            $address = 'Số ' . rand(10,99) . ' Đường ABC, Quận ' . rand(1,12) . ', TP.HCM';
-            DB::table('DIACHI_GIAOHANG')->insertOrIgnore([
-                'MAKHACHHANG' => $kh->MAKHACHHANG,
-                'DIACHI'      => $address,
-            ]);
         }
     }
 }

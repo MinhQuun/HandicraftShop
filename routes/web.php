@@ -138,5 +138,20 @@ Route::prefix('staff')
         Route::view('/orders', 'staff.stub')->name('orders.index');
         Route::view('/reviews', 'staff.stub')->name('reviews.index');
         Route::view('/payments', 'staff.stub')->name('payments.index');
+
+        Route::view('/issues', 'staff.stub')->name('issues.index');
+        Route::view('/issues/create', 'staff.stub')->name('issues.create');
+
+        Route::view('/receipts', 'staff.stub')->name('receipts.index');
+        Route::view('/receipts/create', 'staff.stub')->name('receipts.create');
+
+        // ====== THỐNG KÊ  ======
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::view('/inout',     'staff.stub')->name('inout');
+            Route::view('/inventory', 'staff.stub')->name('inventory');
+            Route::view('/sales',     'staff.stub')->name('sales');
+            Route::view('/lowstock',  'staff.stub')->name('lowstock');
+            Route::view('/top',       'staff.stub')->name('top');
+        });
     });
 

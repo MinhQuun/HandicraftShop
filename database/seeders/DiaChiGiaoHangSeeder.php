@@ -9,33 +9,23 @@ class DiaChiGiaoHangSeeder extends Seeder
 {
     public function run(): void
     {
-        // Lấy toàn bộ khách hàng hiện có
-        $customers = DB::table('KHACHHANG')->select('MAKHACHHANG','HOTEN')->get();
-
-        $samples1 = [
-            '140 Lê Trọng Tấn, P. Tây Thạnh, Q. Tân Phú, TP.HCM',
-            '12 Nguyễn Huệ, P. Bến Nghé, Q.1, TP.HCM',
-            '88 Cách Mạng Tháng 8, Q.10, TP.HCM',
-        ];
-        $samples2 = [
-            '21 Quốc Lộ 1A, Thủ Đức, TP.HCM',
-            '35 Võ Văn Ngân, TP. Thủ Đức',
-            '10 Phạm Văn Đồng, TP. Thủ Đức',
+        // mapping: email -> địa chỉ
+        $addresses = [
+            'nttt@gmail.com' => '33 Phan Huy Ích, P. 15, Q. Tân Bình, TP.HCM',
+            'tml@gmail.com'  => 'Ấp 5, xã Tân Tây, Huyện Gò Công Đông, Tỉnh Tiền Giang',
+            'nptd@gmail.com' => '16 Núi Cấm 1, xã Vĩnh Thái, Thành Phố Nha Trang, Tỉnh Khánh Hòa',
         ];
 
-        foreach ($customers as $i => $kh) {
-            // Mỗi khách ít nhất 1 địa chỉ…
-            DB::table('DIACHI_GIAOHANG')->insert([
-                'MAKHACHHANG' => $kh->MAKHACHHANG,
-                'DIACHI'      => $samples1[$i % count($samples1)],
-            ]);
+        foreach ($addresses as $email => $addr) {
+            // tìm khách hàng theo email
+            $kh = DB::table('KHACHHANG')->where('EMAIL', $email)->first();
 
-            // …và ngẫu nhiên 1 địa chỉ thứ 2
-            if ($i % 2 === 0) {
-                DB::table('DIACHI_GIAOHANG')->insert([
-                    'MAKHACHHANG' => $kh->MAKHACHHANG,
-                    'DIACHI'      => $samples2[$i % count($samples2)],
-                ]);
+            if ($kh) {
+                // chèn địa chỉ nếu chưa có
+                DB::table('DIACHI_GIAOHANG')->updateOrInsert(
+                    ['MAKHACHHANG' => $kh->MAKHACHHANG, 'DIACHI' => $addr],
+                    [] // không cần update thêm gì
+                );
             }
         }
     }

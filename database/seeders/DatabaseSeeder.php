@@ -24,5 +24,13 @@ class DatabaseSeeder extends Seeder
         $this->call([
             KhachHangSeeder::class,
         ]);
+        
+        $this->call([
+            DiaChiGiaoHangSeeder::class,
+        ]);
+        
+        $this->call([
+            PhieuNhapXuatSeeder::class,
+        ]);
     }
 }
