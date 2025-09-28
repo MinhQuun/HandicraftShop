@@ -179,3 +179,141 @@ body {
         padding: 16px;
     }
 }
+
+/* ===== Filter Card (Rustic) — FINAL, high-specificity ===== */
+.filter-card {
+    background: #fffaf5;
+    border: 1px solid #e7d6c4;
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 8px 20px rgba(120, 92, 58, 0.08);
+}
+
+/* Inputs */
+.filter-card .form-control,
+.filter-card .form-select {
+    border-radius: 10px;
+    border-color: #e7d6c4;
+}
+.filter-card .form-control:focus,
+.filter-card .form-select:focus {
+    border-color: #6a8f55;
+    box-shadow: 0 0 0 3px rgba(106, 143, 85, 0.28);
+}
+
+/* Chips */
+.product-section .filter-card .quick-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+.product-section .filter-card .quick-chips .chip {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbb090;
+    background: #fffdf9;
+    color: #5d3a00;
+    padding: 8px 14px;
+    border-radius: 22px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    will-change: transform;
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease,
+        border-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+/* Hover luôn thắng (kể cả khi có rule khác) */
+.product-section .filter-card .quick-chips .chip:hover {
+    transform: translateY(-2px) scale(1.03); /* Slightly more lift and subtle zoom */
+    background: linear-gradient(
+        135deg,
+        #a17a44,
+        #7b5a2f
+    ) !important; /* Richer wood-tone gradient */
+    color: #fff !important;
+    border-color: #8c6d3b !important;
+    box-shadow: 0 8px 18px rgba(140, 109, 59, 0.3),
+        0 0 8px rgba(106, 143, 85, 0.15); /* Stronger shadow + subtle glow */
+    filter: brightness(1.1); /* Slight brightness boost for vibrancy */
+}
+
+.product-section .filter-card .quick-chips .chip:active {
+    transform: translateY(0);
+    filter: brightness(0.97);
+    box-shadow: 0 4px 10px rgba(140, 109, 59, 0.18);
+}
+
+.product-section .filter-card .quick-chips .chip:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(106, 143, 85, 0.35);
+}
+
+/* Trạng thái đang chọn */
+.product-section .filter-card .quick-chips .chip.active {
+    background: linear-gradient(135deg, #8c6d3b, #6a8f55) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 8px 18px rgba(120, 92, 58, 0.25);
+}
+
+/* Hover khi active vẫn có phản hồi rõ */
+.product-section .filter-card .quick-chips .chip.active:hover {
+    transform: translateY(-2px) scale(1.03); /* Match hover transform */
+    background: linear-gradient(
+        135deg,
+        #9b723f,
+        #64804e
+    ) !important; /* Slightly brighter gradient */
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 8px 18px rgba(120, 92, 58, 0.3),
+        0 0 8px rgba(106, 143, 85, 0.15); /* Match hover shadow */
+    filter: brightness(1.12); /* Slightly brighter than regular hover */
+}
+
+/* Nút trong filter */
+.filter-card .btn {
+    border-radius: 12px;
+    font-weight: 800;
+    padding: 10px 16px;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.filter-card .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(106, 143, 85, 0.35);
+}
+.filter-card .btn-success {
+    color: #fff;
+    background: linear-gradient(135deg, #6a8f55, #5a7b49);
+    border: 2px solid #5a7b49;
+    box-shadow: 0 6px 16px rgba(106, 143, 85, 0.22);
+}
+.filter-card .btn-success:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+    box-shadow: 0 10px 22px rgba(106, 143, 85, 0.28);
+}
+.filter-card .btn-outline-secondary {
+    color: #5d3a00;
+    background: #fffdf9;
+    border: 2px solid #cbb090;
+}
+.filter-card .btn-outline-secondary:hover {
+    transform: translateY(-1px);
+    background: #8c6d3b;
+    color: #fff;
+    border-color: #8c6d3b;
+    box-shadow: 0 6px 16px rgba(140, 109, 59, 0.22);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .product-section .filter-card .quick-chips .chip,
+    .filter-card .btn {
+        transition: none;
+    }
+}

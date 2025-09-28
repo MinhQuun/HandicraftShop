@@ -13,6 +13,55 @@
   <main class="container product-section" id="Product" style="padding-top:16px;">
     <h2 class="section-title">Danh Sách Sản Phẩm</h2>
 
+    {{-- Filter theo giá --}}
+    <div class="filter-card container mb-3">
+      <form id="priceFilterForm" method="GET" action="{{ url()->current() }}" class="row g-3 align-items-end">
+        <div class="col-6 col-md-3">
+          <label class="form-label">Từ giá (VNĐ)</label>
+          <input type="number" name="min_price" min="0" step="1000"
+                class="form-control"
+                value="{{ request('min_price') }}">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label">Đến giá (VNĐ)</label>
+          <input type="number" name="max_price" min="0" step="1000"
+                class="form-control"
+                value="{{ request('max_price') }}">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label">Sắp xếp</label>
+          <select name="sort" class="form-select">
+            <option value="newest"     {{ request('sort','newest')==='newest' ? 'selected' : '' }}>Mới nhất</option>
+            <option value="price_asc"  {{ request('sort')==='price_asc' ? 'selected' : '' }}>Giá ↑</option>
+            <option value="price_desc" {{ request('sort')==='price_desc' ? 'selected' : '' }}>Giá ↓</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3 d-flex gap-2">
+          <input type="hidden" name="per_page" value="{{ $perPage }}">
+          <button type="submit" class="btn btn-success flex-fill">Lọc</button>
+          <a href="{{ url()->current() }}" class="btn btn-outline-secondary flex-fill">Xoá lọc</a>
+        </div>
+
+        <div class="col-12">
+          <div class="quick-chips">
+            @php
+              $minQ = (int) request('min_price', -1);
+              $maxQ = request()->has('max_price') ? (int) request('max_price') : null;
+              $is = function($a,$b){ return (request('min_price')===$a && request('max_price')===$b) ? ' active' : ''; };
+            @endphp
+            <button type="button" class="chip{{ (request('min_price')==='' && request('max_price')==='') ? ' active' : '' }}" data-min="" data-max="">Tất cả</button>
+            <button type="button" class="chip{{ (request('min_price')==='0' && request('max_price')==='50000') ? ' active' : '' }}" data-min="0" data-max="50000">≤ 50k</button>
+            <button type="button" class="chip{{ (request('min_price')==='50000' && request('max_price')==='100000') ? ' active' : '' }}" data-min="50000" data-max="100000">50–100k</button>
+            <button type="button" class="chip{{ (request('min_price')==='100000' && request('max_price')==='300000') ? ' active' : '' }}" data-min="100000" data-max="300000">100–300k</button>
+            <button type="button" class="chip{{ (request('min_price')==='300000' && request('max_price')==='500000') ? ' active' : '' }}" data-min="300000" data-max="500000">300–500k</button>
+            <button type="button" class="chip{{ (request('min_price')==='500000' && !request()->has('max_price')) ? ' active' : '' }}" data-min="500000" data-max="">≥ 500k</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    {{-- Danh sách sản phẩm --}}
+
     <div class="row">
       @forelse ($sp as $item)
         @php
@@ -51,7 +100,7 @@
         </div>
       @empty
         <div class="col-12">
-          <p class="text-center text-muted">Chưa có sản phẩm.</p>
+          <p class="text-center text-muted">Không có sản phẩm.</p>
         </div>
       @endforelse
     </div>
@@ -86,11 +135,8 @@
 
 @push('scripts')
 <script>
-  // Truyền route từ Laravel sang JS
   window.cartAddUrl = "{{ route('cart.add') }}";
   window.isLoggedIn = @json(Auth::check()); 
 </script>
 <script src="{{ asset('js/add_product.js') }}"></script>
-
-
 @endpush
