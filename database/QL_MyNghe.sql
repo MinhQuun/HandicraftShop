@@ -180,6 +180,26 @@ CREATE TABLE DANHGIA
 ) ENGINE=InnoDB;
 
 -- =========================================================
+-- Liên hệ (hộp thư ý kiến)
+-- =========================================================
+CREATE TABLE LIENHE (
+    ID           INT NOT NULL AUTO_INCREMENT,
+    NAME         VARCHAR(120)  NOT NULL,
+    EMAIL        VARCHAR(255)  NOT NULL,
+    MESSAGE      VARCHAR(5000) NOT NULL,
+    STATUS       ENUM('NEW','READ','REPLIED') NOT NULL DEFAULT 'NEW',
+    REPLY_MESSAGE VARCHAR(5000) NULL,
+    REPLY_BY     BIGINT UNSIGNED NULL,   -- users.id (nhân viên phản hồi)
+    CREATED_AT   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UPDATED_AT   DATETIME NULL,
+    REPLIED_AT   DATETIME NULL,
+    PRIMARY KEY (ID),
+    KEY IX_LH_STATUS (STATUS),
+    KEY IX_LH_EMAIL  (EMAIL),
+    CONSTRAINT FK_LH_REPLY_BY FOREIGN KEY (REPLY_BY) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- =========================================================
 -- ĐƠN HÀNG & CHI TIẾT
 -- =========================================================
 CREATE TABLE DONHANG 

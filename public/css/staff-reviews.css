@@ -1,0 +1,300 @@
+:root {
+    --bg-sky-1: #f1f7fb;
+    --bg-sky-2: #eef6f7;
+    --card: #fff;
+    --card-brd: #d7e6ee;
+    --text: #23323a;
+    --muted: #617481;
+    --teal: #1aa3a3;
+    --blue: #3a86ff;
+    --indigo: #5e60ce;
+    --shadow: 0 16px 32px rgba(37, 103, 131, 0.14);
+}
+
+/* Header */
+.page-header .kicker {
+    display: inline-block;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(26, 163, 163, 0.12);
+    border: 1px solid var(--card-brd);
+    color: var(--muted);
+}
+.page-header .title {
+    margin: 10px 0 4px;
+    font-weight: 800;
+    line-height: 1.1;
+    font-size: clamp(26px, 4.2vw, 34px);
+    background: linear-gradient(90deg, var(--indigo), var(--blue), var(--teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.page-header .muted {
+    color: var(--muted);
+}
+
+/* Filter card */
+.reviews-filter {
+    border: 1px solid var(--card-brd);
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+.reviews-filter .form-control,
+.reviews-filter .form-select {
+    border-radius: 10px;
+    border-color: var(--card-brd);
+}
+.reviews-filter .btn-outline-primary {
+    border-radius: 999px;
+    border-color: #b9d2ff;
+    color: var(--blue);
+    background: #f0f6ff;
+    transition: all 0.25s;
+}
+.reviews-filter .btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+.reviews-filter .btn-outline-secondary {
+    border-radius: 999px;
+    border-color: var(--card-brd);
+    background: #f7fbfd;
+    color: var(--text);
+    transition: all 0.25s;
+}
+.reviews-filter .btn-outline-secondary:hover {
+    background: #eef6fb;
+    transform: translateY(-2px);
+}
+
+.card {
+    border-radius: 16px;
+    border: 1px solid var(--card-brd);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+.card-header {
+    background: linear-gradient(180deg, #f9feff, #f4fbfd);
+    border-bottom: 1px solid var(--card-brd);
+}
+.card .btn.btn-primary {
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--indigo), var(--blue));
+    border: none;
+    box-shadow: 0 10px 18px rgba(58, 134, 255, 0.22);
+    transition: transform 0.25s, box-shadow 0.25s, filter 0.25s;
+}
+.card .btn.btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.02);
+}
+
+/* Table */
+.reviews-table thead th {
+    background: linear-gradient(180deg, #f7fbff, #f2f8fd);
+    border-bottom: 1px solid var(--card-brd);
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+}
+.reviews-table td,
+.reviews-table th {
+    vertical-align: middle;
+    border-color: #e6eff5;
+}
+.reviews-table tbody tr {
+    transition: background 0.2s;
+}
+.reviews-table tbody tr:hover {
+    background: #f9feff;
+}
+.reviews-table td.text-truncate {
+    max-width: 260px;
+}
+
+/* Status badges */
+.badge {
+    border-radius: 999px;
+    padding: 0.4rem 0.6rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+.badge.st-new {
+    background: #fff7e6;
+    color: #b36b00;
+    border-color: #ffe0a1;
+}
+.badge.st-read {
+    background: #eef6ff;
+    color: #2d6cdf;
+    border-color: #cfe0ff;
+}
+.badge.st-replied {
+    background: #e9fbf4;
+    color: #1a7f46;
+    border-color: #bcefd6;
+}
+
+/* Actions */
+.reviews-table td.text-end {
+    white-space: nowrap;
+    padding-right: 1rem;
+}
+.reviews-table td.text-end > * {
+    display: inline-block;
+    vertical-align: middle;
+}
+.reviews-table td.text-end form {
+    display: inline-block;
+    margin: 0;
+}
+.reviews-table td.text-end .btn.btn-sm {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    padding: 0;
+    border: 1px solid transparent;
+    transition: transform 0.18s ease, box-shadow 0.18s ease,
+        background 0.18s ease, color 0.18s ease;
+}
+.reviews-table td.text-end > * + * {
+    margin-left: 8px;
+}
+.reviews-table .btn.btn-sm i {
+    font-size: 1.05rem;
+    line-height: 1;
+}
+
+.btn-primary-soft {
+    background: rgba(58, 134, 255, 0.1);
+    color: var(--blue);
+    border-color: rgba(58, 134, 255, 0.22);
+}
+.btn-primary-soft:hover {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(58, 134, 255, 0.22);
+}
+.btn-danger-soft {
+    background: rgba(237, 66, 69, 0.1);
+    color: #d64545;
+    border-color: rgba(237, 66, 69, 0.28);
+}
+.btn-danger-soft:hover {
+    background: #ffeded;
+    border-color: rgba(237, 66, 69, 0.35);
+    transform: translateY(-2px);
+}
+
+/* Pagination */
+.pagination {
+    gap: 6px;
+}
+.page-item .page-link {
+    border-radius: 10px;
+    border: 1px solid var(--card-brd);
+    background: #f7fbff;
+    color: var(--text);
+    transition: all 0.2s;
+}
+.page-item .page-link:hover {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+.page-item.active .page-link {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 6px 14px rgba(26, 163, 163, 0.22);
+}
+
+/* Modal */
+.modal-content {
+    border-radius: 18px;
+    border: 1px solid var(--card-brd);
+    box-shadow: var(--shadow);
+}
+.modal-header {
+    border-bottom: 1px solid var(--card-brd);
+    background: linear-gradient(180deg, #f9feff, #f4fbfd);
+}
+.modal-title {
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--indigo), var(--blue));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.modal-body .form-label {
+    font-weight: 600;
+    color: var(--muted);
+}
+.modal-body .form-control,
+.modal-body .form-select,
+.modal-body textarea {
+    border-radius: 12px;
+    border-color: var(--card-brd);
+}
+.modal-footer .btn-secondary {
+    border-radius: 999px;
+    background: #f2f8fd;
+    border: 1px solid var(--card-brd);
+    color: var(--text);
+}
+.modal-footer .btn-primary {
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--indigo), var(--blue));
+    border: none;
+}
+
+/* Reply box trong modal */
+.reply-box {
+    margin-top: 0.5rem;
+}
+.reply-input .input-group-text {
+    background: linear-gradient(135deg, var(--indigo), var(--blue));
+    color: #fff;
+    border: none;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+.reply-textarea {
+    min-height: 110px;
+    resize: none;
+    border-left: 0 !important;
+}
+.reply-textarea:focus {
+    box-shadow: 0 0 0 0.2rem rgba(58, 134, 255, 0.12);
+}
+#replyCounter {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .reviews-table td.text-truncate {
+        max-width: 180px;
+    }
+    .reviews-table td.text-end {
+        padding-right: 0.5rem;
+    }
+}

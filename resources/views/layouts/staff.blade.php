@@ -139,7 +139,7 @@
             </a>
           </li>
 
-          {{-- KHÁCH HÀNG / ĐÁNH GIÁ --}}
+          {{-- KHÁCH HÀNG / Hộp thư ý kiến --}}
           <li class="nav-item mt-2 text-muted small">Khách hàng</li>
           <li class="nav-item">
             <a class="nav-link {{ request()->routeIs('staff.customers.*') ? 'active' : '' }}"

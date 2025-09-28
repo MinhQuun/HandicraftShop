@@ -15,6 +15,7 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\Staff\SupplierController;
 use App\Http\Controllers\Staff\ProductController as StaffProductController;
 use App\Http\Controllers\Staff\KhachHangController;
+use App\Http\Controllers\Staff\ReviewController as StaffReviewController;
 
 // ================== TRANG CHỦ ==================
 Route::get('/', [ProductController::class, 'home'])->name('home');
@@ -133,10 +134,14 @@ Route::prefix('staff')
         Route::put('/customers/{customer}',      [KhachHangController::class, 'update'])->name('customers.update');
         Route::delete('/customers/{customer}',   [KhachHangController::class, 'destroy'])->name('customers.destroy');
 
+        // Quản lý hộp thư ý kiến
+        Route::get('/reviews',          [StaffReviewController::class, 'index'])->name('reviews.index');
+        Route::put('/reviews/{id}',     [StaffReviewController::class, 'update'])->name('reviews.update');
+        Route::delete('/reviews/{id}',  [StaffReviewController::class, 'destroy'])->name('reviews.destroy');
+
         // Các module quản lý (stub trước)
         Route::view('/promotions', 'staff.stub')->name('promotions.index');
         Route::view('/orders', 'staff.stub')->name('orders.index');
-        Route::view('/reviews', 'staff.stub')->name('reviews.index');
         Route::view('/payments', 'staff.stub')->name('payments.index');
 
         Route::view('/issues', 'staff.stub')->name('issues.index');

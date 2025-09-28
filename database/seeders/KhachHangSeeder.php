@@ -26,18 +26,18 @@ class KhachHangSeeder extends Seeder
         $customers = [
             [
                 'name'  => 'Nguyễn Thị Tú Trinh',
-                'email' => 'nttt@gmail.com',
-                'phone' => '0901234567',
+                'email' => 'nguyenthitutrinh120504@gmail.com',
+                'phone' => '0564609210',
             ],
             [
                 'name'  => 'Trần Minh Luân',
-                'email' => 'tml@gmail.com',
-                'phone' => '0902345678',
+                'email' => 'hakachi303@gmail.com',
+                'phone' => '0389137204',
             ],
             [
                 'name'  => 'Nguyễn Phạm Trường Duy',
-                'email' => 'nptd@gmail.com',
-                'phone' => '0903456789',
+                'email' => 'nptduyc920@gmail.com',
+                'phone' => '0796177075',
             ],
         ];
 
