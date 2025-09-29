@@ -13,10 +13,12 @@ class SanPham extends Model
     protected $keyType = 'string';
     public $timestamps = false;
 
+    // KHÓA TỒN: không cho mass-assign SOLUONGTON
     protected $fillable = [
-        'MASANPHAM','TENSANPHAM','HINHANH','GIABAN','SOLUONGTON','MOTA',
+        'MASANPHAM','TENSANPHAM','HINHANH','GIABAN','MOTA',
         'MALOAI','MAKHUYENMAI','MANHACUNGCAP'
     ];
+    protected $guarded = ['SOLUONGTON'];
 
     protected $casts = [
         'GIABAN'      => 'float',
@@ -42,7 +44,7 @@ class SanPham extends Model
         if (!$s) return $q;
         return $q->where(function ($x) use ($s) {
             $x->where('TENSANPHAM', 'like', "%{$s}%")
-            ->orWhere('MASANPHAM', 'like', "%{$s}%");
+                ->orWhere('MASANPHAM', 'like', "%{$s}%");
         });
     }
 
@@ -70,8 +72,9 @@ class SanPham extends Model
     {
         $img = trim((string) ($this->HINHANH ?? ''));
         return $img !== '' ? asset('assets/images/' . $img)
-                        : asset('HinhAnh/LOGO/Logo.jpg');
+                            : asset('HinhAnh/LOGO/Logo.jpg');
     }
+
     public function danhGias()
     {
         return $this->hasMany(\App\Models\DanhGia::class, 'MASANPHAM', 'MASANPHAM');

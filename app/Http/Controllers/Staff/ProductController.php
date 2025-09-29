@@ -67,7 +67,6 @@ class ProductController extends Controller
         $data = $request->validate([
             'TENSANPHAM'   => ['required','string','max:255'],
             'GIABAN'       => ['required','numeric','min:0'],
-            'SOLUONGTON'   => ['nullable','integer','min:0'],
             'MOTA'         => ['nullable','string','max:1000'],
             'MALOAI'       => ['nullable', Rule::exists('LOAI','MALOAI')],
             'MAKHUYENMAI'  => ['nullable', Rule::exists('KHUYENMAI','MAKHUYENMAI')],
@@ -75,7 +74,8 @@ class ProductController extends Controller
             'HINHANH'      => ['nullable','image','max:4096'],
         ]);
 
-        if (!isset($data['SOLUONGTON'])) $data['SOLUONGTON'] = 0;
+        // === Luôn đặt tồn ban đầu = 0 (tồn chỉ tăng qua Phiếu nhập) ===
+        $data['SOLUONGTON'] = 0;
 
         // === Sinh mã tự động ===
         $row = DB::selectOne("
@@ -96,7 +96,8 @@ class ProductController extends Controller
 
         DB::table('SANPHAM')->insert($data);
 
-        return redirect()->route('staff.products.index')->with('success', 'Đã thêm sản phẩm.');
+        return redirect()->route('staff.products.index')
+            ->with('success', 'Đã thêm sản phẩm. (Tồn kho sẽ tăng qua Phiếu nhập)');
     }
 
     public function update(Request $request, $id)
@@ -105,17 +106,23 @@ class ProductController extends Controller
         if (!$row) return back()->with('error','Không tìm thấy sản phẩm.');
 
         $payload = $request->all();
+
+        // Cho phép form dùng alias 'GIA' -> map về GIABAN (giữ UX hiện tại)
         if (isset($payload['GIA']) && !isset($payload['GIABAN'])) {
             $payload['GIABAN'] = $payload['GIA'];
         }
-        if (isset($payload['TONKHO']) && !isset($payload['SOLUONGTON'])) {
-            $payload['SOLUONGTON'] = $payload['TONKHO'];
+        // KHÓA TỒN: bỏ mọi ánh xạ TONKHO -> SOLUONGTON
+        if (isset($payload['SOLUONGTON'])) {
+            unset($payload['SOLUONGTON']);
+        }
+        if (isset($payload['TONKHO'])) {
+            unset($payload['TONKHO']);
         }
 
         $data = validator($payload, [
             'TENSANPHAM'   => ['required','string','max:255'],
             'GIABAN'       => ['required','numeric','min:0'],
-            'SOLUONGTON'   => ['nullable','integer','min:0'],
+            // KHÓA TỒN: không validate SOLUONGTON
             'MOTA'         => ['nullable','string','max:1000'],
             'MALOAI'       => ['nullable', Rule::exists('LOAI','MALOAI')],
             'MAKHUYENMAI'  => ['nullable', Rule::exists('KHUYENMAI','MAKHUYENMAI')],
@@ -138,7 +145,8 @@ class ProductController extends Controller
 
         DB::table('SANPHAM')->where('MASANPHAM', $id)->update($data);
 
-        return redirect()->route('staff.products.index')->with('success', 'Đã cập nhật sản phẩm.');
+        return redirect()->route('staff.products.index')
+            ->with('success', 'Đã cập nhật sản phẩm. (Tồn kho không chỉnh tại đây)');
     }
 
     public function destroy($id)

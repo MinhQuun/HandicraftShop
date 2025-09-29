@@ -30,7 +30,7 @@ class PhieuNhapXuatSeeder extends Seeder
              *    - PN#1: NCC 1 -> SP001, SP004, SP007
              *    - PN#2: NCC 12 -> SP025, SP028, SP030
              *    - PN#3: NCC 5 -> SP018, SP020, SP033
-             *  DONGIA nhập: dùng luôn GIABAN cho đơn giản & nhất quán (không random)
+             *  DONGIA nhập: lấy đúng GIANHAP từ SANPHAM
              * ========================================================= */
             $pnPlans = [
                 [
@@ -92,7 +92,7 @@ class PhieuNhapXuatSeeder extends Seeder
                         ['MAPN' => $mapn, 'MASANPHAM' => $masp],
                         [
                             'SOLUONG' => $sl,
-                            'DONGIA'  => $p->GIABAN, // dùng GIABAN làm giá vốn mẫu cho seeding
+                            'DONGIA'  => $p->GIANHAP, // dùng GIANHAP làm giá cho seeding
                         ]
                     );
                 }
@@ -110,7 +110,7 @@ class PhieuNhapXuatSeeder extends Seeder
 
             $pxPlans = [
                 [
-                    'email'   => 'nttt@gmail.com',
+                    'email'   => 'nguyenthitutrinh120504@gmail.com',
                     'ghichu'  => 'SEED PX 1',
                     'details' => [
                         ['SP001', 2],
@@ -118,7 +118,7 @@ class PhieuNhapXuatSeeder extends Seeder
                     ],
                 ],
                 [
-                    'email'   => 'tml@gmail.com',
+                    'email'   => 'hakachi303@gmail.com',
                     'ghichu'  => 'SEED PX 2',
                     'details' => [
                         ['SP033', 1],
@@ -126,7 +126,7 @@ class PhieuNhapXuatSeeder extends Seeder
                     ],
                 ],
                 [
-                    'email'   => 'nptd@gmail.com',
+                    'email'   => 'nptduyc920@gmail.com',
                     'ghichu'  => 'SEED PX 3',
                     'details' => [
                         ['SP041', 1],

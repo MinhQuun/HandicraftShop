@@ -94,6 +94,24 @@
             </a>
           </li>
 
+          {{-- NHẬP HÀNG (PHIẾU NHẬP) --}}
+          <li class="nav-item mt-2 text-muted small">Nhập hàng</li>
+          {{-- <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('staff.receipts.create') ? 'active' : '' }}"
+              href="{{ route('staff.receipts.create') }}">
+              <i class="bi bi-download me-2"></i> Tạo phiếu nhập
+            </a>
+          </li> --}}
+          <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('staff.receipts.*') && !request()->routeIs('staff.receipts.create') ? 'active' : '' }}"
+              href="{{ route('staff.receipts.index') }}">
+              <i class="bi bi-download me-2"></i> Danh sách phiếu nhập
+              @if(($badges['pn_draft'] ?? 0) > 0)
+                <span class="badge text-bg-secondary ms-2">{{ $badges['pn_draft'] }}</span>
+              @endif
+            </a>
+          </li>
+
           {{-- BÁN HÀNG (ĐƠN + PHIẾU XUẤT) --}}
           <li class="nav-item mt-2 text-muted small">Bán hàng</li>
           <li class="nav-item">
@@ -117,24 +135,6 @@
               <i class="bi bi-journal-arrow-up me-2"></i> Danh sách phiếu xuất
               @if(($badges['px_draft'] ?? 0) > 0)
                 <span class="badge text-bg-secondary ms-2">{{ $badges['px_draft'] }}</span>
-              @endif
-            </a>
-          </li>
-
-          {{-- NHẬP HÀNG (PHIẾU NHẬP) --}}
-          <li class="nav-item mt-2 text-muted small">Nhập hàng</li>
-          <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('staff.receipts.create') ? 'active' : '' }}"
-              href="{{ route('staff.receipts.create') }}">
-              <i class="bi bi-download me-2"></i> Tạo phiếu nhập
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('staff.receipts.*') && !request()->routeIs('staff.receipts.create') ? 'active' : '' }}"
-              href="{{ route('staff.receipts.index') }}">
-              <i class="bi bi-journal-minus me-2"></i> Danh sách phiếu nhập
-              @if(($badges['pn_draft'] ?? 0) > 0)
-                <span class="badge text-bg-secondary ms-2">{{ $badges['pn_draft'] }}</span>
               @endif
             </a>
           </li>

@@ -16,6 +16,7 @@ use App\Http\Controllers\Staff\SupplierController;
 use App\Http\Controllers\Staff\ProductController as StaffProductController;
 use App\Http\Controllers\Staff\KhachHangController;
 use App\Http\Controllers\Staff\ReviewController as StaffReviewController;
+use App\Http\Controllers\Staff\ReceiptController;
 
 // ================== TRANG CHỦ ==================
 Route::get('/', [ProductController::class, 'home'])->name('home');
@@ -147,8 +148,17 @@ Route::prefix('staff')
         Route::view('/issues', 'staff.stub')->name('issues.index');
         Route::view('/issues/create', 'staff.stub')->name('issues.create');
 
-        Route::view('/receipts', 'staff.stub')->name('receipts.index');
-        Route::view('/receipts/create', 'staff.stub')->name('receipts.create');
+        // Quản lý phiếu nhập
+        Route::get('/receipts', [ReceiptController::class, 'index'])->name('receipts.index');
+        Route::post('/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
+        Route::get('/receipts/create', function () {
+            return redirect()->route('staff.receipts.index', ['open' => 'create']);
+        })->name('receipts.create');
+        Route::get('/receipts/{id}', [ReceiptController::class, 'show'])->name('receipts.show');
+        Route::put('/receipts/{id}', [ReceiptController::class, 'update'])->name('receipts.update'); // Thêm route update
+        Route::put('/receipts/{id}/confirm', [ReceiptController::class, 'confirm'])->name('receipts.confirm');
+        Route::put('/receipts/{id}/cancel', [ReceiptController::class, 'cancel'])->name('receipts.cancel');
+        Route::delete('/receipts/{id}', [ReceiptController::class, 'destroy'])->name('receipts.destroy');
 
         // ====== THỐNG KÊ  ======
         Route::prefix('reports')->name('reports.')->group(function () {

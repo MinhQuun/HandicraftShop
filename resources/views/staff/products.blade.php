@@ -178,8 +178,10 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Tồn kho</label>
-                <input type="number" name="SOLUONGTON" class="form-control" min="0" step="1" required>
+                <input id="c_stock" type="number" class="form-control" value="0" readonly disabled>
+                <div class="form-text">Tồn kho được tính tự động từ <strong>Phiếu nhập / Phiếu xuất</strong>. Không chỉnh tại đây.</div>
             </div>
+
 
             <div class="col-md-6">
                 <label class="form-label">Loại</label>
@@ -245,8 +247,10 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Tồn kho</label>
-                <input id="e_stock" type="number" name="SOLUONGTON" class="form-control" min="0" step="1" required>
+                <input id="e_stock" type="number" class="form-control" readonly disabled>
+                <div class="form-text">Không chỉnh tại đây. Muốn thay đổi hãy tạo <strong>Phiếu nhập / Phiếu xuất</strong>.</div>
             </div>
+
 
             <div class="col-md-6">
                 <label class="form-label">Loại</label>
