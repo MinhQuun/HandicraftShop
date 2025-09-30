@@ -89,6 +89,14 @@
                         <i class="fas fa-shield-alt"></i> Hoàn tiền 100% nếu không hài lòng
                     </div>
                 </div>
+                
+                <!-- QR CODE THANH TOÁN (Ẩn mặc định, hiện khi chọn phương thức) -->
+                <div class="checkout-qr card mt-3" id="payQRCode" style="display:none;">
+                    <h5 class="card-title">Quét QR để thanh toán</h5>
+                    <div class="text-center">
+                        <img id="payQRImage" src="" alt="QR Code" style="max-width:220px;">
+                    </div>
+                </div>                
             </div>
 
             <div class="col-lg-6">
@@ -122,11 +130,17 @@
 
                         <div class="pay-grid">
                             @foreach ($paymentMethods as $pm)
-                                <button type="button" class="pay-card" data-matt="{{ $pm->MATT }}">
-                                    <img class="pay-logo" src="{{ $pm->MATT === 'MOMO' ? 'https://upload.wikimedia.org/wikipedia/commons/4/41/MoMo_Logo.svg' : ($pm->MATT === 'VNPAY' ? 'https://seeklogo.com/images/V/vnpay-logo-428006-seeklogo.com.png' : ($pm->MATT === 'ZALOPAY' ? 'https://seeklogo.com/images/Z/ZaloPay-logo-391409-seeklogo.com.png' : 'https://example.com/cod-icon.png')) }}" alt="{{ $pm->LOAITT }}">
+                                <button type="button" 
+                                    class="pay-card" 
+                                    data-matt="{{ $pm->MATT }}" 
+                                    data-qr="{{ asset('assets/images/qrcodes/' . strtolower($pm->MATT) . '.jpg') }}">
+                                    
+                                    <img class="pay-logo" 
+                                        src="{{ asset('assets/images/payments/' . strtolower($pm->MATT) . '.png') }}" 
+                                        alt="{{ $pm->LOAITT }}">
+
                                     <div class="pay-card-content">
                                         <div class="pay-card-title">{{ $pm->LOAITT }}</div>
-                                        <div class="pay-card-sub">Mã: {{ $pm->MATT }}</div>
                                     </div>
                                 </button>
                             @endforeach
