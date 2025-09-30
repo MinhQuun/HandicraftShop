@@ -3,6 +3,8 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/staff-receipts.css') }}">
+    <!-- Select2 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 @endpush
 
 @section('content')
@@ -74,7 +76,8 @@
                 <i class="bi bi-plus-circle me-1"></i> Thêm mới
             </button>
         </div>
-
+        
+        {{-- Danh sách phiếu nhập --}}
         <div class="table-responsive">
             <table class="table align-middle mb-0 table-hover products-table">
                 <thead>
@@ -97,9 +100,7 @@
                         @endphp
                         <tr class="row-detail" data-id="{{ $r->MAPN }}" style="cursor:pointer">
                             <td>{{ $rowNumber }}</td>
-                            <td class="text-primary fw-bold">
-                                <a href="javascript:void(0)" class="link-detail" data-id="{{ $r->MAPN }}">{{ $r->MAPN }}</a>
-                            </td>
+                            <td>{{ $r->MAPN }}</td>
                             <td class="text-truncate" title="{{ $r->TENNHACUNGCAP }}">{{ $r->TENNHACUNGCAP }}</td>
                             <td class="text-truncate" title="{{ $r->NHANVIEN }}">{{ $r->NHANVIEN }}</td>
                             <td>{{ \Carbon\Carbon::parse($r->NGAYNHAP)->format('d/m/Y H:i') }}</td>
@@ -143,18 +144,34 @@
             <div class="modal-dialog modal-xl modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Chi tiết Phiếu nhập <span id="md_id" class="text-muted"></span></h5>
+                        <h5 class="modal-title">Chi tiết phiếu nhập</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4"><div><strong>Nhà cung cấp:</strong> <span id="md_ncc"></span></div></div>
-                            <div class="col-md-4"><div><strong>Nhân viên:</strong> <span id="md_nv"></span></div></div>
-                            <div class="col-md-4"><div><strong>Thời gian:</strong> <span id="md_time"></span></div></div>
-                            <div class="col-md-12"><div><strong>Ghi chú:</strong> <span id="md_ghichu" class="text-muted"></span></div></div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <label class="form-label">Mã PN</label>
+                                <p id="md_id" class="fw-bold text-primary"></p>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Nhà cung cấp</label>
+                                <p id="md_ncc"></p>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Nhân viên</label>
+                                <p id="md_nv"></p>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Ngày nhập</label>
+                                <p id="md_time"></p>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Ghi chú</label>
+                                <p id="md_ghichu" class="text-muted"></p>
+                            </div>
                         </div>
-                        <div class="table-responsive border rounded p-2">
-                            <table class="table table-sm align-middle mb-0" id="tblDetailLines">
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0" id="tblDetailLines">
                                 <thead>
                                     <tr>
                                         <th style="width:70px;">STT</th>
@@ -250,10 +267,12 @@
                                     <tbody>
                                         <tr>
                                             <td>
-                                                <select name="ITEM_MASP[]" class="form-select line-masp" required>
+                                                <select name="ITEM_MASP[]" class="form-select line-masp select2" required>
                                                     <option value="" selected disabled>-- Chọn sản phẩm --</option>
                                                     @foreach($products as $p)
-                                                        <option value="{{ $p->MASANPHAM }}">{{ $p->TENSANPHAM }} ({{ $p->MASANPHAM }})</option>
+                                                        <option value="{{ $p->MASANPHAM }}">
+                                                            {{ $p->TENSANPHAM }} ({{ $p->MASANPHAM }}) - Tồn: {{ number_format($p->SOLUONGTON, 0, ',', '.') }}
+                                                        </option>
                                                     @endforeach
                                                 </select>
                                             </td>
@@ -289,8 +308,12 @@
 @endsection
 
 @push('scripts')
+    <!-- jQuery CDN (required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Select2 JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        // dataset cho JS (kèm GIANHAP để auto điền đơn giá)
+        // dataset cho JS (kèm GIANHAP và SOLUONGTON để auto điền đơn giá và hiển thị tồn)
         window.products = @json($products);
         // route mẫu cho show; thay __ID__ bằng MAPN ở JS
         window.staff_receipt_show_url = @json(route('staff.receipts.show', ['id' => '__ID__']));

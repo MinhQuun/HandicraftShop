@@ -102,7 +102,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 tr.innerHTML = `
           <td>${i + 1}</td>
           <td>${ln.MASANPHAM}</td>
-          <td class="text-truncate" title="${ln.TENSANPHAM}">${ln.TENSANPHAM}</td>
+          <td class="text-truncate" title="${ln.TENSANPHAM}">${
+                    ln.TENSANPHAM
+                }</td>
           <td class="text-end">${fmtVND(ln.SOLUONG)}</td>
           <td class="text-end">${fmtVND(ln.DONGIA)}</td>
           <td class="text-end">${fmtVND(ln.THANHTIEN)}</td>`;
@@ -113,11 +115,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const formConfirm = document.getElementById("md_form_confirm");
             if (formConfirm) {
                 // set action to /staff/receipts/{id}/confirm
-                formConfirm.action = buildShowUrl(`${header.MAPN}/confirm`).replace(
-                    "/__ID__",
-                    ""
+                formConfirm.action = buildShowUrl(
+                    `${header.MAPN}/confirm`
+                ).replace("/__ID__", "");
+                formConfirm.classList.toggle(
+                    "d-none",
+                    header.TRANGTHAI !== "NHAP"
                 );
-                formConfirm.classList.toggle("d-none", header.TRANGTHAI !== "NHAP");
             }
 
             bsDetail && bsDetail.show();
@@ -140,9 +144,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // -----------------------
-    // Create modal: dynamic product list + auto fill price from GIANHAP
+    // Create modal: dynamic product list + auto fill price from GIANHAP + display SOLUONGTON
     // -----------------------
-    const selNCC = document.querySelector('#modalCreate select[name="MANHACUNGCAP"]');
+    const selNCC = document.querySelector(
+        '#modalCreate select[name="MANHACUNGCAP"]'
+    );
     const tbl = document.getElementById("tblCreateLines");
     const btnAdd = document.getElementById("btnAddLine");
 
@@ -160,12 +166,17 @@ document.addEventListener("DOMContentLoaded", () => {
             .filter((v) => v);
     };
 
-    // Tạo HTML option, loại trừ excludeIds (string)
+    // Tạo HTML option, loại trừ excludeIds (string), và thêm tồn kho
     const renderOptions = (list, excludeIds = []) => {
-        const opts = ['<option value="" selected disabled>-- Chọn sản phẩm --</option>'];
+        const opts = [
+            '<option value="" selected disabled>-- Chọn sản phẩm --</option>',
+        ];
         list.forEach((p) => {
             if (!excludeIds.includes(String(p.MASANPHAM))) {
-                opts.push(`<option value="${p.MASANPHAM}">${p.TENSANPHAM} (${p.MASANPHAM})</option>`);
+                const ton = fmtVND(p.SOLUONGTON || 0);
+                opts.push(
+                    `<option value="${p.MASANPHAM}">${p.TENSANPHAM} (${p.MASANPHAM}) - Tồn: ${ton}</option>`
+                );
             }
         });
         return opts.join("");
@@ -193,6 +204,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const exclude = selected.filter((id) => id !== myVal);
             // build new options for this select
             const newHtml = renderOptions(list, exclude);
+            // Destroy Select2 if initialized
+            if ($(s).hasClass("select2-hidden-accessible"))
+                $(s).select2("destroy");
             // Only replace innerHTML if it actually differs to avoid layout thrash
             if (s.innerHTML !== newHtml) {
                 s.innerHTML = newHtml;
@@ -204,7 +218,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 // if previous value no longer exists (shouldn't often happen) clear it
                 s.value = "";
             }
-            // DO NOT dispatch change here to avoid re-triggering auto-fill for other rows
+            // Re-init Select2
+            initSelect2(s);
+            $(s).val(myVal).trigger("change");
         });
     };
 
@@ -255,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const tbody = tbl.querySelector("tbody");
         const tr = document.createElement("tr");
         tr.innerHTML = `
-      <td><select name="ITEM_MASP[]" class="form-select line-masp" required>${html}</select></td>
+      <td><select name="ITEM_MASP[]" class="form-select line-masp select2" required>${html}</select></td>
       <td><input type="number" name="ITEM_SOLUONG[]" class="form-control line-qty" min="1" step="1" value="1" required></td>
       <td><input type="number" name="ITEM_DONGIA[]" class="form-control line-price" min="0" step="100" value="0" required></td>
       <td class="line-amount text-end">0</td>
@@ -299,14 +315,21 @@ document.addEventListener("DOMContentLoaded", () => {
         tbl.querySelectorAll("select.line-masp").forEach((s) => {
             // if select has options already (server rendered), skip replacing unless empty
             if (!s.options || s.options.length <= 1) {
-                s.innerHTML = renderOptions(list, used.filter(id => id !== s.value));
+                s.innerHTML = renderOptions(
+                    list,
+                    used.filter((id) => id !== s.value)
+                );
             } else {
                 // make sure selected values remain available for their selects
                 const myVal = s.value;
-                if (myVal && ![...s.options].some(o => o.value == myVal)) {
+                if (myVal && ![...s.options].some((o) => o.value == myVal)) {
                     // value not present - rebuild options allowing myVal
-                    s.innerHTML = renderOptions(list, used.filter(id => id !== myVal));
-                    if ([...s.options].some(o => o.value == myVal)) s.value = myVal;
+                    s.innerHTML = renderOptions(
+                        list,
+                        used.filter((id) => id !== myVal)
+                    );
+                    if ([...s.options].some((o) => o.value == myVal))
+                        s.value = myVal;
                 }
             }
             // bind events (in case server-rendered rows didn't have JS bound)
@@ -316,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
         // ensure other UI computed values
-        tbl.querySelectorAll("tbody tr").forEach(tr => recalcRow(tr));
+        tbl.querySelectorAll("tbody tr").forEach((tr) => recalcRow(tr));
     })();
 
     // Auto open create modal
@@ -325,7 +348,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!mc) return;
         const url = new URL(window.location.href);
         const qOpen = url.searchParams.get("open");
-        const isCreatePath = window.location.pathname.endsWith("/receipts/create");
+        const isCreatePath =
+            window.location.pathname.endsWith("/receipts/create");
         if (qOpen === "create" || isCreatePath) new bootstrap.Modal(mc).show();
     })();
 });

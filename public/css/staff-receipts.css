@@ -268,6 +268,37 @@
     border: none;
 }
 
+/* Select2 Styles (customize to match theme) */
+.select2-container .select2-selection--single {
+    border-radius: 12px;
+    border-color: var(--card-brd);
+    height: calc(1.5em + 0.75rem + 2px);
+    background-color: var(--card);
+}
+.select2-container--default
+    .select2-selection--single
+    .select2-selection__rendered {
+    line-height: 1.5em;
+    color: var(--text);
+}
+.select2-container--default
+    .select2-selection--single
+    .select2-selection__arrow {
+    height: calc(1.5em + 0.75rem + 2px);
+}
+.select2-container--default.select2-container--focus
+    .select2-selection--single {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2);
+}
+.select2-container--default .select2-results__option {
+    padding: 6px 12px;
+}
+.select2-container--default .select2-results__option--highlighted {
+    background-color: var(--blue);
+    color: #fff;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
     .products-table td.text-truncate {
@@ -278,6 +309,9 @@
     }
     .products-filter .col-12.d-flex {
         justify-content: center;
+    }
+    .select2-container .select2-selection--single {
+        height: calc(1.5em + 0.5rem + 2px); /* Điều chỉnh cho mobile */
     }
 }
 

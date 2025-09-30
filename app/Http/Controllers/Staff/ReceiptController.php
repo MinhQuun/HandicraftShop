@@ -57,8 +57,8 @@ class ReceiptController extends Controller
 
         // Lấy thêm GIANHAP để JS tự fill đơn giá
         $products = DB::table('SANPHAM')
-            ->select('SANPHAM.MASANPHAM', 'SANPHAM.TENSANPHAM', 'SANPHAM.MANHACUNGCAP', 'SANPHAM.GIANHAP')
-            ->orderBy('SANPHAM.TENSANPHAM')
+            ->select('SANPHAM.MASANPHAM', 'SANPHAM.TENSANPHAM', 'SANPHAM.MANHACUNGCAP', 'SANPHAM.GIANHAP', 'SANPHAM.SOLUONGTON')
+            ->orderBy('SANPHAM.MASANPHAM')
             ->get();
 
         // ==== Combobox Nhân viên: chỉ người có quyền Q02 (nhân viên) ====
