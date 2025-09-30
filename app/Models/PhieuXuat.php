@@ -6,17 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class DonHang extends Model
+class PhieuXuat extends Model
 {
-    protected $table = 'DONHANG';
-    protected $primaryKey = 'MADONHANG';
+    protected $table = 'PHIEUXUAT';
+    protected $primaryKey = 'MAPHIEUXUAT';
     public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = false;
 
     protected $fillable = [
-        'MAKHACHHANG', 'MADIACHI', 'NGAYDAT', 'MAHTTHANHTOAN',
-        'GHICHU', 'TONGTIEN', 'TRANGTHAI'
+        'MAKHACHHANG', 'MADIACHI', 'NGAYXUAT', 'TONGSL', 'TRANGTHAI'
     ];
 
     public function khachHang(): BelongsTo
@@ -26,7 +25,7 @@ class DonHang extends Model
 
     public function chiTiets(): HasMany
     {
-        return $this->hasMany(ChiTietDonHang::class, 'MADONHANG', 'MADONHANG');
+        return $this->hasMany(CTPhieuXuat::class, 'MAPX', 'MAPHIEUXUAT');
     }
 
     public function diaChi(): BelongsTo

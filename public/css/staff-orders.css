@@ -1,0 +1,294 @@
+/* CSS cho giao diện quản lý đơn hàng, kế thừa tinh thần từ staff-receipts.css */
+:root {
+    --bg-sky-1: #f1f7fb;
+    --bg-sky-2: #eef6f7;
+    --card: #fff;
+    --card-brd: #d7e6ee;
+    --text: #23323a;
+    --muted: #617481;
+    --teal: #1aa3a3;
+    --blue: #3a86ff;
+    --indigo: #5e60ce;
+    --success: #28a745;
+    --shadow: 0 16px 32px rgba(37, 103, 131, 0.14);
+}
+
+/* Header */
+.orders-header .kicker {
+    display: inline-block;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(26, 163, 163, 0.12);
+    border: 1px solid var(--card-brd);
+    color: var(--muted);
+}
+.orders-header .title {
+    margin: 10px 0 4px;
+    font-weight: 800;
+    line-height: 1.1;
+    font-size: clamp(26px, 4.2vw, 34px);
+    background: linear-gradient(90deg, var(--indigo), var(--blue), var(--teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.orders-header .muted {
+    color: var(--muted);
+}
+
+/* Filter card */
+.orders-filter {
+    border: 1px solid var(--card-brd);
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+.orders-filter .form-control,
+.orders-filter .form-select {
+    border-radius: 10px;
+    border-color: var(--card-brd);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.orders-filter .form-control:focus,
+.orders-filter .form-select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2);
+}
+.orders-filter .form-label {
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+.orders-filter .btn-outline-primary {
+    border-radius: 999px;
+    border-color: #b9d2ff;
+    color: var(--blue);
+    background: #f0f6ff;
+    transition: all 0.25s;
+}
+.orders-filter .btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+.orders-filter .btn-outline-secondary {
+    border-radius: 999px;
+    border-color: var(--card-brd);
+    background: #f7fbfd;
+    color: var(--text);
+    transition: all 0.25s;
+}
+.orders-filter .btn-outline-secondary:hover {
+    background: #eef6fb;
+    transform: translateY(-2px);
+}
+
+/* Card khung bảng */
+.card {
+    border-radius: 16px;
+    border: 1px solid var(--card-brd);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+.card-header {
+    background: linear-gradient(180deg, #f9feff, #f4fbfd);
+    border-bottom: 1px solid var(--card-brd);
+}
+
+/* Table */
+.orders-table thead th {
+    background: linear-gradient(180deg, #f7fbff, #f2f8fd);
+    border-bottom: 1px solid var(--card-brd);
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+}
+.orders-table td,
+.orders-table th {
+    vertical-align: middle;
+    border-color: #e6eff5;
+}
+.orders-table tbody tr {
+    transition: background 0.2s;
+}
+.orders-table tbody tr:hover {
+    background: #f9feff;
+}
+.orders-table td.text-truncate {
+    max-width: 260px;
+}
+
+/* Giá & badge trạng thái */
+.price {
+    font-weight: 700;
+}
+.badge {
+    border-radius: 999px;
+    padding: 0.4rem 0.6rem;
+    font-weight: 700;
+}
+.badge.stock-ok {
+    background: #e9fbf4;
+    color: #1a7f46;
+    border: 1px solid #bcefd6;
+}
+.badge.stock-warn {
+    background: #fff7e6;
+    color: #b36b00;
+    border: 1px solid #ffe0a1;
+}
+.badge.stock-bad {
+    background: #ffeded;
+    color: #c0392b;
+    border: 1px solid #ffc7c7;
+}
+
+/* Soft buttons */
+.btn-success-soft,
+.btn-danger-soft {
+    border-radius: 10px;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+.btn-success-soft {
+    background: rgba(40, 167, 69, 0.08);
+    color: var(--success);
+    border-color: rgba(40, 167, 69, 0.22);
+}
+.btn-success-soft:hover {
+    background: #e9fbf4;
+    border-color: rgba(40, 167, 69, 0.35);
+    transform: translateY(-2px);
+}
+.btn-danger-soft {
+    background: rgba(237, 66, 69, 0.08);
+    color: #d64545;
+    border-color: rgba(237, 66, 69, 0.22);
+}
+.btn-danger-soft:hover {
+    background: #ffeded;
+    border-color: rgba(237, 66, 69, 0.35);
+    transform: translateY(-2px);
+}
+
+/* Pagination */
+.pagination {
+    gap: 6px;
+}
+.page-item .page-link {
+    border-radius: 10px;
+    border: 1px solid var(--card-brd);
+    background: #f7fbff;
+    color: var(--text);
+    transition: all 0.2s;
+}
+.page-item .page-link:hover {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+.page-item.active .page-link {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 6px 14px rgba(26, 163, 163, 0.22);
+}
+
+/* Modal */
+.modal-content {
+    border-radius: 18px;
+    border: 1px solid var(--card-brd);
+    box-shadow: var(--shadow);
+}
+.modal-header {
+    border-bottom: 1px solid var(--card-brd);
+    background: linear-gradient(180deg, #f9feff, #f4fbfd);
+}
+.modal-title {
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--indigo), var(--blue));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.modal-body .form-label {
+    font-weight: 600;
+    color: var(--muted);
+}
+.modal-body .form-control-plaintext {
+    color: var(--text);
+}
+.modal-footer .btn-secondary {
+    border-radius: 999px;
+    background: #f2f8fd;
+    border: 1px solid var(--card-brd);
+    color: var(--text);
+}
+.modal-footer .btn-success {
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--success), #1a7f46);
+    border: none;
+}
+
+/* Select2 Styles */
+.select2-container .select2-selection--single {
+    border-radius: 12px;
+    border-color: var(--card-brd);
+    height: calc(1.5em + 0.75rem + 2px);
+    background-color: var(--card);
+}
+.select2-container--default
+    .select2-selection--single
+    .select2-selection__rendered {
+    line-height: 1.5em;
+    color: var(--text);
+}
+.select2-container--default
+    .select2-selection--single
+    .select2-selection__arrow {
+    height: calc(1.5em + 0.75rem + 2px);
+}
+.select2-container--default.select2-container--focus
+    .select2-selection--single {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2);
+}
+.select2-container--default .select2-results__option {
+    padding: 6px 12px;
+}
+.select2-container--default .select2-results__option--highlighted {
+    background-color: var(--blue);
+    color: #fff;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .orders-table td.text-truncate {
+        max-width: 180px;
+    }
+    .orders-filter .form-label {
+        font-size: 0.8rem;
+    }
+    .orders-filter .col-12.d-flex {
+        justify-content: center;
+    }
+    .select2-container .select2-selection--single {
+        height: calc(1.5em + 0.5rem + 2px);
+    }
+}
+
+/* Khi modal mở, ẩn filter để tránh select native đè lên */
+.modal-open .orders-filter {
+    visibility: hidden;
+}

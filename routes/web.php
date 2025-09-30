@@ -18,6 +18,8 @@ use App\Http\Controllers\Staff\ProductController as StaffProductController;
 use App\Http\Controllers\Staff\KhachHangController;
 use App\Http\Controllers\Staff\ReviewController as StaffReviewController;
 use App\Http\Controllers\Staff\ReceiptController;
+use App\Http\Controllers\Staff\IssueController;
+use App\Http\Controllers\Staff\OrderController as StaffOrderController;
 
 // ================== TRANG CHỦ ==================
 Route::get('/', [ProductController::class, 'home'])->name('home');
@@ -165,6 +167,18 @@ Route::prefix('staff')
         Route::put('/receipts/{id}/confirm', [ReceiptController::class, 'confirm'])->name('receipts.confirm');
         Route::put('/receipts/{id}/cancel', [ReceiptController::class, 'cancel'])->name('receipts.cancel');
         Route::delete('/receipts/{id}', [ReceiptController::class, 'destroy'])->name('receipts.destroy');
+
+        // Quản lý đơn hàng
+        Route::get('/orders', [StaffOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{id}', [StaffOrderController::class, 'show'])->name('orders.show');
+        Route::put('/orders/{id}/confirm', [StaffOrderController::class, 'confirm'])->name('orders.confirm');
+        Route::put('/orders/{id}/cancel', [StaffOrderController::class, 'cancel'])->name('orders.cancel');
+
+        // Quản lý phiếu xuất
+        Route::get('/issues', [IssueController::class, 'index'])->name('issues.index');
+        Route::get('/issues/{id}', [IssueController::class, 'show'])->name('issues.show');
+        Route::put('/issues/{id}/confirm', [IssueController::class, 'confirm'])->name('issues.confirm');
+        Route::put('/issues/{id}/cancel', [IssueController::class, 'cancel'])->name('issues.cancel');
 
         // ====== THỐNG KÊ  ======
         Route::prefix('reports')->name('reports.')->group(function () {

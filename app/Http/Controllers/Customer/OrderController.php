@@ -133,9 +133,9 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
-            $items = collect($cart); // Chuyển thành Collection
+            $items = collect($cart);
 
-            // Tạo bản sao mới của items với giá đã cập nhật
+            // Kiểm tra tồn kho với lock
             $items = $items->map(function ($item, $id) {
                 $product = SanPham::where('MASANPHAM', $id)->lockForUpdate()->first();
                 if (!$product || $product->SOLUONGTON < (int)$item['SOLUONG']) {
@@ -153,7 +153,7 @@ class OrderController extends Controller
                 }
                 $item['GIABAN'] = $giaBan;
                 return $item;
-            })->all(); // Chuyển về mảng để sử dụng tiếp
+            })->all();
 
             $totalQty = array_sum(array_column($items, 'SOLUONG'));
             $promo = session('promo');
@@ -201,10 +201,6 @@ class OrderController extends Controller
                 $detail->SOLUONG   = (int)$item['SOLUONG'];
                 $detail->DONGIA    = (int)$item['GIABAN'];
                 $detail->save();
-            }
-
-            foreach ($items as $id => $item) {
-                SanPham::where('MASANPHAM', $id)->decrement('SOLUONGTON', (int)$item['SOLUONG']);
             }
 
             session()->forget(['cart', 'promo']);
