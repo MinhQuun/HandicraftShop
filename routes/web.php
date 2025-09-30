@@ -7,6 +7,7 @@ use App\Http\Controllers\Customer\ProductController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\ContactController;
 use App\Http\Controllers\Customer\ReviewController;
+use App\Http\Controllers\Customer\OrderController;
 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\UserAdminController;
@@ -47,7 +48,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/cart/increase/{id}', [CartController::class, 'increase'])->name('cart.increase');
     Route::post('/cart/decrease/{id}', [CartController::class, 'decrease'])->name('cart.decrease');
     Route::post('/cart/remove/{id}',   [CartController::class, 'remove'])->name('cart.remove');
-    Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
+
+    // Checkout
+    Route::get('/checkout', [OrderController::class, 'create'])->name('checkout');
+
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{id}/confirm', [OrderController::class, 'confirm'])->name('orders.confirm');
 });
 
 

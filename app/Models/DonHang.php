@@ -10,11 +10,13 @@ class DonHang extends Model
 {
     protected $table = 'DONHANG';
     protected $primaryKey = 'MADONHANG';
+    public $incrementing = true;
+    protected $keyType = 'int';
     public $timestamps = false;
 
     protected $fillable = [
-        'MAKHACHHANG','MADIACHI','NGAYGIAO','NGAYDAT','MATT',
-        'GHICHU','TONGSLHANG','TONGTHANHTIEN','TRANGTHAI'
+        'MAKHACHHANG', 'MADIACHI', 'NGAYLAP', 'MAHTTHANHTOAN',
+        'GHICHU', 'TONGTIEN', 'TRANGTHAI'
     ];
 
     public function khachHang(): BelongsTo

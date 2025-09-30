@@ -9,6 +9,13 @@
 @section('content')
 <main class="page-cart">
   <section class="cart-shell">
+    <!-- Progress Bar -->
+    <div class="checkout-progress">
+      <div class="progress-step active"><i class="fas fa-shopping-cart"></i> Giỏ hàng</div>
+      <div class="progress-step"><i class="fas fa-file-invoice"></i> Thanh toán</div>
+      <div class="progress-step"><i class="fas fa-check"></i> Xác nhận</div>
+    </div>
+
     <h2 class="cart-title">THÔNG TIN GIỎ HÀNG</h2>
 
     {{-- Thông báo --}}

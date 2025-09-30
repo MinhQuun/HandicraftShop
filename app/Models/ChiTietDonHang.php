@@ -8,10 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ChiTietDonHang extends Model
 {
     protected $table = 'CHITIETDONHANG';
-    public $timestamps = false;
-
-    protected $primaryKey = null;
     public $incrementing = false;
+    protected $primaryKey = null;
+    public $timestamps = false;
 
     protected $fillable = ['MADONHANG','MASANPHAM','SOLUONG','DONGIA'];
 

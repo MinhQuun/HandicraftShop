@@ -1,0 +1,300 @@
+/* HandicraftShop — Checkout (Rustic Light, Professional 2025) */
+
+:root {
+    --bg-ivory-1: #f7f2ea;
+    --bg-ivory-2: #faf6f0;
+    --text: #3b352d;
+    --muted: #6f6559;
+    --card: #fffaf5;
+    --card-brd: #e7d6c4;
+    --shadow: 0 12px 28px rgba(120, 92, 58, 0.12);
+    --wood: #8c6d3b;
+    --moss: #6a8f55;
+    --wheat: #c8a97e;
+    --danger: #b24b4b;
+    --ok: #2d7a35;
+    --discount: #e07c7c;
+    --font-family: "Open Sans", sans-serif;
+}
+
+body:has(.page-checkout) {
+    font-family: var(--font-family);
+    color: var(--text);
+    background: linear-gradient(180deg, var(--bg-ivory-1), var(--bg-ivory-2))
+        fixed;
+}
+
+/* Shell */
+.checkout-shell {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 30px;
+    border-radius: 24px;
+    background: #fffaf6;
+    border: 1px solid var(--card-brd);
+    box-shadow: var(--shadow);
+}
+
+/* Progress Bar */
+.checkout-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.progress-step {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f0e9e0;
+    color: var(--muted);
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.progress-step.active {
+    background: var(--moss);
+    color: white;
+}
+
+.progress-step.complete {
+    background: var(--wheat);
+    color: white;
+}
+
+/* Title */
+.checkout-title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--wood);
+    margin-bottom: 30px;
+    text-transform: uppercase;
+}
+
+/* Cards */
+.card {
+    border-radius: 16px;
+    border: 1px solid var(--card-brd);
+    background: var(--card);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.3s;
+}
+
+.card:hover {
+    box-shadow: 0 16px 32px rgba(120, 92, 58, 0.15);
+}
+
+.card-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--moss);
+    margin-bottom: 20px;
+}
+
+/* Table */
+.checkout-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.checkout-table th,
+.checkout-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--card-brd);
+    text-align: left;
+}
+
+.checkout-table th {
+    background: #fff4ea;
+    font-weight: 700;
+    color: var(--wood);
+}
+
+/* Promo Section */
+.promo-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--card-brd);
+}
+
+.input-group {
+    display: flex;
+}
+
+#promo_code {
+    border-radius: 10px 0 0 10px;
+}
+
+#apply_promo {
+    border-radius: 0 10px 10px 0;
+    padding: 10px 16px;
+    font-size: 14px;
+}
+
+/* Totals */
+.checkout-totals {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.checkout-totals h5 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--wood);
+    margin: 8px 0;
+}
+
+.discount {
+    color: var(--discount);
+}
+
+/* Trust Signals */
+.trust-signals {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Form Elements */
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 1px solid var(--card-brd);
+    background: #fffdf8;
+    padding: 12px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-control:focus {
+    border-color: var(--wheat);
+    box-shadow: 0 0 0 4px rgba(200, 169, 126, 0.1);
+}
+
+/* Payment Cards */
+.pay-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.pay-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--card-brd);
+    background: #fffdf8;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.pay-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.pay-card.active {
+    background: #f7fbf5;
+    border-color: var(--moss);
+}
+
+.pay-logo {
+    width: 40px;
+    height: auto;
+}
+
+.pay-card-content {
+    flex: 1;
+}
+
+.pay-card-title {
+    font-weight: 700;
+    color: var(--wood);
+}
+
+.pay-card-sub {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* Actions */
+.checkout-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.btn-outline,
+.btn-gradient {
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--wheat);
+    color: var(--wood);
+}
+
+.btn-outline:hover {
+    background: var(--wheat);
+    color: white;
+}
+
+.btn-gradient {
+    background: linear-gradient(135deg, var(--wheat), var(--moss));
+    color: white;
+    border: none;
+}
+
+.btn-gradient:hover {
+    filter: brightness(1.05);
+    transform: translateY(-2px);
+}
+
+/* Alert */
+.alert {
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert.warn {
+    background: #fff7ee;
+    border: 1px solid #ffd4b8;
+    color: #d66e00;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column-reverse;
+    }
+    .checkout-actions {
+        flex-direction: column;
+    }
+    .checkout-progress {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

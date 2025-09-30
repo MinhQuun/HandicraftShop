@@ -66,6 +66,34 @@ body:has(.page-cart) {
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
+/* ===== Progress Bar ===== */
+.checkout-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.progress-step {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f0e9e0;
+    color: var(--muted);
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.progress-step.active {
+    background: var(--moss);
+    color: white;
+}
+
+.progress-step.complete {
+    background: var(--wheat);
+    color: white;
+}
+
 /* ===== Table ===== */
 .cart-table {
     width: 100%;
@@ -111,99 +139,54 @@ body:has(.page-cart) {
 }
 .cart-row:hover {
     transform: translateY(-2px);
-    border-color: #e9cfae;
-    box-shadow: 0 12px 24px rgba(120, 92, 58, 0.16);
+    box-shadow: 0 8px 18px rgba(120, 92, 58, 0.15);
+    border-color: #d9c9b8;
 }
 
-/* kẻ mờ giữa các ô khi màn hình lớn */
-@media (min-width: 992px) {
-    .cart-row > td + td {
-        box-shadow: inset 1px 0 0 rgba(231, 214, 196, 0.45);
-    }
+/* hide col on mobile */
+.col-hide-md {
+    display: table-cell;
 }
 
 .product-image {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 12px;
-    border: 1px solid #f0e5d8;
-    box-shadow: 0 6px 12px rgba(41, 37, 36, 0.08);
-    transition: transform 0.18s ease;
-}
-.cart-row:hover .product-image {
-    transform: scale(1.03);
+    width: 50px;
+    height: auto;
+    border-radius: 4px;
 }
 
-/* hàng rỗng */
-.cart-empty {
-    background: #fff7ee;
-    border: 1px dashed var(--card-brd);
-    color: var(--muted);
-    padding: 16px;
-    border-radius: 12px;
-}
-
-/* ===== Qty controls ===== */
 .qty-box {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    gap: 8px;
 }
+
 .btn-qty {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #e8dccd;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--card-brd);
     background: #fffdf8;
-    color: #5c5245;
+    color: var(--text);
+    font-weight: 800;
+    border-radius: 4px;
     transition: 0.18s;
-    cursor: pointer;
-    user-select: none;
-    box-shadow: 0 6px 14px rgba(120, 92, 58, 0.1);
 }
 .btn-qty:hover {
-    background: linear-gradient(135deg, var(--wheat), var(--moss));
-    color: #fff;
-    border-color: transparent;
-    transform: translateY(-1px) scale(1.05);
-}
-.btn-qty:active {
-    transform: translateY(0) scale(1);
-}
-.btn-qty:focus-visible {
-    outline: 3px solid rgba(106, 143, 85, 0.25);
+    background: #fff;
+    transform: scale(1.05);
 }
 
-.qty-number {
-    min-width: 32px;
-    font-weight: 800;
-    color: var(--text);
-    padding: 0.25rem 0.5rem;
-    border-radius: 999px;
-    background: #fff7ee;
-    border: 1px solid #ecd8c2;
-}
-
-/* ===== Price ===== */
-.price {
-    color: var(--ok);
-    font-weight: 800;
-}
+.price,
 .subtotal {
-    color: var(--danger);
-    font-weight: 800;
-}
-.currency {
-    opacity: 0.9;
     font-weight: 700;
+    color: #a84f3d;
 }
 
-/* ===== Row actions ===== */
+.currency {
+    font-size: 0.85em;
+    color: var(--muted);
+}
+
+/* row actions */
 .row-actions {
     display: flex;
     gap: 10px;
@@ -238,7 +221,7 @@ body:has(.page-cart) {
     color: #7b2121;
 }
 
-/* ===== Totals bar ===== */
+/* Totals bar */
 .cart-totals {
     display: flex;
     flex-wrap: wrap;
@@ -261,7 +244,7 @@ body:has(.page-cart) {
     color: #a84f3d;
 }
 
-/* ===== Footer actions ===== */
+/* Footer actions */
 .cart-actions {
     display: flex;
     gap: 14px;
@@ -302,7 +285,7 @@ body:has(.page-cart) {
     outline: 3px solid rgba(106, 143, 85, 0.25);
 }
 
-/* ===== Alert ===== */
+/* Alert */
 .alert {
     margin: 12px 0;
     padding: 12px 14px;
@@ -318,7 +301,7 @@ body:has(.page-cart) {
     border: 1px solid var(--card-brd);
 }
 
-/* ===== Responsive ===== */
+/* Responsive */
 @media (max-width: 992px) {
     .cart-shell {
         padding: 14px 12px 18px;

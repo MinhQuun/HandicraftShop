@@ -28,6 +28,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DiaChiGiaoHangSeeder::class,
         ]);
+
+        $this->call([
+            HinhThucTTSeeder::class,
+        ]);
         
         $this->call([
             PhieuNhapXuatSeeder::class,

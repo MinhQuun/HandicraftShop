@@ -104,7 +104,7 @@ class PhieuNhapXuatSeeder extends Seeder
              *    - PX#2: tml@gmail.com   -> SP033 x1, SP036 x2
              *    - PX#3: nptd@gmail.com  -> SP041 x1, SP045 x1
              *  DONGIA bán: lấy đúng GIABAN từ SANPHAM
-             *  Có MADIACHI thì gán địa chỉ đầu tiên của KH.
+             *  Có MADIACHI thì gán địa chỉ đầu tiên của KH từ DiaChiGiaoHangSeeder.
              * ========================================================= */
             $hasAddressOnPX = Schema::hasColumn('PHIEUXUAT', 'MADIACHI');
 
@@ -148,16 +148,24 @@ class PhieuNhapXuatSeeder extends Seeder
                 ];
 
                 if ($hasAddressOnPX) {
-                    $addrId = DB::table('DIACHI_GIAOHANG')
+                    $addr = DB::table('DIACHI_GIAOHANG')
                         ->where('MAKHACHHANG', $kh->MAKHACHHANG)
-                        ->value('MADIACHI');
+                        ->first();
 
-                    if (!$addrId) {
-                        // Nếu KH chưa có địa chỉ, tạo tạm một địa chỉ mặc định
+                    if (!$addr) {
+                        // Nếu không tìm thấy địa chỉ, lấy từ dữ liệu trong DiaChiGiaoHangSeeder
+                        $defaultAddresses = [
+                            'nguyenthitutrinh120504@gmail.com' => '33 Phan Huy Ích, P. 15, Q. Tân Bình, TP.HCM',
+                            'hakachi303@gmail.com' => 'Ấp 5, xã Tân Tây, Huyện Gò Công Đông, Tỉnh Tiền Giang',
+                            'nptduyc920@gmail.com' => '16 Núi Cấm 1, xã Vĩnh Thái, Thành Phố Nha Trang, Tỉnh Khánh Hòa',
+                        ];
+
                         $addrId = DB::table('DIACHI_GIAOHANG')->insertGetId([
                             'MAKHACHHANG' => $kh->MAKHACHHANG,
-                            'DIACHI'      => 'Địa chỉ mặc định (seeder)',
+                            'DIACHI'      => $defaultAddresses[$plan['email']] ?? 'Địa chỉ mặc định (seeder)',
                         ]);
+                    } else {
+                        $addrId = $addr->MADIACHI;
                     }
                     $payload['MADIACHI'] = $addrId;
                 }
