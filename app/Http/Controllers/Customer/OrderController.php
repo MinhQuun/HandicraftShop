@@ -159,23 +159,58 @@ class OrderController extends Controller
             $promo = session('promo');
             $totalPrice = $this->calculateTotal(collect($items), $promo);
 
-            $maDiaChi = $validated['address_id'] ?? null;
-            $textDiaChi = trim($validated['DIACHI']);
+            $maDiaChi  = $validated['address_id'] ?? null;
+            // Chuẩn hoá chuỗi địa chỉ: trim + gộp khoảng trắng
+            $textDiaChi = preg_replace('/\s+/u', ' ', trim($validated['DIACHI']));
 
+            // Hàm so sánh không phân biệt hoa/thường
+            $toLower = fn($s) => mb_strtolower($s ?? '', 'UTF-8');
+
+            // Nếu có chọn 1 địa chỉ sẵn (address_id) nhưng người dùng sửa nội dung khác đi,
+            // -> KHÔNG ghi đè bản ghi cũ, mà tạo bản ghi mới (hoặc tái sử dụng nếu đã có bản ghi trùng y hệt trước đó).
             if ($maDiaChi) {
                 $addr = DiaChiGiaoHang::where('MADIACHI', $maDiaChi)
-                    ->where('MAKHACHHANG', $maKhachHang)->first();
-                if (!$addr) throw new \Exception('Địa chỉ không hợp lệ.');
-                if ($addr->DIACHI !== $textDiaChi) {
-                    $addr->DIACHI = $textDiaChi;
-                    $addr->save();
+                    ->where('MAKHACHHANG', $maKhachHang)
+                    ->first();
+
+                if (!$addr) {
+                    throw new \Exception('Địa chỉ không hợp lệ.');
+                }
+
+                if ($toLower($addr->DIACHI) === $toLower($textDiaChi)) {
+                    // Nội dung không đổi -> dùng lại địa chỉ hiện tại
+                    // $maDiaChi giữ nguyên
+                } else {
+                    // Tìm xem đã có địa chỉ giống hệt chưa (tránh trùng)
+                    $existing = DiaChiGiaoHang::where('MAKHACHHANG', $maKhachHang)
+                        ->whereRaw('LOWER(DIACHI) = ?', [$toLower($textDiaChi)])
+                        ->first();
+
+                    if ($existing) {
+                        $maDiaChi = $existing->MADIACHI; // tái sử dụng
+                    } else {
+                        $new = new DiaChiGiaoHang();
+                        $new->MAKHACHHANG = $maKhachHang;
+                        $new->DIACHI      = $textDiaChi;
+                        $new->save();
+                        $maDiaChi = $new->MADIACHI;      // dùng địa chỉ mới
+                    }
                 }
             } else {
-                $addr = new DiaChiGiaoHang();
-                $addr->MAKHACHHANG = $maKhachHang;
-                $addr->DIACHI = $textDiaChi;
-                $addr->save();
-                $maDiaChi = $addr->MADIACHI;
+                // Không chọn địa chỉ sẵn -> thêm mới hoặc tái sử dụng nếu đã tồn tại địa chỉ y hệt
+                $existing = DiaChiGiaoHang::where('MAKHACHHANG', $maKhachHang)
+                    ->whereRaw('LOWER(DIACHI) = ?', [$toLower($textDiaChi)])
+                    ->first();
+
+                if ($existing) {
+                    $maDiaChi = $existing->MADIACHI;
+                } else {
+                    $addr = new DiaChiGiaoHang();
+                    $addr->MAKHACHHANG = $maKhachHang;
+                    $addr->DIACHI      = $textDiaChi;
+                    $addr->save();
+                    $maDiaChi = $addr->MADIACHI;
+                }
             }
 
             $order = new DonHang();
