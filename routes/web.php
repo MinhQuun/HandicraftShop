@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -26,27 +27,26 @@ Route::get('/', [ProductController::class, 'home'])->name('home');
 
 // ================== SẢN PHẨM ==================
 Route::get('/tat-ca-san-pham', [ProductController::class, 'allProducts'])->name('all_product');
-Route::get('/danh-muc', [ProductController::class, 'byCategory'])->name('category'); // nhận ?dm=...
-Route::get('/loai/{maLoai}', [ProductController::class, 'byType'])->name('sp.byType');
-Route::get('/tim-kiem', [ProductController::class, 'search'])->name('sp.search');
-Route::get('/san-pham/{id}', [ProductController::class, 'detail'])->name('sp.detail');
+Route::get('/danh-muc',        [ProductController::class, 'byCategory'])->name('category'); // nhận ?dm=...
+Route::get('/loai/{maLoai}',   [ProductController::class, 'byType'])->name('sp.byType');
+Route::get('/tim-kiem',        [ProductController::class, 'search'])->name('sp.search');
+Route::get('/san-pham/{id}',   [ProductController::class, 'detail'])->name('sp.detail');
 Route::post('/sp/{id}/danh-gia', [ReviewController::class, 'store'])
-    ->middleware('auth')
-    ->name('reviews.store');
+    ->middleware('auth')->name('reviews.store');
 
 // ================== TRANG TĨNH ==================
 Route::view('/about-us', 'pages.about_us')->name('about');
 Route::view('/services', 'pages.services')->name('services');
-Route::view('/contact', 'pages.contact')->name('contact');
+Route::view('/contact',  'pages.contact')->name('contact');
 
 // ================== LIÊN HỆ ==================
-Route::get('/lien-he', [ContactController::class, 'show'])->name('contact.form');
+Route::get('/lien-he',  [ContactController::class, 'show'])->name('contact.form');
 Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
 
 // ================== GIỎ HÀNG ==================
 Route::middleware('auth')->group(function () {
-    Route::get('/cart', [CartController::class, 'show'])->name('cart');
-    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::get('/cart',                [CartController::class, 'show'])->name('cart');
+    Route::post('/cart/add',           [CartController::class, 'add'])->name('cart.add');
     Route::post('/cart/increase/{id}', [CartController::class, 'increase'])->name('cart.increase');
     Route::post('/cart/decrease/{id}', [CartController::class, 'decrease'])->name('cart.decrease');
     Route::post('/cart/remove/{id}',   [CartController::class, 'remove'])->name('cart.remove');
@@ -55,31 +55,24 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout', [OrderController::class, 'create'])->name('checkout');
 
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    // (Nếu không còn dùng confirm ở phía khách, có thể xoá route sau)
     Route::get('/orders/{id}/confirm', [OrderController::class, 'confirm'])->name('orders.confirm');
 });
 
-
-
 // ================== USER AUTH ==================
-
-// Xử lý login/register/logout
 Route::get('/login', function (Request $request) {
     $redir = $request->query('redirect', url()->previous());
-    // Trang chủ sẽ nhận ?open=login để tự mở modal; auth.js sẽ đọc và bật modal
     return redirect()->to(route('home') . '?open=login&redirect=' . urlencode($redir));
 })->name('login');
 
-Route::post('/login', [UserController::class, 'login'])->name('users.login');
-
-Route::get('/register', [UserController::class, 'create'])->name('register');
+Route::post('/login',    [UserController::class, 'login'])->name('users.login');
+Route::get('/register',  [UserController::class, 'create'])->name('register');
 Route::post('/register', [UserController::class, 'store'])->name('users.store');
-
-Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+Route::post('/logout',   [UserController::class, 'logout'])->name('logout');
 
 // ================== USER CRUD ==================
 Route::resource('users', UserController::class)->except(['create', 'store']);
 
-// ================== PHÂN QUYỀN ==================
 // ================== Admin ===================
 Route::prefix('admin')
     ->middleware(['auth', RoleMiddleware::class . ':admin'])
@@ -114,13 +107,12 @@ Route::prefix('staff')
     ->group(function () {
         // Dashboard
         Route::get('/dashboard', function () {
-            // sau này sẽ tính thống kê đơn hàng, sản phẩm...
             return view('staff.dashboard', [
                 'stats' => [
-                    'products'       => DB::table('SANPHAM')->count(),
-                    'suppliers'     => DB::table('NHACUNGCAP')->count(),
-                    'orders_pending' => DB::table('DONHANG')->where('TRANGTHAI','Chờ xử lý')->count(),
-                    'customers'      => DB::table('KHACHHANG')->count(),
+                    'products'        => DB::table('SANPHAM')->count(),
+                    'suppliers'       => DB::table('NHACUNGCAP')->count(),
+                    'orders_pending'  => DB::table('DONHANG')->where('TRANGTHAI','Chờ xử lý')->count(),
+                    'customers'       => DB::table('KHACHHANG')->count(),
                 ]
             ]);
         })->name('dashboard');
@@ -132,10 +124,10 @@ Route::prefix('staff')
         Route::delete('/suppliers/{id}',[SupplierController::class, 'destroy'])->name('suppliers.destroy');
 
         // Quản lý sản phẩm
-        Route::get('/products',        [StaffProductController::class, 'index'])->name('products.index');
-        Route::post('/products',       [StaffProductController::class, 'store'])->name('products.store');
-        Route::put('/products/{id}',   [StaffProductController::class, 'update'])->name('products.update');
-        Route::delete('/products/{id}',[StaffProductController::class, 'destroy'])->name('products.destroy');
+        Route::get('/products',         [StaffProductController::class, 'index'])->name('products.index');
+        Route::post('/products',        [StaffProductController::class, 'store'])->name('products.store');
+        Route::put('/products/{id}',    [StaffProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{id}', [StaffProductController::class, 'destroy'])->name('products.destroy');
 
         // Quản lý khách hàng
         Route::get('/customers',                 [KhachHangController::class, 'index'])->name('customers.index');
@@ -143,44 +135,42 @@ Route::prefix('staff')
         Route::put('/customers/{customer}',      [KhachHangController::class, 'update'])->name('customers.update');
         Route::delete('/customers/{customer}',   [KhachHangController::class, 'destroy'])->name('customers.destroy');
 
-        // Quản lý hộp thư ý kiến
+        // Hộp thư ý kiến
         Route::get('/reviews',          [StaffReviewController::class, 'index'])->name('reviews.index');
         Route::put('/reviews/{id}',     [StaffReviewController::class, 'update'])->name('reviews.update');
         Route::delete('/reviews/{id}',  [StaffReviewController::class, 'destroy'])->name('reviews.destroy');
 
-        // Các module quản lý (stub trước)
+        // KHÔI PHỤC các trang stub để khớp layout (Khuyến mãi / Hình thức thanh toán)
         Route::view('/promotions', 'staff.stub')->name('promotions.index');
-        Route::view('/orders', 'staff.stub')->name('orders.index');
-        Route::view('/payments', 'staff.stub')->name('payments.index');
-
-        Route::view('/issues', 'staff.stub')->name('issues.index');
-        Route::view('/issues/create', 'staff.stub')->name('issues.create');
+        Route::view('/payments',   'staff.stub')->name('payments.index');
 
         // Quản lý phiếu nhập
-        Route::get('/receipts', [ReceiptController::class, 'index'])->name('receipts.index');
-        Route::post('/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
+        Route::get('/receipts',                 [ReceiptController::class, 'index'])->name('receipts.index');
+        Route::post('/receipts',                [ReceiptController::class, 'store'])->name('receipts.store');
         Route::get('/receipts/create', function () {
             return redirect()->route('staff.receipts.index', ['open' => 'create']);
         })->name('receipts.create');
-        Route::get('/receipts/{id}', [ReceiptController::class, 'show'])->name('receipts.show');
-        Route::put('/receipts/{id}', [ReceiptController::class, 'update'])->name('receipts.update'); // Thêm route update
-        Route::put('/receipts/{id}/confirm', [ReceiptController::class, 'confirm'])->name('receipts.confirm');
-        Route::put('/receipts/{id}/cancel', [ReceiptController::class, 'cancel'])->name('receipts.cancel');
-        Route::delete('/receipts/{id}', [ReceiptController::class, 'destroy'])->name('receipts.destroy');
+        Route::get('/receipts/{id}',            [ReceiptController::class, 'show'])->name('receipts.show');
+        Route::put('/receipts/{id}',            [ReceiptController::class, 'update'])->name('receipts.update');
+        Route::put('/receipts/{id}/confirm',    [ReceiptController::class, 'confirm'])->name('receipts.confirm');
+        Route::put('/receipts/{id}/cancel',     [ReceiptController::class, 'cancel'])->name('receipts.cancel');
+        Route::delete('/receipts/{id}',         [ReceiptController::class, 'destroy'])->name('receipts.destroy');
 
-        // Quản lý đơn hàng
-        Route::get('/orders', [StaffOrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/{id}', [StaffOrderController::class, 'show'])->name('orders.show');
-        Route::put('/orders/{id}/confirm', [StaffOrderController::class, 'confirm'])->name('orders.confirm');
-        Route::put('/orders/{id}/cancel', [StaffOrderController::class, 'cancel'])->name('orders.cancel');
+        // Quản lý đơn hàng (luồng mới: combobox + updateStatus)
+        Route::get('/orders',             [StaffOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{id}',        [StaffOrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{id}/status', [StaffOrderController::class, 'updateStatus'])->name('orders.updateStatus');
-
+        // (đã bỏ confirm/cancel riêng)
 
         // Quản lý phiếu xuất
-        Route::get('/issues', [IssueController::class, 'index'])->name('issues.index');
-        Route::get('/issues/{id}', [IssueController::class, 'show'])->name('issues.show');
+        Route::get('/issues',              [IssueController::class, 'index'])->name('issues.index');
+        Route::get('/issues/{id}',         [IssueController::class, 'show'])->name('issues.show');
         Route::put('/issues/{id}/confirm', [IssueController::class, 'confirm'])->name('issues.confirm');
-        Route::put('/issues/{id}/cancel', [IssueController::class, 'cancel'])->name('issues.cancel');
+        Route::put('/issues/{id}/cancel',  [IssueController::class, 'cancel'])->name('issues.cancel');
+        // để tránh view cũ gọi route create bị lỗi:
+        Route::get('/issues/create', function () {
+            return redirect()->route('staff.issues.index', ['open' => 'create']);
+        })->name('issues.create');
 
         // ====== THỐNG KÊ  ======
         Route::prefix('reports')->name('reports.')->group(function () {
@@ -191,4 +181,3 @@ Route::prefix('staff')
             Route::view('/top',       'staff.stub')->name('top');
         });
     });
-
