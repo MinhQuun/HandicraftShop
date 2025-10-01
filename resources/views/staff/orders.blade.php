@@ -44,10 +44,11 @@
                     <label class="form-label">Trạng thái</label>
                     <select name="status" class="form-select">
                         <option value="">-- Tất cả --</option>
-                        <option value="Chờ xử lý" {{ request('status') === 'Chờ xử lý' ? 'selected' : '' }}>Chờ xử lý</option>
-                        <option value="Chờ thanh toán" {{ request('status') === 'Chờ thanh toán' ? 'selected' : '' }}>Chờ thanh toán</option>
-                        <option value="DA_XAC_NHAN" {{ request('status') === 'DA_XAC_NHAN' ? 'selected' : '' }}>Đã xác nhận</option>
-                        <option value="HUY" {{ request('status') === 'HUY' ? 'selected' : '' }}>Hủy</option>
+                        @foreach($statuses as $status)
+                            <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
+                                {{ $status }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-lg-3 col-md-6">
@@ -83,7 +84,7 @@
                         <th style="min-width:220px;">Khách hàng</th>
                         <th style="min-width:160px;">Địa chỉ</th>
                         <th style="width:120px;" class="text-end">Tổng tiền</th>
-                        <th style="width:140px;">Trạng thái</th>
+                        <th style="width:180px;">Trạng thái</th>
                         <th style="width:160px;" class="text-end">Thao tác</th>
                     </tr>
                 </thead>
@@ -99,13 +100,19 @@
                             <td class="text-truncate" title="{{ $order->khachHang->HOTEN ?? '—' }}">{{ $order->khachHang->HOTEN ?? '—' }}</td>
                             <td class="text-truncate" title="{{ $order->diaChi->DIACHI ?? '—' }}">{{ $order->diaChi->DIACHI ?? '—' }}</td>
                             <td class="text-end"><span class="price">{{ number_format($order->TONGTHANHTIEN, 0, ',', '.') }} ₫</span></td>
+                            
+                            
+                            <!-- Trạng thái với combobox -->
                             <td>
-                                @php
-                                    $badge = $st === 'DA_XAC_NHAN' ? 'stock-ok' : ($st === 'HUY' ? 'stock-bad' : 'stock-warn');
-                                @endphp
-                                <span class="badge {{ $badge }}">{{ $st }}</span>
+                                <select name="status" class="form-select form-select-sm" style="width:130px;" disabled>
+                                    @foreach($statuses as $status)
+                                        <option value="{{ $status }}" {{ $st === $status ? 'selected' : '' }}>{{ $status }}</option>
+                                    @endforeach
+                                </select>
                             </td>
-                            <td class="text-end actions" data-no-row-open>
+
+                            <!-- Thao tác -->
+                            <td class="text-end actions">
                                 @if(in_array($st, ['Chờ xử lý', 'Chờ thanh toán']))
                                     <form data-no-row-open action="{{ route('staff.orders.confirm', $order->MADONHANG) }}" method="post" class="d-inline form-confirm">
                                         @csrf @method('put')
@@ -116,7 +123,10 @@
                                         <button class="btn btn-sm btn-danger-soft" title="Hủy đơn"><i class="bi bi-x-octagon"></i></button>
                                     </form>
                                 @endif
+                                <!-- Nút xem chi tiết -->
+                                <button type="button" class="btn btn-sm btn-info-soft btn-detail" data-id="{{ $order->MADONHANG }}" title="Xem chi tiết"><i class="bi bi-eye"></i></button>
                             </td>
+                                                        
                         </tr>
                     @empty
                         <tr><td colspan="7" class="text-center">Không có đơn hàng.</td></tr>
@@ -144,6 +154,7 @@
         @endif
     </div>
 
+    <!-- Chi tiết đơn hàng modal giữ nguyên -->
     <div class="modal fade" id="modalDetail" tabindex="-1" aria-hidden="true" data-bs-focus="false">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">

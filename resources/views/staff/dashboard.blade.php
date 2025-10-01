@@ -78,7 +78,7 @@
 
       {{-- Hàng đợi / cảnh báo có ngữ cảnh (chỉ hiện khi > 0) --}}
       @if($ordersPending > 0)
-        <a href="{{ route('staff.orders.index') }}?status=pending" class="chip">
+        <a href="{{ route('staff.orders.index') }}?status=Chờ xử lý" class="chip">
           <i class="bi bi-clipboard2-check me-1"></i>
           Đơn chờ xử lý
           <span class="badge text-bg-danger ms-1">{{ $ordersPending }}</span>

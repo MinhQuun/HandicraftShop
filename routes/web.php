@@ -173,6 +173,8 @@ Route::prefix('staff')
         Route::get('/orders/{id}', [StaffOrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{id}/confirm', [StaffOrderController::class, 'confirm'])->name('orders.confirm');
         Route::put('/orders/{id}/cancel', [StaffOrderController::class, 'cancel'])->name('orders.cancel');
+        Route::put('/orders/{id}/status', [StaffOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+
 
         // Quản lý phiếu xuất
         Route::get('/issues', [IssueController::class, 'index'])->name('issues.index');

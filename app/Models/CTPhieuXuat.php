@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class CTPhieuXuat extends Model
 {
+
     protected $table = 'CT_PHIEUXUAT';
-    protected $primaryKey = ['MAPHIEUXUAT', 'MASANPHAM'];
+    public $timestamps = false;
+    protected $primaryKey = ['MAPX', 'MASANPHAM'];
     public $incrementing = false;
-    protected $fillable = ['MAPHIEUXUAT', 'MASANPHAM', 'SOLUONG', 'DONGIA'];
+    protected $fillable = ['MAPX', 'MASANPHAM', 'SOLUONG', 'DONGIA'];
 
     public function sanPham()
     {

@@ -15,7 +15,7 @@ class DonHang extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'MAKHACHHANG', 'MADIACHI', 'NGAYDAT', 'MAHTTHANHTOAN',
+        'MAKHACHHANG', 'MADIACHI', 'NGAYDAT', 'MATT',
         'GHICHU', 'TONGTIEN', 'TRANGTHAI'
     ];
 

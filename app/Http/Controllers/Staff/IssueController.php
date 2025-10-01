@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\PhieuXuat;
 use App\Models\CTPhieuXuat;
-use App\Models\DonHang;
 use App\Models\KhachHang;
 use Illuminate\Support\Facades\DB;
 
@@ -14,116 +13,131 @@ class IssueController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PhieuXuat::query()->with(['khachHang', 'diaChi']);
+        $q        = trim($request->get('q', ''));
+        $customer = $request->get('customer');
+        $status   = $request->get('status');
+        $from     = $request->get('from');
+        $to       = $request->get('to');
 
-        // Lọc theo tìm kiếm
-        if ($q = $request->input('q')) {
-            $query->where('MAPHIEUXUAT', 'like', "%{$q}%")
-                  ->orWhereHas('khachHang', function ($qBuilder) use ($q) {
-                      $qBuilder->where('HOTEN', 'like', "%{$q}%");
-                  });
-        }
+        $issues = DB::table('PHIEUXUAT as p')
+            ->join('KHACHHANG as k', 'k.MAKHACHHANG', '=', 'p.MAKHACHHANG')
+            ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
+            ->leftJoin('CT_PHIEUXUAT as ct', 'ct.MAPX', '=', 'p.MAPX')
+            ->when($q, function ($query) use ($q) {
+                $like = "%{$q}%";
+                $query->where(function ($x) use ($like) {
+                    $x->whereRaw('CAST(p.MAPX AS CHAR) LIKE ?', [$like])
+                        ->orWhere('k.HOTEN', 'like', $like)
+                        ->orWhere('u.name', 'like', $like);
+                });
+            })
+            ->when($customer, fn($q2) => $q2->where('p.MAKHACHHANG', $customer))
+            ->when($status, fn($q2) => $q2->where('p.TRANGTHAI', $status))
+            ->when($from, fn($q2) => $q2->whereDate('p.NGAYXUAT', '>=', $from))
+            ->when($to, fn($q2) => $q2->whereDate('p.NGAYXUAT', '<=', $to))
+            ->select(
+                'p.MAPX',
+                'p.NGAYXUAT',
+                'p.TRANGTHAI',
+                'p.TONGSL',
+                'p.GHICHU',
+                'k.HOTEN as KHACHHANG',
+                'k.MAKHACHHANG',
+                'u.name as NHANVIEN',
+                DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA), 0) as TONGTIEN')
+            )
+            ->groupBy('p.MAPX', 'p.NGAYXUAT', 'p.TRANGTHAI', 'p.TONGSL', 'p.GHICHU', 'k.HOTEN', 'k.MAKHACHHANG', 'u.name')
+            ->orderBy('p.MAPX', 'asc')
+            ->paginate(10)
+            ->withQueryString();
 
-        // Lọc theo khách hàng
-        if ($customer = $request->input('customer')) {
-            $query->where('MAKHACHHANG', $customer);
-        }
+        $customers = DB::table('KHACHHANG')
+            ->select('MAKHACHHANG', 'HOTEN')
+            ->orderBy('HOTEN')
+            ->get();
 
-        // Lọc theo trạng thái
-        if ($status = $request->input('status')) {
-            $query->where('TRANGTHAI', $status);
-        }
-
-        // Lọc theo khoảng thời gian
-        if ($from = $request->input('from')) {
-            $query->where('NGAYXUAT', '>=', $from);
-        }
-        if ($to = $request->input('to')) {
-            $query->where('NGAYXUAT', '<=', $to);
-        }
-
-        $issues = $query->orderBy('NGAYXUAT', 'desc')->paginate(10);
-        $customers = KhachHang::all();
-
-        return view('staff.issues', compact('issues', 'customers'));
+        return view('staff.issues', compact('issues', 'customers', 'q', 'customer', 'status', 'from', 'to'));
     }
 
     public function show($id)
     {
-        $issue = PhieuXuat::with(['khachHang', 'diaChi', 'chiTiets.sanPham'])->findOrFail($id);
+        $header = DB::table('PHIEUXUAT as p')
+            ->join('KHACHHANG as k', 'k.MAKHACHHANG', '=', 'p.MAKHACHHANG')
+            ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
+            ->where('p.MAPX', $id)
+            ->select(
+                'p.MAPX',
+                'p.NGAYXUAT',
+                'p.TRANGTHAI',
+                'p.TONGSL',
+                'p.GHICHU',
+                'k.HOTEN as KHACHHANG',
+                'k.MAKHACHHANG',
+                'u.name as NHANVIEN'
+            )
+            ->first();
+
+        if (!$header) {
+            return response()->json(['error' => 'Không tìm thấy phiếu xuất.'], 404);
+        }
+
+        $details = DB::table('CT_PHIEUXUAT as ct')
+            ->join('SANPHAM as sp', 'sp.MASANPHAM', '=', 'ct.MASANPHAM')
+            ->where('ct.MAPX', $id)
+            ->select(
+                'ct.MASANPHAM',
+                'sp.TENSANPHAM',
+                'ct.SOLUONG',
+                'ct.DONGIA',
+                DB::raw('ct.SOLUONG * ct.DONGIA as THANHTIEN')
+            )
+            ->get();
+
+        $tongtien = $details->sum(fn($d) => $d->THANHTIEN);
+
         return response()->json([
-            'MAPHIEUXUAT' => $issue->MAPHIEUXUAT,
-            'khachHang' => $issue->khachHang ? [
-                'MAKHACHHANG' => $issue->khachHang->MAKHACHHANG,
-                'HOTEN' => $issue->khachHang->HOTEN
-            ] : null,
-            'diaChi' => $issue->diaChi ? [
-                'MADIACHI' => $issue->diaChi->MADIACHI,
-                'DIACHI' => $issue->diaChi->DIACHI
-            ] : null,
-            'NGAYXUAT' => $issue->NGAYXUAT,
-            'TONGSL' => $issue->TONGSL,
-            'TRANGTHAI' => $issue->TRANGTHAI,
-            'chiTiets' => $issue->chiTiets->map(function ($chiTiet) {
-                return [
-                    'MASANPHAM' => $chiTiet->MASANPHAM,
-                    'TENSP' => $chiTiet->sanPham->TENSP ?? '—',
-                    'SOLUONG' => $chiTiet->SOLUONG,
-                    'DONGIA' => $chiTiet->DONGIA,
-                    'THANHTIEN' => $chiTiet->SOLUONG * $chiTiet->DONGIA
-                ];
-            })->toArray()
+            'header'   => $header,
+            'lines'    => $details,
+            'TONGTIEN' => $tongtien,
         ]);
     }
 
-    public function confirm(Request $request, $id)
+    public function confirm($id)
     {
-        $issue = PhieuXuat::findOrFail($id);
-        if ($issue->TRANGTHAI !== 'NHAP') {
-            return back()->with('error', 'Phiếu xuất không thể xác nhận.');
+        $row = DB::table('PHIEUXUAT')->where('MAPX', $id)->first();
+        if (!$row) return back()->with('error', 'Không tìm thấy phiếu xuất.');
+        if ($row->TRANGTHAI !== 'NHAP') {
+            return back()->with('error', 'Chỉ xác nhận phiếu ở trạng thái NHAP.');
         }
 
         DB::beginTransaction();
         try {
-            $issue->TRANGTHAI = 'DA_XAC_NHAN';
-            $issue->save();
-
+            DB::table('PHIEUXUAT')->where('MAPX', $id)->update(['TRANGTHAI' => 'DA_XAC_NHAN']);
             // Trigger trg_px_after_update sẽ tự động trừ SOLUONGTON
             DB::commit();
-            return redirect()->route('staff.issues.index')->with('success', 'Xác nhận phiếu xuất thành công.');
-        } catch (\Exception $e) {
+            return back()->with('success', 'Đã xác nhận phiếu xuất.');
+        } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', 'Lỗi xác nhận phiếu xuất: ' . $e->getMessage());
         }
     }
 
-    public function cancel(Request $request, $id)
+    public function cancel($id)
     {
-        $issue = PhieuXuat::findOrFail($id);
-        if ($issue->TRANGTHAI !== 'NHAP') {
-            return back()->with('error', 'Phiếu xuất không thể hủy.');
+        $row = DB::table('PHIEUXUAT')->where('MAPX', $id)->first();
+        if (!$row) return back()->with('error', 'Không tìm thấy phiếu xuất.');
+        if ($row->TRANGTHAI === 'HUY') {
+            return back()->with('info', 'Phiếu đã ở trạng thái HUY.');
         }
 
         DB::beginTransaction();
         try {
-            $issue->TRANGTHAI = 'HUY';
-            $issue->save();
-
-            // Cập nhật trạng thái đơn hàng liên quan
-            $order = DonHang::where('MAKHACHHANG', $issue->MAKHACHHANG)
-                ->where('MADIACHI', $issue->MADIACHI)
-                ->where('TRANGTHAI', 'DA_XAC_NHAN')
-                ->first();
-            if ($order) {
-                $order->TRANGTHAI = 'HUY';
-                $order->save();
-            }
-
+            DB::table('PHIEUXUAT')->where('MAPX', $id)->update(['TRANGTHAI' => 'HUY']);
             DB::commit();
-            return redirect()->route('staff.issues.index')->with('success', 'Hủy phiếu xuất thành công.');
-        } catch (\Exception $e) {
+            return back()->with('success', 'Đã hủy phiếu xuất.');
+        } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', 'Lỗi hủy phiếu xuất: ' . $e->getMessage());
         }
     }
 }

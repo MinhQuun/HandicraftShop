@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class PhieuXuat extends Model
 {
     protected $table = 'PHIEUXUAT';
-    protected $primaryKey = 'MAPHIEUXUAT';
+    protected $primaryKey = 'MAPX';
     public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = false;
@@ -25,7 +25,7 @@ class PhieuXuat extends Model
 
     public function chiTiets(): HasMany
     {
-        return $this->hasMany(CTPhieuXuat::class, 'MAPX', 'MAPHIEUXUAT');
+        return $this->hasMany(CTPhieuXuat::class, 'MAPX', 'MAPX');
     }
 
     public function diaChi(): BelongsTo
