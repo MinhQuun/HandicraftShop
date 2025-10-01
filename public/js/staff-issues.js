@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Flash messages
+    /* ------------------------- Flash messages ------------------------- */
     (function flashToast() {
         const el = document.getElementById("flash");
         if (!el || typeof Swal === "undefined") return;
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (info) return show("info", "Thông báo", info);
     })();
 
-    // Confirm dialogs
+    /* ------------------------- Confirm dialogs ------------------------ */
     function bindConfirm(selector, title, text) {
         document.querySelectorAll(selector).forEach((form) => {
             form.addEventListener("submit", function (e) {
@@ -47,16 +47,12 @@ document.addEventListener("DOMContentLoaded", () => {
         "Bạn có chắc chắn muốn hủy phiếu xuất này không? Nếu phiếu đã xác nhận, hệ thống sẽ hoàn lại tồn kho."
     );
 
-    // Helpers
-    const fmtVND = (n) =>
-        (n || 0).toLocaleString("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        });
+    /* ------------------------------ Helpers --------------------------- */
     const setText = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.textContent = val ?? "—";
     };
+
     const fmtTime = (s) => {
         if (window.dayjs) return dayjs(s).format("DD/MM/YYYY HH:mm");
         const d = new Date(s);
@@ -72,13 +68,23 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .replace(",", "");
     };
+
+    // format tiền VND
+    const fmtVND = (n) =>
+        (n ?? 0).toLocaleString("vi-VN", {
+            style: "currency",
+            currency: "VND",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        });
+
     const buildShowUrl = (id) =>
         (window.staff_issue_show_url || "/staff/issues/__ID__").replace(
             "__ID__",
             id
         );
 
-    // Detail modal
+    /* -------------------------- Detail modal -------------------------- */
     const detailModal = document.getElementById("modalDetail");
     const bsDetail = detailModal ? new bootstrap.Modal(detailModal) : null;
 
@@ -88,54 +94,70 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
 
-            setText("md_id", `#${data.MAPHIEUXUAT}`);
-            setText("md_customer", data.khachHang?.HOTEN ?? "—");
-            setText("md_address", data.diaChi?.DIACHI ?? "—");
-            setText("md_time", fmtTime(data.NGAYXUAT));
-            setText("md_tongsl", fmtVND(data.TONGSL));
+            // Map đúng key theo IssueController@show():
+            const h = data.header || {};
+            const lines = Array.isArray(data.lines) ? data.lines : [];
+
+            setText("md_id", `#${h.MAPX ?? id}`);
+            setText("md_customer", h.KHACHHANG ?? "—");
+            setText("md_address", h.DIACHI ?? "—");
+            setText("md_time", fmtTime(h.NGAYXUAT));
+            setText("md_tongsl", (h.TONGSL ?? 0).toString());
+            setText("md_tongtien", fmtVND(data.TONGTIEN ?? 0));
 
             const tbody = detailModal.querySelector("#tblDetailLines tbody");
             tbody.innerHTML = "";
-            data.chiTiets.forEach((ln, i) => {
+            lines.forEach((ln, i) => {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                    <td>${i + 1}</td>
-                    <td>${ln.MASANPHAM}</td>
-                    <td class="text-truncate" title="${ln.TENSP}">${
-                    ln.TENSP
-                }</td>
-                    <td class="text-end">${fmtVND(ln.SOLUONG)}</td>
-                    <td class="text-end">${fmtVND(ln.DONGIA)}</td>
-                    <td class="text-end">${fmtVND(ln.THANHTIEN)}</td>`;
+          <td>${i + 1}</td>
+          <td>${ln.MASANPHAM}</td>
+          <td class="text-truncate" title="${ln.TENSANPHAM || ""}">
+            ${ln.TENSANPHAM || "—"}
+          </td>
+          <td class="text-end">${ln.SOLUONG ?? 0}</td>
+          <td class="text-end">${fmtVND(ln.DONGIA ?? 0)}</td>
+          <td class="text-end">${fmtVND(ln.THANHTIEN ?? 0)}</td>
+        `;
                 tbody.appendChild(tr);
             });
 
+            // Nút "Xác nhận phiếu" trong modal
             const formConfirm = document.getElementById("md_form_confirm");
             if (formConfirm) {
-                formConfirm.action = buildShowUrl(
-                    `${data.MAPHIEUXUAT}/confirm`
-                ).replace("/__ID__", "");
-                formConfirm.classList.toggle(
-                    "d-none",
-                    data.TRANGTHAI !== "NHAP"
-                );
+                const confirmUrl = buildShowUrl(id) + "/confirm";
+                formConfirm.action = confirmUrl;
+                formConfirm.classList.toggle("d-none", h.TRANGTHAI !== "NHAP");
             }
 
             bsDetail && bsDetail.show();
         } catch (e) {
             console.error(e);
-            Swal.fire({
-                icon: "error",
-                title: "Lỗi",
-                text: "Không thể tải chi tiết phiếu xuất.",
-            });
+            if (window.Swal) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Lỗi",
+                    text: "Không thể tải chi tiết phiếu xuất.",
+                });
+            }
         }
     }
 
+    /* ---------------- Row click: mở chi tiết phiếu xuất --------------- */
     document.querySelectorAll(".row-detail").forEach((row) => {
         row.addEventListener("click", (e) => {
-            if (e.target.closest(".actions")) return;
+            if (
+                e.target.closest("form") ||
+                e.target.closest("button") ||
+                e.target.closest("a") ||
+                e.target.closest("select") ||
+                e.target.closest("input") ||
+                e.target.closest("[data-no-row-open]")
+            ) {
+                return;
+            }
             const id = row.dataset.id;
+            if (!id) return;
             openDetail(id);
         });
     });

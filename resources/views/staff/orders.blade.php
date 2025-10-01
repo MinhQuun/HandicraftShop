@@ -237,7 +237,7 @@
                     <form id="md_form_confirm" action="" method="post" class="d-inline form-update-status">
                         @csrf @method('put')
                         <input type="hidden" name="status" value="Hoàn thành">
-                        <button type="submit" class="btn btn-success">Hoàn thành & tạo Phiếu Xuất</button>
+                        <button type="submit" class="btn btn-primary">Hoàn thành & tạo Phiếu Xuất</button>
                     </form>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                 </div>
