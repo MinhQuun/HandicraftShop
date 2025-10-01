@@ -55,28 +55,49 @@
   $ordersPending = $stats['orders_pending'] ?? 0;
 @endphp
 
+@php
+  // an toàn khi $badges chưa được truyền vào
+  $ordersPending = $stats['orders_pending'] ?? 0;
+  $lowStock      = data_get($badges ?? [], 'low_stock', 0);
+@endphp
+
 <div class="card quick-links">
   <div class="card-body">
     <h5 class="mb-3">Tác vụ nhanh</h5>
     <div class="d-flex flex-wrap gap-2">
       {{-- Tạo nhanh / hành động chủ động --}}
+      <a href="{{ route('staff.suppliers.index') }}?action=create" class="chip">
+        <i class="bi bi-truck me-1"></i> Thêm nhà cung cấp
+      </a>
       <a href="{{ route('staff.products.index') }}?action=create" class="chip">
-        <i class="bi bi-plus-circle me-1"></i> Thêm sản phẩm
-      </a>
-      <a href="{{ route('staff.receipts.create') }}" class="chip">
-        <i class="bi bi-download me-1"></i> Tạo phiếu nhập
-      </a>
-      <a href="{{ route('staff.issues.create') }}" class="chip">
-        <i class="bi bi-upload me-1"></i> Tạo phiếu xuất
+        <i class="bi bi-box-seam me-2"></i> Thêm sản phẩm
       </a>
       <a href="{{ route('staff.promotions.index') }}?action=create" class="chip">
         <i class="bi bi-gift me-1"></i> Tạo khuyến mãi
       </a>
+      <a href="{{ route('staff.receipts.create') }}" class="chip">
+        <i class="bi bi-download me-1"></i> Tạo phiếu nhập
+      </a>
       <a href="{{ route('staff.customers.index') }}?action=create" class="chip">
         <i class="bi bi-person-plus me-1"></i> Thêm khách hàng
       </a>
+      <a href="{{ route('staff.reviews.index') }}" class="chip">
+        <i class="bi bi-envelope-paper me-1"></i> Hộp thư ý kiến
+      </a>
+      <a href="{{ route('staff.reports.sales') }}" class="chip">
+        <i class="bi bi-bar-chart-line me-1"></i> Báo cáo doanh số
+      </a>
+      <a href="{{ route('staff.reports.inventory') }}" class="chip">
+        <i class="bi bi-archive me-1"></i> Tồn kho hiện tại
+      </a>
+      <a href="{{ route('staff.reports.inout') }}" class="chip">
+        <i class="bi bi-arrow-left-right me-1"></i> Nhập – Xuất – Tồn
+      </a>
+      <a href="{{ route('staff.reports.top') }}" class="chip">
+        <i class="bi bi-trophy me-1"></i> Top bán chạy
+      </a>
 
-      {{-- Hàng đợi / cảnh báo có ngữ cảnh (chỉ hiện khi > 0) --}}
+      {{-- Hàng đợi / cảnh báo (chỉ hiện khi > 0) --}}
       @if($ordersPending > 0)
         <a href="{{ route('staff.orders.index') }}?status=Chờ xử lý" class="chip">
           <i class="bi bi-clipboard2-check me-1"></i>

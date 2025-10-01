@@ -79,4 +79,8 @@ class SanPham extends Model
     {
         return $this->hasMany(\App\Models\DanhGia::class, 'MASANPHAM', 'MASANPHAM');
     }
+    public function khuyenmais()
+    {
+        return $this->belongsToMany(KhuyenMai::class, 'SANPHAM_KHUYENMAI', 'MASANPHAM', 'MAKHUYENMAI');
+    }
 }

@@ -21,6 +21,7 @@ use App\Http\Controllers\Staff\ReviewController as StaffReviewController;
 use App\Http\Controllers\Staff\ReceiptController;
 use App\Http\Controllers\Staff\IssueController;
 use App\Http\Controllers\Staff\OrderController as StaffOrderController;
+use App\Http\Controllers\Staff\PromotionsController;
 
 // ================== TRANG CHỦ ==================
 Route::get('/', [ProductController::class, 'home'])->name('home');
@@ -129,6 +130,12 @@ Route::prefix('staff')
         Route::put('/products/{id}',    [StaffProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{id}', [StaffProductController::class, 'destroy'])->name('products.destroy');
 
+        // Quản lý khuyến mãi
+        Route::get('/promotions',         [PromotionsController::class, 'index'])->name('promotions.index');
+        Route::post('/promotions',        [PromotionsController::class, 'store'])->name('promotions.store');
+        Route::put('/promotions/{id}',    [PromotionsController::class, 'update'])->name('promotions.update');
+        Route::delete('/promotions/{id}', [PromotionsController::class, 'destroy'])->name('promotions.destroy');
+
         // Quản lý khách hàng
         Route::get('/customers',                 [KhachHangController::class, 'index'])->name('customers.index');
         Route::post('/customers',                [KhachHangController::class, 'store'])->name('customers.store');
@@ -140,8 +147,8 @@ Route::prefix('staff')
         Route::put('/reviews/{id}',     [StaffReviewController::class, 'update'])->name('reviews.update');
         Route::delete('/reviews/{id}',  [StaffReviewController::class, 'destroy'])->name('reviews.destroy');
 
-        // KHÔI PHỤC các trang stub để khớp layout (Khuyến mãi / Hình thức thanh toán)
-        Route::view('/promotions', 'staff.stub')->name('promotions.index');
+        // Quản lý thanh toán
+        // tạm thời chưa làm
         Route::view('/payments',   'staff.stub')->name('payments.index');
 
         // Quản lý phiếu nhập
@@ -156,18 +163,16 @@ Route::prefix('staff')
         Route::put('/receipts/{id}/cancel',     [ReceiptController::class, 'cancel'])->name('receipts.cancel');
         Route::delete('/receipts/{id}',         [ReceiptController::class, 'destroy'])->name('receipts.destroy');
 
-        // Quản lý đơn hàng (luồng mới: combobox + updateStatus)
+        // Quản lý đơn hàng 
         Route::get('/orders',             [StaffOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{id}',        [StaffOrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{id}/status', [StaffOrderController::class, 'updateStatus'])->name('orders.updateStatus');
-        // (đã bỏ confirm/cancel riêng)
 
         // Quản lý phiếu xuất
         Route::get('/issues',              [IssueController::class, 'index'])->name('issues.index');
         Route::get('/issues/{id}',         [IssueController::class, 'show'])->name('issues.show');
         Route::put('/issues/{id}/confirm', [IssueController::class, 'confirm'])->name('issues.confirm');
         Route::put('/issues/{id}/cancel',  [IssueController::class, 'cancel'])->name('issues.cancel');
-        // để tránh view cũ gọi route create bị lỗi:
         Route::get('/issues/create', function () {
             return redirect()->route('staff.issues.index', ['open' => 'create']);
         })->name('issues.create');
