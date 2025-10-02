@@ -22,6 +22,8 @@ use App\Http\Controllers\Staff\ReceiptController;
 use App\Http\Controllers\Staff\IssueController;
 use App\Http\Controllers\Staff\OrderController as StaffOrderController;
 use App\Http\Controllers\Staff\PromotionsController;
+use App\Http\Controllers\Customer\CustomerOrderController;
+
 
 // ================== TRANG CHỦ ==================
 Route::get('/', [ProductController::class, 'home'])->name('home');
@@ -185,4 +187,14 @@ Route::prefix('staff')
             Route::view('/lowstock',  'staff.stub')->name('lowstock');
             Route::view('/top',       'staff.stub')->name('top');
         });
+    });
+// ================== Khách hàng ==================
+// Nhóm route dành cho khách hàng, middleware auth + role:customer
+Route::middleware(['auth', RoleMiddleware::class . ':khachhang'])
+    ->prefix('my-orders')
+    ->name('customer.orders.')
+    ->group(function () {
+        Route::get('/', [CustomerOrderController::class, 'index'])->name('index');         
+        Route::get('/{id}/json', [CustomerOrderController::class, 'showJson'])->name('show.json'); // JSON cho modal
+        Route::post('/{id}/cancel', [CustomerOrderController::class, 'cancel'])->name('cancel'); 
     });

@@ -105,6 +105,9 @@
               </a>
             </li>
             <li>
+              <a href="{{ route('customer.orders.index') }}">Đơn hàng của tôi</a>
+            </li>            
+            <li>
               <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="auth-logout-btn">Đăng xuất</button>

@@ -33,4 +33,8 @@ class DonHang extends Model
     {
         return $this->belongsTo(DiaChiGiaoHang::class, 'MADIACHI', 'MADIACHI');
     }
+    public function hinhThucTT()
+    {
+        return $this->belongsTo(HinhThucTT::class, 'MATT', 'MATT');
+    }    
 }

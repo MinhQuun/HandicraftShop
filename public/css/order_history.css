@@ -1,0 +1,168 @@
+/* ===== HandicraftShop — Orders Page (Professional) =====
+   Áp dụng cho trang .page-cart
+*/
+
+/* --- Palette nâng cao --- */
+:root {
+    --bg-ivory-1: #f7f2ea;
+    --bg-ivory-2: #faf6f0;
+    --text-main: #3b352d;
+    --text-muted: #6f6559;
+    --card-bg: #fffaf5;
+    --card-border: #e7d6c4;
+    --shadow-soft: 0 12px 28px rgba(120, 92, 58, 0.12);
+    --shadow-hover: 0 8px 18px rgba(120, 92, 58, 0.15);
+    --wood: #8c6d3b;
+    --moss: #6a8f55;
+    --wheat: #c8a97e;
+    --danger: #b24b4b;
+    --ok: #2d7a35;
+    --transition-fast: 0.18s ease;
+}
+
+/* ===== Body & Shell ===== */
+body:has(.page-cart) {
+    color: var(--text-main);
+    background: radial-gradient(900px 600px at 10% -10%, rgba(200,169,126,0.2), transparent 60%),
+                radial-gradient(800px 600px at 110% 0%, rgba(106,143,85,0.18), transparent 60%),
+                linear-gradient(180deg, var(--bg-ivory-1), var(--bg-ivory-2)) fixed;
+}
+
+.page-cart {
+    --nav-h: 72px;
+    padding: calc(var(--nav-h) + 16px) 0 60px;
+}
+
+.cart-shell {
+    width: min(1200px, 95%);
+    margin: 0 auto;
+    padding: clamp(18px, 2vw, 32px);
+    border-radius: 24px;
+    background: linear-gradient(145deg, #fff8f1, #fffaf6);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-soft);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+/* Title */
+.cart-title {
+    text-align: center;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+    color: var(--wood);
+    font-size: clamp(26px, 4vw, 36px);
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+}
+
+/* ===== Table ===== */
+.cart-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 12px;
+}
+
+.cart-thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: rgba(255,244,234,0.95);
+    color: var(--wood);
+    border: 1px solid var(--card-border);
+    padding: 14px 12px;
+    font-weight: 700;
+    text-align: center;
+    backdrop-filter: saturate(130%) blur(4px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.cart-thead th:first-child {
+    border-radius: 12px 0 0 12px;
+}
+.cart-thead th:last-child {
+    border-radius: 0 12px 12px 0;
+}
+
+/* Row card effect */
+.cart-row {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(120,92,58,0.08);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+.cart-row:hover {
+    transform: translateY(-3px) scale(1.005);
+    box-shadow: var(--shadow-hover);
+    border-color: #d9c9b8;
+}
+.cart-row > td {
+    padding: 14px 12px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: clamp(14px, 1.2vw, 16px);
+}
+
+/* Responsive columns */
+.col-hide-md { display: table-cell; }
+
+/* Text formatting */
+.text-end { text-align: right; }
+.text-truncate {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Row actions */
+.row-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal table formatting */
+.modal-body table th,
+.modal-body table td {
+    vertical-align: middle;
+    font-size: clamp(13px, 1vw, 15px);
+}
+
+/* Buttons */
+.btn-soft {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-weight: 700;
+    border: 1px solid var(--card-border);
+    background: #fffdf8;
+    color: #5c5245;
+    box-shadow: 0 4px 12px rgba(120,92,58,0.08);
+    transition: transform var(--transition-fast), filter var(--transition-fast), box-shadow var(--transition-fast);
+}
+.btn-soft:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    box-shadow: 0 6px 16px rgba(120,92,58,0.12);
+}
+
+.btn-danger-soft {
+    border-color: #efc9c6;
+    color: #8e2b2b;
+    background: #fff1f0;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+.btn-danger-soft:hover {
+    background: #fbe3e2;
+    color: #7b2121;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .cart-shell { padding: 16px 12px; }
+}
+@media (max-width: 720px) {
+    .cart-thead .col-hide-md,
+    .cart-row .col-hide-md { display: none; }
+}
