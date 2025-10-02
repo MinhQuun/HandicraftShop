@@ -4,9 +4,6 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\PhieuXuat;
-use App\Models\CTPhieuXuat;
-use App\Models\KhachHang;
 use Illuminate\Support\Facades\DB;
 
 class IssueController extends Controller
@@ -27,8 +24,8 @@ class IssueController extends Controller
                 $like = "%{$q}%";
                 $query->where(function ($x) use ($like) {
                     $x->whereRaw('CAST(p.MAPX AS CHAR) LIKE ?', [$like])
-                        ->orWhere('k.HOTEN', 'like', $like)
-                        ->orWhere('u.name', 'like', $like);
+                      ->orWhere('k.HOTEN', 'like', $like)
+                      ->orWhere('u.name', 'like', $like);
                 });
             })
             ->when($customer, fn($q2) => $q2->where('p.MAKHACHHANG', $customer))
@@ -61,9 +58,11 @@ class IssueController extends Controller
 
     public function show($id)
     {
+        // Lấy header kèm địa chỉ giao hàng
         $header = DB::table('PHIEUXUAT as p')
             ->join('KHACHHANG as k', 'k.MAKHACHHANG', '=', 'p.MAKHACHHANG')
             ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
+            ->leftJoin('DIACHI_GIAOHANG as dc', 'dc.MADIACHI', '=', 'p.MADIACHI')
             ->where('p.MAPX', $id)
             ->select(
                 'p.MAPX',
@@ -73,7 +72,8 @@ class IssueController extends Controller
                 'p.GHICHU',
                 'k.HOTEN as KHACHHANG',
                 'k.MAKHACHHANG',
-                'u.name as NHANVIEN'
+                'u.name as NHANVIEN',
+                'dc.DIACHI'
             )
             ->first();
 
@@ -81,6 +81,7 @@ class IssueController extends Controller
             return response()->json(['error' => 'Không tìm thấy phiếu xuất.'], 404);
         }
 
+        // Chi tiết phiếu xuất
         $details = DB::table('CT_PHIEUXUAT as ct')
             ->join('SANPHAM as sp', 'sp.MASANPHAM', '=', 'ct.MASANPHAM')
             ->where('ct.MAPX', $id)

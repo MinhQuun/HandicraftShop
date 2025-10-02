@@ -79,6 +79,7 @@
                     <th>STT</th>
                     <th>Mã PX</th>
                     <th>Khách hàng</th>
+                    <th>Nhân viên</th>
                     <th>Ngày xuất</th>
                     <th class="text-end">Tổng tiền</th>
                     <th>Trạng thái</th>
@@ -94,6 +95,7 @@
                         <td>{{ $rowNumber }}</td>
                         <td>{{ $issue->MAPX }}</td>
                         <td>{{ $issue->KHACHHANG ?? '—' }}</td>
+                        <td>{{ $issue->NHANVIEN }}</td>
                         <td>{{ \Carbon\Carbon::parse($issue->NGAYXUAT)->format('d/m/Y H:i') }}</td>
                         <td class="text-end">{{ number_format($issue->TONGTIEN,0,',','.') }}</td>
                         <td><span class="badge {{ $badgeClass }}">{{ $issue->TRANGTHAI }}</span></td>
@@ -118,11 +120,24 @@
     </div>
 
     {{-- Phân trang --}}
-    @if($issues->lastPage() > 1)
-        <div class="card-footer">
-            {{ $issues->links() }}
-        </div>
-    @endif
+    @php($sp = $issues)
+        @if ($sp->lastPage() > 1)
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @if ($sp->currentPage() > 1)
+                        <li class="page-item"><a class="page-link" href="{{ $sp->url($sp->currentPage() - 1) }}">Trước</a></li>
+                    @endif
+                    @for ($i = 1; $i <= $sp->lastPage(); $i++)
+                        <li class="page-item {{ $i === $sp->currentPage() ? 'active' : '' }}">
+                            <a class="page-link" href="{{ $sp->url($i) }}">{{ $i }}</a>
+                        </li>
+                    @endfor
+                    @if ($sp->currentPage() < $sp->lastPage())
+                        <li class="page-item"><a class="page-link" href="{{ $sp->url($sp->currentPage() + 1) }}">Sau</a></li>
+                    @endif
+                </ul>
+            </nav>
+        @endif
 </div>
 
 {{-- Modal chi tiết phiếu xuất --}}
@@ -134,36 +149,59 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="row g-3">
-                    <div class="col-md-6"><label>Mã phiếu</label><p class="form-control-plaintext" id="md_id"></p></div>
-                    <div class="col-md-6"><label>Khách hàng</label><p class="form-control-plaintext" id="md_customer"></p></div>
-                    <div class="col-md-6"><label>Địa chỉ</label><p class="form-control-plaintext" id="md_address"></p></div>
-                    <div class="col-md-6"><label>Ngày xuất</label><p class="form-control-plaintext" id="md_time"></p></div>
-                    <div class="col-12">
-                        <div class="table-responsive">
-                            <table class="table table-sm align-middle" id="tblDetailLines">
-                                <thead>
-                                    <tr>
-                                        <th>STT</th>
-                                        <th>Mã SP</th>
-                                        <th>Tên sản phẩm</th>
-                                        <th class="text-end">Số lượng</th>
-                                        <th class="text-end">Đơn giá</th>
-                                        <th class="text-end">Thành tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label>Mã phiếu</label>
+                        <p class="form-control-plaintext" id="md_id">—</p>
                     </div>
-                    <div class="col-12 text-end">
-                        <label>Tổng số lượng</label>
-                        <p class="form-control-plaintext fw-bold" id="md_tongsl"></p>
-                        <label>Tổng tiền</label>
-                        <p class="form-control-plaintext fw-bold" id="md_tongtien"></p>
+                    <div class="col-md-4">
+                        <label>Khách hàng</label>
+                        <p class="form-control-plaintext" id="md_customer">—</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Nhân viên</label>
+                        <p class="form-control-plaintext" id="md_staff">—</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Địa chỉ giao hàng</label>
+                        <p class="form-control-plaintext" id="md_address">—</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Ngày xuất</label>
+                        <p class="form-control-plaintext" id="md_time">—</p>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm align-middle" id="tblDetailLines">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã SP</th>
+                                <th>Tên sản phẩm</th>
+                                <th class="text-end">Số lượng</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="row text-end">
+                    <div class="col-6 offset-6">
+                        <div class="mb-1">
+                            <label class="fw-bold">Tổng số lượng</label>
+                            <p class="form-control-plaintext fw-bold" id="md_tongsl">0</p>
+                        </div>
+                        <div>
+                            <label class="fw-bold">Tổng tiền</label>
+                            <p class="form-control-plaintext fw-bold" id="md_tongtien">0 ₫</p>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div class="modal-footer">
                 <form id="md_form_confirm" method="post" class="d-inline form-confirm">
                     @csrf @method('put')
@@ -174,6 +212,7 @@
         </div>
     </div>
 </div>
+
 @endsection
 
 @push('scripts')

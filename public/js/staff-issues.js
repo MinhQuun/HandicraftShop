@@ -101,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
             setText("md_id", `#${h.MAPX ?? id}`);
             setText("md_customer", h.KHACHHANG ?? "—");
             setText("md_address", h.DIACHI ?? "—");
+            setText("md_staff", h.NHANVIEN ?? "—");
             setText("md_time", fmtTime(h.NGAYXUAT));
             setText("md_tongsl", (h.TONGSL ?? 0).toString());
             setText("md_tongtien", fmtVND(data.TONGTIEN ?? 0));
