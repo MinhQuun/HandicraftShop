@@ -73,6 +73,15 @@ CREATE TABLE users
     created_at TIMESTAMP NULL DEFAULT NULL,
     updated_at TIMESTAMP NULL DEFAULT NULL
 ) ENGINE=InnoDB;
+-- =========================================================
+-- PASSWORD RESETS
+-- =========================================================
+CREATE TABLE password_resets (
+    email VARCHAR(255) NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (email)
+) ENGINE=InnoDB;
 
 CREATE TABLE QUYEN 
 (

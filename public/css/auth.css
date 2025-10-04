@@ -544,3 +544,9 @@
     max-width: 100%; /* bỏ giới hạn 850px trước đây */
     min-height: 560px; /* có thể tăng 580–600 nếu muốn thoáng hơn */
 }
+
+.forgot-password-container { display: none; }
+.auth-container.forgot-password-mode .forgot-password-container { display: block; }
+.auth-container.forgot-password-mode .sign-in-container,
+.auth-container.forgot-password-mode .sign-up-container { display: none; }
+

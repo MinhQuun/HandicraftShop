@@ -24,7 +24,7 @@ use App\Http\Controllers\Staff\OrderController as StaffOrderController;
 use App\Http\Controllers\Staff\PromotionsController;
 use App\Http\Controllers\Customer\CustomerOrderController;
 use App\Http\Controllers\Customer\ProfileController;
-
+use App\Http\Controllers\Customer\ForgotPasswordController;
 // ================== TRANG CHỦ ==================
 Route::get('/', [ProductController::class, 'home'])->name('home');
 
@@ -205,4 +205,15 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'changePassword'])->name('profile.changePassword');
 });
-    
+
+// Bước 1: Gửi OTP
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetCode'])
+    ->name('password.send');
+
+// Bước 2: Xác nhận OTP (AJAX)
+Route::post('/verify-otp', [ForgotPasswordController::class, 'verifyOtp'])
+    ->name('password.verify');
+
+// Bước 3: Đặt mật khẩu mới (AJAX)
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])
+    ->name('password.update');
