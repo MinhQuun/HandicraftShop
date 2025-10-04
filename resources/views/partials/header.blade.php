@@ -100,7 +100,7 @@
 
           <ul class="mega-sub">
             <li>
-              <a href="{{ route('users.show', auth()->user()->id) }}">
+              <a href="{{ route('profile.show') }}">
                 Thông tin cá nhân
               </a>
             </li>

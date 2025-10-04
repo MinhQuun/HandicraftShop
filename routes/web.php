@@ -23,7 +23,7 @@ use App\Http\Controllers\Staff\IssueController;
 use App\Http\Controllers\Staff\OrderController as StaffOrderController;
 use App\Http\Controllers\Staff\PromotionsController;
 use App\Http\Controllers\Customer\CustomerOrderController;
-
+use App\Http\Controllers\Customer\ProfileController;
 
 // ================== TRANG CHỦ ==================
 Route::get('/', [ProductController::class, 'home'])->name('home');
@@ -199,3 +199,10 @@ Route::middleware(['auth', RoleMiddleware::class . ':khachhang'])
         Route::get('/{id}/json', [CustomerOrderController::class, 'showJson'])->name('show.json'); 
         Route::post('/{id}/cancel', [CustomerOrderController::class, 'cancel'])->name('cancel'); 
     });
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'changePassword'])->name('profile.changePassword');
+});
+    
