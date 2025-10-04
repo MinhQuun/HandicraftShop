@@ -1,8 +1,4 @@
-/* ===== HandicraftShop — Orders Page (Professional) =====
-   Áp dụng cho trang .page-cart
-*/
-
-/* --- Palette nâng cao --- */
+/* ===== HandicraftShop — Orders Page (Professional Rustic) ===== */
 :root {
     --bg-ivory-1: #f7f2ea;
     --bg-ivory-2: #faf6f0;
@@ -56,11 +52,73 @@ body:has(.page-cart) {
     text-shadow: 0 1px 2px rgba(255,255,255,0.6);
 }
 
+/* ===== Filter Card (Rustic) ===== */
+.filter-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 8px 20px rgba(120, 92, 58, 0.08);
+    margin-bottom: 24px;
+}
+
+.filter-card .form-control,
+.filter-card .form-select {
+    border-radius: 10px;
+    border-color: var(--card-border);
+}
+
+.filter-card .form-control:focus,
+.filter-card .form-select:focus {
+    border-color: var(--moss);
+    box-shadow: 0 0 0 3px rgba(106, 143, 85, 0.28);
+}
+
+.filter-card .quick-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+.filter-card .quick-chips .chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbb090;
+    background: #fffdf9;
+    color: #5d3a00;
+    padding: 8px 14px;
+    border-radius: 22px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.filter-card .quick-chips .chip:hover {
+    transform: translateY(-2px) scale(1.03);
+    background: linear-gradient(135deg, #a17a44, #7b5a2f) !important;
+    color: #fff !important;
+    border-color: var(--wood) !important;
+    box-shadow: 0 8px 18px rgba(140, 109, 59, 0.3), 0 0 8px rgba(106, 143, 85, 0.15);
+}
+.filter-card .quick-chips .chip.active {
+    background: linear-gradient(135deg, var(--wood), var(--moss)) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
 /* ===== Table ===== */
 .cart-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0 12px;
+}
+
+.cart-table th,
+.cart-table td {
+    padding: 14px 12px;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .cart-thead th {
@@ -70,19 +128,12 @@ body:has(.page-cart) {
     background: rgba(255,244,234,0.95);
     color: var(--wood);
     border: 1px solid var(--card-border);
-    padding: 14px 12px;
     font-weight: 700;
-    text-align: center;
-    align-items: center;    
     backdrop-filter: saturate(130%) blur(4px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
-.cart-thead th:first-child {
-    border-radius: 12px 0 0 12px;
-}
-.cart-thead th:last-child {
-    border-radius: 0 12px 12px 0;
-}
+.cart-thead th:first-child { border-radius: 12px 0 0 12px; }
+.cart-thead th:last-child { border-radius: 0 12px 12px 0; }
 
 /* Row card effect */
 .cart-row {
@@ -97,24 +148,6 @@ body:has(.page-cart) {
     box-shadow: var(--shadow-hover);
     border-color: #d9c9b8;
 }
-.cart-row > td {
-    padding: 14px 12px;
-    text-align: center;
-    vertical-align: middle;
-    font-size: clamp(14px, 1.2vw, 16px);
-}
-
-/* Responsive columns */
-.col-hide-md { display: table-cell; }
-
-/* Text formatting */
-.text-end { text-align: right; }
-.text-truncate {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
 
 /* Row actions */
 .row-actions {
@@ -122,15 +155,6 @@ body:has(.page-cart) {
     gap: 8px;
     justify-content: center;
     align-items: center;
-}
-
-/* Modal table formatting */
-.modal-body table th,
-.modal-body table td {
-    vertical-align: middle;
-    font-size: clamp(13px, 1vw, 15px);
-    align-items: center;
-    text-align: center;
 }
 
 /* Buttons */
@@ -149,22 +173,38 @@ body:has(.page-cart) {
     filter: brightness(1.06);
     box-shadow: 0 6px 16px rgba(120,92,58,0.12);
 }
-
 .btn-danger-soft {
     border-color: #efc9c6;
     color: #8e2b2b;
     background: #fff1f0;
-    transition: background var(--transition-fast), color var(--transition-fast);
 }
 .btn-danger-soft:hover {
     background: #fbe3e2;
     color: #7b2121;
 }
+.btn-success {
+    color: #fff;
+    background: linear-gradient(135deg, var(--moss), #5a7b49);
+    border: 2px solid #5a7b49;
+    box-shadow: 0 6px 16px rgba(106, 143, 85, 0.22);
+}
+.btn-success:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+    box-shadow: 0 10px 22px rgba(106, 143, 85, 0.28);
+}
+
+/* Modal table formatting */
+.modal-body table th,
+.modal-body table td {
+    vertical-align: middle;
+    font-size: clamp(13px, 1vw, 15px);
+    align-items: center;
+    text-align: center;
+}
 
 /* Responsive */
-@media (max-width: 992px) {
-    .cart-shell { padding: 16px 12px; }
-}
+@media (max-width: 992px) { .cart-shell { padding: 16px 12px; } }
 @media (max-width: 720px) {
     .cart-thead .col-hide-md,
     .cart-row .col-hide-md { display: none; }

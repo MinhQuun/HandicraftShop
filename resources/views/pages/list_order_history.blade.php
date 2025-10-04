@@ -4,6 +4,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/order_history.css') }}">
+<link rel="stylesheet" href="{{ asset('css/order_history2.css') }}">
 @endpush
 
 @push('scripts')
@@ -16,10 +17,11 @@
   <section class="cart-shell">
     <h2 class="cart-title">LỊCH SỬ MUA HÀNG</h2>
 
-    {{-- 🔹 Form lọc đơn hàng --}}
-    <form method="GET" class="filter-form mb-3">
-      <div class="row g-2 align-items-end">
-        <div class="col-md-3">
+    {{-- 🔹 Filter card --}}
+    {{-- 🔹 Filter card 1 dòng --}}
+    <div class="filter-card mb-3">
+      <form method="GET" class="filter-form d-flex flex-wrap align-items-end gap-2">
+        <div class="filter-item">
           <label for="status" class="form-label">Trạng thái</label>
           <select name="status" id="status" class="form-select">
             <option value="">Tất cả</option>
@@ -30,30 +32,33 @@
             @endforeach
           </select>
         </div>
-        <div class="col-md-3">
+        <div class="filter-item">
           <label for="from" class="form-label">Ngày đặt từ</label>
           <input type="date" name="from" id="from" class="form-control" value="{{ request('from') }}">
         </div>
-        <div class="col-md-3">
+        <div class="filter-item">
           <label for="to" class="form-label">Ngày đặt đến</label>
           <input type="date" name="to" id="to" class="form-control" value="{{ request('to') }}">
         </div>
-        <div class="col-md-3">
+        <div class="filter-item">
           <label for="delivery_from" class="form-label">Ngày giao từ</label>
           <input type="date" name="delivery_from" id="delivery_from" class="form-control" value="{{ request('delivery_from') }}">
         </div>
-        <div class="col-md-3">
+        <div class="filter-item">
           <label for="delivery_to" class="form-label">Ngày giao đến</label>
           <input type="date" name="delivery_to" id="delivery_to" class="form-control" value="{{ request('delivery_to') }}">
         </div>
-        <div class="col-md-3">
-          <button type="submit" class="btn btn-primary w-100">Lọc</button>
+        <div class="filter-buttons d-flex gap-2 align-items-end">
+          <button type="submit" class="btn btn-success">Lọc</button>
+          <a href="{{ url()->current() }}" class="btn btn-outline-secondary flex-fill">Xoá lọc</a>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
 
+
+    {{-- 🔹 Orders table --}}
     <table class="cart-table">
-      <thead>
+      <thead class="cart-thead">
         <tr>
           <th>Mã Đơn Hàng</th>
           <th>Ngày Đặt</th>
@@ -66,7 +71,7 @@
       </thead>
       <tbody>
         @forelse ($orders as $order)
-          <tr>
+          <tr class="cart-row">
             <td>{{ $order->MADONHANG }}</td>
             <td>{{ \Carbon\Carbon::parse($order->NGAYDAT)->format('d/m/Y') }}</td>
             <td class="col-hide-md">{{ $order->NGAYGIAO ? \Carbon\Carbon::parse($order->NGAYGIAO)->format('d/m/Y') : 'Chưa giao' }}</td>
@@ -82,19 +87,18 @@
             </td>
           </tr>
         @empty
-          <tr><td colspan="7">Không có đơn hàng nào phù hợp.</td></tr>
+          <tr>
+            <td colspan="7">Không có đơn hàng nào phù hợp.</td>
+          </tr>
         @endforelse
       </tbody>
     </table>
 
-    {{-- Phân trang --}}
-    <div class="mt-3">
-      {{ $orders->links() }}
-    </div>
+
   </section>
 </main>
 
-{{-- Modal chi tiết (giống như view trước) --}}
+{{-- 🔹 Modal chi tiết --}}
 <div class="modal fade" id="modalDetail" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
