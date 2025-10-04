@@ -128,6 +128,7 @@ class OrderController extends Controller
 
                 // 2) Cập nhật đơn sang Hoàn thành
                 $order->TRANGTHAI = 'Hoàn thành';
+                $order->NGAYGIAO  = now();
                 $order->save();
 
                 // 3) Tạo Phiếu Xuất

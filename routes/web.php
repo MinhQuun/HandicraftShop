@@ -195,6 +195,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':khachhang'])
     ->name('customer.orders.')
     ->group(function () {
         Route::get('/', [CustomerOrderController::class, 'index'])->name('index');         
-        Route::get('/{id}/json', [CustomerOrderController::class, 'showJson'])->name('show.json'); // JSON cho modal
+        Route::get('/history', [CustomerOrderController::class, 'history'])->name('history'); // 👈 Lịch sử đơn hàng
+        Route::get('/{id}/json', [CustomerOrderController::class, 'showJson'])->name('show.json'); 
         Route::post('/{id}/cancel', [CustomerOrderController::class, 'cancel'])->name('cancel'); 
     });

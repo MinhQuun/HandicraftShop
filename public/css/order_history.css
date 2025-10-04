@@ -73,6 +73,7 @@ body:has(.page-cart) {
     padding: 14px 12px;
     font-weight: 700;
     text-align: center;
+    align-items: center;    
     backdrop-filter: saturate(130%) blur(4px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
@@ -128,6 +129,8 @@ body:has(.page-cart) {
 .modal-body table td {
     vertical-align: middle;
     font-size: clamp(13px, 1vw, 15px);
+    align-items: center;
+    text-align: center;
 }
 
 /* Buttons */

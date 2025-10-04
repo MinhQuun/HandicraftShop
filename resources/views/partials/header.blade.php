@@ -106,7 +106,12 @@
             </li>
             <li>
               <a href="{{ route('customer.orders.index') }}">Đơn hàng của tôi</a>
-            </li>            
+            </li>  
+            <li>
+              <a href="{{ route('customer.orders.history') }}">
+                Lịch sử mua hàng
+              </a>
+            </li>                      
             <li>
               <form action="{{ route('logout') }}" method="POST">
                 @csrf

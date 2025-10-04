@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Đơn Hàng Của Tôi')
+@section('title', 'Lịch Sử Mua Hàng')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/order_history.css') }}">
@@ -14,7 +14,7 @@
 @section('content')
 <main class="page-cart">
   <section class="cart-shell">
-    <h2 class="cart-title">DANH SÁCH ĐƠN HÀNG</h2>
+    <h2 class="cart-title">LỊCH SỬ MUA HÀNG</h2>
 
     {{-- 🔹 Form lọc đơn hàng --}}
     <form method="GET" class="filter-form mb-3">
@@ -37,6 +37,14 @@
         <div class="col-md-3">
           <label for="to" class="form-label">Ngày đặt đến</label>
           <input type="date" name="to" id="to" class="form-control" value="{{ request('to') }}">
+        </div>
+        <div class="col-md-3">
+          <label for="delivery_from" class="form-label">Ngày giao từ</label>
+          <input type="date" name="delivery_from" id="delivery_from" class="form-control" value="{{ request('delivery_from') }}">
+        </div>
+        <div class="col-md-3">
+          <label for="delivery_to" class="form-label">Ngày giao đến</label>
+          <input type="date" name="delivery_to" id="delivery_to" class="form-control" value="{{ request('delivery_to') }}">
         </div>
         <div class="col-md-3">
           <button type="submit" class="btn btn-primary w-100">Lọc</button>
@@ -70,19 +78,11 @@
                 <button class="btn-soft btn-detail" data-id="{{ $order->MADONHANG }}">
                   <i class="fas fa-info-circle"></i> Chi Tiết
                 </button>
-                @if($order->TRANGTHAI === 'Chờ xử lý')
-                    <form method="POST" action="{{ route('customer.orders.cancel', $order->MADONHANG) }}" class="form-cancel-order" data-order-id="{{ $order->MADONHANG }}">
-                        @csrf
-                        <button type="submit" class="btn-soft btn-danger-soft">
-                            <i class="fas fa-times"></i> Hủy Đơn
-                        </button>
-                    </form>
-                @endif
               </div>
             </td>
           </tr>
         @empty
-          <tr><td colspan="7">Bạn chưa có đơn hàng nào.</td></tr>
+          <tr><td colspan="7">Không có đơn hàng nào phù hợp.</td></tr>
         @endforelse
       </tbody>
     </table>
@@ -94,7 +94,7 @@
   </section>
 </main>
 
-{{-- Modal chi tiết --}}
+{{-- Modal chi tiết (giống như view trước) --}}
 <div class="modal fade" id="modalDetail" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
