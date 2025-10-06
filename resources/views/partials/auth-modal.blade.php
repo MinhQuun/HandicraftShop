@@ -41,7 +41,6 @@
               @error('password_confirmation') <div class="auth-error">{{ $message }}</div> @enderror
 
               <button type="submit" class="auth-btn">Đăng Ký</button>
-              <button type="button" class="auth-link mt-2" id="toSignInFromSignUp">Đăng Nhập</button>
             </form>
           </div>
 
@@ -68,7 +67,6 @@
 
               <a href="#" class="auth-link" id="toForgotPassword">Bạn quên mật khẩu?</a>
               <button type="submit" class="auth-btn">Đăng Nhập</button>
-              <button type="button" class="auth-link mt-2" id="toSignUpFromSignIn">Đăng Ký</button>
             </form>
           </div>
 
@@ -102,8 +100,17 @@
               <input type="hidden" name="email" id="resetEmail" value="">
               <h1 class="auth-title">Đặt Lại Mật Khẩu</h1>
               <span class="auth-subtitle">Nhập mật khẩu mới</span>
-              <input class="auth-input" type="password" name="password" placeholder="Mật khẩu mới" required />
-              <input class="auth-input" type="password" name="password_confirmation" placeholder="Xác nhận mật khẩu" required />
+
+              <div class="auth-input-wrap">
+                <input class="auth-input" type="password" name="password" placeholder="Mật khẩu mới" required minlength="6" autocomplete="new-password" />
+                <button type="button" class="auth-toggle-pass" aria-label="Hiện/Ẩn mật khẩu"><i class="far fa-eye"></i></button>
+              </div>
+
+              <div class="auth-input-wrap">
+                <input class="auth-input" type="password" name="password_confirmation" placeholder="Xác nhận mật khẩu" required minlength="6" autocomplete="new-password" />
+                <button type="button" class="auth-toggle-pass" aria-label="Hiện/Ẩn mật khẩu"><i class="far fa-eye"></i></button>
+              </div>
+
               <button type="submit" class="auth-btn">Đặt lại mật khẩu</button>
               <button type="button" class="auth-link mt-2" id="backToOtp">Quay lại Nhập OTP</button>
             </form>

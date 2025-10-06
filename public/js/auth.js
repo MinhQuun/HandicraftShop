@@ -2,33 +2,64 @@
 const qs = (s, r) => (r || document).querySelector(s);
 const qsa = (s, r) => Array.from((r || document).querySelectorAll(s));
 
-function showToast(message, type = "error", duration = 3000) {
-    const toast = document.createElement("div");
-    toast.className = `auth-toast ${type}`;
-    toast.innerText = message;
-    document.body.appendChild(toast);
+function showToast(message, type = "success", duration = 4200, title) {
+    // Tạo stack nếu chưa có
+    let stack = document.querySelector(".toast-stack");
+    if (!stack) {
+        stack = document.createElement("div");
+        stack.className = "toast-stack";
+        document.body.appendChild(stack);
+    }
 
-    Object.assign(toast.style, {
-        position: "fixed",
-        left: "50%",
-        bottom: "50px",
-        transform: "translateX(-50%)",
-        padding: "10px 20px",
-        borderRadius: "5px",
-        color: "#fff",
-        fontWeight: "500",
-        zIndex: 1055,
-        backgroundColor: type === "error" ? "#e74c3c" : "#27ae60",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-        opacity: 0,
-        transition: "opacity 0.3s"
+    // Tạo thẻ toast-card theo markup của flash.js
+    const card = document.createElement("div");
+    card.className = `toast-card ${type}`;
+    card.dataset.autohide = String(duration);
+
+    // Icon theo type
+    const iconMap = {
+        success: '<i class="fas fa-check-circle" aria-hidden="true"></i>',
+        error: '<i class="fas fa-times-circle" aria-hidden="true"></i>',
+        info: '<i class="fas fa-info-circle" aria-hidden="true"></i>',
+        warn: '<i class="fas fa-exclamation-triangle" aria-hidden="true"></i>',
+    };
+    const heading =
+        title ||
+        (type === "success"
+            ? "Thành công"
+            : type === "error"
+            ? "Lỗi"
+            : type === "warn"
+            ? "Chú ý"
+            : "Thông báo");
+
+    card.innerHTML = `
+      <div class="toast-icon">${iconMap[type] || iconMap.info}</div>
+      <div class="toast-content">
+        <strong class="toast-title">${heading}</strong>
+        <div class="toast-message">${message}</div>
+      </div>
+      <button class="toast-close" aria-label="Đóng">&times;</button>
+    `;
+
+    stack.appendChild(card);
+
+    // Tự ẩn (fallback nếu flash.js không bắt event cho toast mới)
+    const remove = () => {
+        card.style.animation = "toast-fade-out .22s ease-in both";
+        setTimeout(() => card.remove(), 220);
+    };
+    const ms = Number(duration || card.dataset.autohide || 4200);
+    const timer = setTimeout(remove, ms);
+
+    // Đóng thủ công
+    card.querySelector(".toast-close")?.addEventListener("click", () => {
+        clearTimeout(timer);
+        remove();
     });
 
-    setTimeout(() => (toast.style.opacity = "1"), 50);
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => toast.remove(), 300);
-    }, duration);
+    // Hiệu ứng xuất hiện
+    card.style.animation = "toast-fade-in .22s ease-out both";
 }
 
 // ===================== Toggle đăng nhập / đăng ký =====================
@@ -38,8 +69,12 @@ function showToast(message, type = "error", duration = 3000) {
     const container = qs("#authContainer");
     if (!signUpButton || !signInButton || !container) return;
 
-    signUpButton.addEventListener("click", () => container.classList.add("right-panel-active"));
-    signInButton.addEventListener("click", () => container.classList.remove("right-panel-active"));
+    signUpButton.addEventListener("click", () =>
+        container.classList.add("right-panel-active")
+    );
+    signInButton.addEventListener("click", () =>
+        container.classList.remove("right-panel-active")
+    );
 })();
 
 function setPanel(panel) {
@@ -51,11 +86,13 @@ function setPanel(panel) {
 }
 
 // ===================== Show/hide password =====================
-document.addEventListener("click", e => {
+document.addEventListener("click", (e) => {
     const btn = e.target.closest(".auth-toggle-pass");
     if (!btn) return;
     const wrap = btn.closest(".auth-input-wrap");
-    const input = wrap?.querySelector('input[type="password"], input[type="text"]');
+    const input = wrap?.querySelector(
+        'input[type="password"], input[type="text"]'
+    );
     if (!input) return;
 
     input.type = input.type === "password" ? "text" : "password";
@@ -63,7 +100,10 @@ document.addEventListener("click", e => {
     if (icon) {
         icon.classList.toggle("fa-eye");
         icon.classList.toggle("fa-eye-slash");
-        if (!icon.classList.contains("far") && !icon.classList.contains("fas")) {
+        if (
+            !icon.classList.contains("far") &&
+            !icon.classList.contains("fas")
+        ) {
             icon.classList.add("far");
         }
     }
@@ -74,7 +114,7 @@ let _redirectValue = "";
 function setRedirectInputs(val) {
     if (!val) return;
     _redirectValue = val;
-    qsa("#authModal form.auth-form").forEach(form => {
+    qsa("#authModal form.auth-form").forEach((form) => {
         let input = form.querySelector('input[name="redirect"]');
         if (!input) {
             input = document.createElement("input");
@@ -117,7 +157,8 @@ window._openLogin = openLoginModal;
         if (!open) return;
         setPanel(open === "register" ? "register" : "login");
         const modalEl = qs("#authModal");
-        if (modalEl && window.bootstrap?.Modal) new bootstrap.Modal(modalEl).show();
+        if (modalEl && window.bootstrap?.Modal)
+            new bootstrap.Modal(modalEl).show();
     }
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", applyFromQuery);
@@ -132,7 +173,7 @@ window._openLogin = openLoginModal;
 })();
 
 // ===================== Click [data-action="open-login"] =====================
-document.addEventListener("click", e => {
+document.addEventListener("click", (e) => {
     const trigger = e.target.closest('[data-action="open-login"]');
     if (!trigger) return;
     const href = trigger.getAttribute("href");
@@ -149,18 +190,25 @@ async function handleFormSubmit(form, callback) {
     const originalText = submitBtn.innerHTML;
 
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+    submitBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
 
     try {
         const formData = new FormData(form);
         const res = await fetch(form.action, {
             method: "POST",
-            headers: { "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || "" },
+            headers: {
+                "X-CSRF-TOKEN":
+                    document.querySelector('meta[name="csrf-token"]')
+                        ?.content || "",
+            },
             body: formData,
         });
 
         let data = {};
-        try { data = await res.json(); } catch {}
+        try {
+            data = await res.json();
+        } catch {}
 
         await callback(res, data, formData);
     } catch (err) {
@@ -188,11 +236,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // --- Step 1: send OTP ---
     if (forgotForm) {
-        forgotForm.addEventListener("submit", e => {
+        forgotForm.addEventListener("submit", (e) => {
             e.preventDefault();
             handleFormSubmit(forgotForm, async (res, data, formData) => {
                 if (!res.ok || !data.status) {
-                    showToast(data.message || data.errors?.email?.[0] || "Có lỗi xảy ra", "error");
+                    showToast(
+                        data.message ||
+                            data.errors?.email?.[0] ||
+                            "Có lỗi xảy ra",
+                        "error"
+                    );
                     return;
                 }
                 showToast(data.message || "OTP đã gửi thành công!", "success");
@@ -205,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // --- Step 2: verify OTP ---
     if (verifyOtpForm) {
-        verifyOtpForm.addEventListener("submit", e => {
+        verifyOtpForm.addEventListener("submit", (e) => {
             e.preventDefault();
             handleFormSubmit(verifyOtpForm, async (res, data, formData) => {
                 if (!res.ok || !data.status) {
@@ -222,17 +275,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // --- Step 3: reset password ---
     if (resetForm) {
-        resetForm.addEventListener("submit", e => {
+        resetForm.addEventListener("submit", (e) => {
             e.preventDefault();
             handleFormSubmit(resetForm, async (res, data) => {
                 if (!res.ok || data.errors) {
                     showToast(
-                        data.message || data.errors?.password?.[0] || "Có lỗi xảy ra",
+                        data.message ||
+                            data.errors?.password?.[0] ||
+                            "Có lỗi xảy ra",
                         "error"
                     );
                     return;
                 }
-                showToast(data.status || "Đặt lại mật khẩu thành công!", "success");
+                showToast(
+                    data.status || "Đặt lại mật khẩu thành công!",
+                    "success"
+                );
                 resetForm.classList.add("d-none");
                 container.classList.remove("forgot-password-mode");
                 resetForm.reset();
@@ -254,7 +312,7 @@ document.addEventListener("DOMContentLoaded", function () {
         resetForm?.classList.add("d-none");
         verifyOtpForm?.classList.remove("d-none");
     });
-    toForgotPassword?.addEventListener("click", e => {
+    toForgotPassword?.addEventListener("click", (e) => {
         e.preventDefault();
         container.classList.add("forgot-password-mode");
         forgotForm?.classList.remove("d-none");

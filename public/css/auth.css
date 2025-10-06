@@ -545,8 +545,91 @@
     min-height: 560px; /* có thể tăng 580–600 nếu muốn thoáng hơn */
 }
 
-.forgot-password-container { display: none; }
-.auth-container.forgot-password-mode .forgot-password-container { display: block; }
+.forgot-password-container {
+    display: none;
+}
+.auth-container.forgot-password-mode .forgot-password-container {
+    display: block;
+}
 .auth-container.forgot-password-mode .sign-in-container,
-.auth-container.forgot-password-mode .sign-up-container { display: none; }
+.auth-container.forgot-password-mode .sign-up-container {
+    display: none;
+}
+/* Forgot Password khớp layout 2 cột như sign-in/up */
+.forgot-password-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    display: none;
+}
 
+.auth-container.forgot-password-mode .forgot-password-container {
+    display: block;
+    z-index: 3;
+}
+
+.auth-container.forgot-password-mode .sign-in-container,
+.auth-container.forgot-password-mode .sign-up-container {
+    display: none !important;
+}
+
+/* Mobile: full-width */
+@media (max-width: 768px) {
+    .forgot-password-container {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+}
+/* === Back buttons - Forgot Password flow (pretty + consistent) === */
+.forgot-password-container .auth-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    margin-top: 12px; /* cân lề dưới nút submit */
+    border-radius: 999px; /* pill shape */
+    border: 1px solid #e5e7eb; /* viền nhẹ */
+    background: #fff;
+    color: #333; /* áp dụng cho cả <button> */
+    font-weight: 600;
+    text-decoration: none;
+    line-height: 1.2;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: background 0.2s ease, border-color 0.2s ease,
+        transform 0.06s ease, box-shadow 0.2s ease;
+}
+
+.forgot-password-container .auth-link:hover {
+    background: #f6f7f9;
+    border-color: #dfe3e8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.forgot-password-container .auth-link:active {
+    transform: translateY(1px);
+}
+
+.forgot-password-container .auth-link:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(11, 195, 11, 0.18);
+}
+
+/* Icon mũi tên trước nội dung (không cần thêm HTML) */
+#backToLogin::before,
+#backToEmail::before,
+#backToOtp::before {
+    content: "\2190"; /* ← */
+    font-size: 14px;
+    opacity: 0.85;
+}
+
+/* Mobile: full width cho dễ bấm */
+@media (max-width: 768px) {
+    .forgot-password-container .auth-link {
+        width: 100%;
+        justify-content: center;
+    }
+}
