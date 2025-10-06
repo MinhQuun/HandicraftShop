@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProductController extends Controller
 {
@@ -181,5 +182,65 @@ class ProductController extends Controller
             $i++;
         }
         return $name;
+    }
+
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $q    = trim($request->get('q', ''));
+        $loai = $request->get('loai');
+
+        $file = 'san-pham-' . now()->format('Ymd-His') . '.csv';
+
+        $response = new StreamedResponse(function () use ($q, $loai) {
+
+            // UTF-8 BOM để Excel hiển thị tiếng Việt đúng
+            echo "\xEF\xBB\xBF";
+
+            $out = fopen('php://output', 'w');
+
+            // Header
+            fputcsv($out, ['Mã SP','Tên sản phẩm','Loại','Nhà cung cấp','Giá (₫)','Tồn kho','Hình ảnh','Mô tả']);
+
+            $query = DB::table('SANPHAM as s')
+                ->leftJoin('LOAI as l', 'l.MALOAI', '=', 's.MALOAI')
+                ->leftJoin('NHACUNGCAP as n', 'n.MANHACUNGCAP', '=', 's.MANHACUNGCAP')
+                ->when($q, function ($query) use ($q) {
+                    $like = '%'.$q.'%';
+                    $query->where(function ($x) use ($like) {
+                        $x->where('s.TENSANPHAM','like',$like)
+                        ->orWhere('l.TENLOAI','like',$like)
+                        ->orWhere('n.TENNHACUNGCAP','like',$like);
+                    });
+                })
+                ->when($loai, fn($x) => $x->where('s.MALOAI',$loai))
+                ->select(
+                    's.MASANPHAM','s.TENSANPHAM','l.TENLOAI','n.TENNHACUNGCAP',
+                    's.GIABAN','s.SOLUONGTON','s.HINHANH','s.MOTA'
+                )
+                ->orderBy('s.MASANPHAM', 'asc');
+
+            // Ghi theo lô → tiết kiệm RAM cho dữ liệu lớn
+            $query->chunk(1000, function ($rows) use ($out) {
+                foreach ($rows as $r) {
+                    fputcsv($out, [
+                        $r->MASANPHAM,
+                        $r->TENSANPHAM,
+                        $r->TENLOAI ?? '',
+                        $r->TENNHACUNGCAP ?? '',
+                        (float) $r->GIABAN,
+                        (int)   $r->SOLUONGTON,
+                        $r->HINHANH ?? '',
+                        $r->MOTA ?? '',
+                    ]);
+                }
+            });
+
+            fclose($out);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$file.'"');
+
+        return $response;
     }
 }

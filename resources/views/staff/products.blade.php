@@ -55,9 +55,15 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h5 class="m-0">Danh sách sản phẩm</h5>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreate">
-                <i class="bi bi-plus-circle me-1"></i> Thêm mới
-            </button>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreate">
+                    <i class="bi bi-plus-circle me-1"></i> Thêm mới
+                </button>
+                <a href="{{ route('staff.products.exportCsv', request()->only('q','loai')) }}"
+                    class="btn-outline-success">
+                    <i class="fa-solid fa-file-excel"></i>  Xuất Excel
+                </a>
+            </div>
         </div>
 
         <div class="table-responsive">

@@ -16,8 +16,7 @@ class NhaCungCap extends Model
         'MANHACUNGCAP',
         'TENNHACUNGCAP',
         'DIACHI',
-        'SODIENTHOAI',
-        'EMAIL',
+        'DTHOAI',
         // thêm các trường khác nếu có
     ];
 

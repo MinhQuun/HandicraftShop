@@ -189,13 +189,15 @@ Route::prefix('staff')
         Route::post('/suppliers',        [SupplierController::class, 'store'])->name('suppliers.store');
         Route::put('/suppliers/{id}',    [SupplierController::class, 'update'])->name('suppliers.update');
         Route::delete('/suppliers/{id}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
+        Route::get('/suppliers/export-csv', [SupplierController::class, 'exportCsv'])->name('suppliers.exportCsv');
 
         // Sản phẩm
         Route::get('/products',          [StaffProductController::class, 'index'])->name('products.index');
         Route::post('/products',         [StaffProductController::class, 'store'])->name('products.store');
         Route::put('/products/{id}',     [StaffProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{id}',  [StaffProductController::class, 'destroy'])->name('products.destroy');
-
+        Route::get('/products/export-csv', [StaffProductController::class, 'exportCsv'])->name('products.exportCsv');
+        
         // Khuyến mãi
         Route::get('/promotions',         [PromotionsController::class, 'index'])->name('promotions.index');
         Route::post('/promotions',        [PromotionsController::class, 'store'])->name('promotions.store');
