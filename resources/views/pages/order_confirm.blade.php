@@ -3,21 +3,34 @@
 @section('title', 'Xác Nhận Đơn Hàng')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/checkout.css') }}"> <!-- reuse -->
+    <link rel="stylesheet" href="{{ asset('css/checkout.css') }}">
 @endpush
 
 @section('content')
 <main class="page-checkout">
     <section class="checkout-shell">
-        <h2 class="checkout-title">XÁC NHẬN ĐƠN HÀNG</h2>
+        <div class="checkout-progress">
+            <div class="progress-step complete"><i class="fas fa-shopping-cart"></i> Giỏ hàng</div>
+            <div class="progress-step complete"><i class="fas fa-file-invoice"></i> Thanh toán</div>
+            <div class="progress-step active"><i class="fas fa-check"></i> Xác nhận</div>
+        </div>
 
+        <h2 class="checkout-title">ĐẶT HÀNG THÀNH CÔNG</h2>
+
+        {{-- Banner thành công nhẹ nhàng, không show mã đơn --}}
         <div class="alert ok">
-            <strong>Thành công!</strong>&nbsp;Đơn hàng của bạn đã được đặt. Mã đơn: {{ $order->MADONHANG }}
+            <i class="fas fa-check-circle"></i>
+            <div>
+                <strong>Cảm ơn bạn!</strong> Đơn hàng của bạn đã được ghi nhận.
+                <div class="text-muted" style="font-size: 13px;">
+                    Chúng tôi đã gửi thông tin chi tiết qua email / tài khoản của bạn.
+                </div>
+            </div>
         </div>
 
         <div class="row g-4">
-            {{-- Chi tiết đơn --}}
-            <div class="col-lg-6">
+            {{-- Bảng chi tiết sản phẩm --}}
+            <div class="col-lg-7">
                 <div class="checkout-summary card">
                     <h4 class="card-title">Chi tiết đơn hàng</h4>
                     <div class="table-responsive">
@@ -25,9 +38,9 @@
                             <thead>
                                 <tr>
                                     <th>Tên Sản Phẩm</th>
-                                    <th>Số Lượng</th>
-                                    <th>Đơn Giá</th>
-                                    <th>Thành Tiền</th>
+                                    <th style="width:110px;">Số Lượng</th>
+                                    <th style="width:160px;">Đơn Giá</th>
+                                    <th style="width:180px;">Thành Tiền</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -35,22 +48,50 @@
                                     @php $sub = ((int)$d->SOLUONG) * ((int)$d->DONGIA); @endphp
                                     <tr>
                                         <td>{{ $d->TENSANPHAM }}</td>
-                                        <td class="text-center">{{ $d->SOLUONG }}</td>
-                                        <td class="text-end">{{ number_format($d->DONGIA, 0, ',', '.') }} VNĐ</td>
+                                        <td class="text-center">{{ (int)$d->SOLUONG }}</td>
+                                        <td class="text-end">{{ number_format((int)$d->DONGIA, 0, ',', '.') }} VNĐ</td>
                                         <td class="text-end">{{ number_format($sub, 0, ',', '.') }} VNĐ</td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
-                    <div class="checkout-totals">
-                        <h5>Tổng Thành Tiền: {{ number_format($order->TONGTHANHTIEN, 0, ',', '.') }} VNĐ</h5>
-                    </div>
                 </div>
             </div>
 
-            {{-- Thông tin giao hàng/ thanh toán --}}
-            <div class="col-lg-6">
+            {{-- Tổng tiền + Voucher + Thông tin giao hàng --}}
+            <div class="col-lg-5">
+                <div class="card" style="margin-bottom:16px;">
+                    <h4 class="card-title">Thanh toán</h4>
+                    <ul class="totals-list">
+                        <li>
+                            <span>Tạm tính</span>
+                            <span>{{ number_format($subtotal, 0, ',', '.') }} VNĐ</span>
+                        </li>
+                        @if($discount > 0)
+                            <li class="discount-line">
+                                <span>Giảm giá 
+                                    @if(!empty($order->MAKHUYENMAI))
+                                        <span class="voucher-badge" title="Mã đã áp">
+                                            <i class="fas fa-tag"></i> {{ $order->MAKHUYENMAI }}
+                                        </span>
+                                        @if($voucher)
+                                            <small class="text-muted" style="margin-left:6px;">
+                                                ({{ $voucher->TENKHUYENMAI }})
+                                            </small>
+                                        @endif
+                                    @endif
+                                </span>
+                                <span>-{{ number_format($discount, 0, ',', '.') }} VNĐ</span>
+                            </li>
+                        @endif
+                        <li class="grand">
+                            <span>Tổng thanh toán</span>
+                            <span>{{ number_format((int)$order->TONGTHANHTIEN, 0, ',', '.') }} VNĐ</span>
+                        </li>
+                    </ul>
+                </div>
+
                 <div class="checkout-form card">
                     <h4 class="card-title">Thông tin giao hàng</h4>
                     <p><strong>Khách hàng:</strong> {{ $customer->HOTEN ?? '—' }}</p>
@@ -69,6 +110,10 @@
                 <i class="fas fa-home"></i>&nbsp;Về Trang Chủ
             </a>
         </div>
+
+        {{-- Thông tin nội bộ (ẩn khỏi mắt khách) nếu bạn muốn giữ mã đơn để CSKH tra cứu nhanh:
+        <div style="display:none">OrderRef: #{{ $order->MADONHANG }}</div>
+        --}}
     </section>
 </main>
 @endsection

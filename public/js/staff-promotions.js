@@ -1,77 +1,139 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // ===== helper
-    function blurFilterSelects() {
-        document
-            .querySelectorAll(
-                ".promotions-filter select, .promotions-filter .form-select"
-            )
-            .forEach((el) => el.blur());
-    }
-    const hasSwal = !!window.Swal;
+    const hasSwal = typeof Swal !== "undefined";
 
+    // ===== Helper =====
+    const showGroup = (els, show) => {
+        els.forEach((el) => el.classList.toggle("d-none", !show));
+    };
     const toggleByScope = (wrap, scope) => {
-        wrap.querySelectorAll(".c-order-only,.e-order-only").forEach(
-            (el) => (el.style.display = scope === "ORDER" ? "" : "none")
+        if (!wrap) return;
+        const orderEls = wrap.querySelectorAll(".c-order-only, .e-order-only");
+        const productEls = wrap.querySelectorAll(
+            ".c-product-only, .e-product-only"
         );
-        wrap.querySelectorAll(".c-product-only,.e-product-only").forEach(
-            (el) => (el.style.display = scope === "PRODUCT" ? "" : "none")
-        );
-        // Voucher requires code; Product: code optional (nhưng server vẫn cần MAKHUYENMAI là PK)
+        showGroup(orderEls, scope === "ORDER");
+        showGroup(productEls, scope === "PRODUCT");
+    };
+    const moveOptions = (from, to) => {
+        if (!from || !to) return;
+        Array.from(from.selectedOptions).forEach((opt) => to.appendChild(opt));
+        from.selectedIndex = -1;
     };
 
-    // ===== Create Modal
-    const modalCreate = document.getElementById("modalCreate");
-    if (modalCreate) {
-        modalCreate.addEventListener("show.bs.modal", () => {
-            blurFilterSelects();
-            document.activeElement && document.activeElement.blur();
-            const scope = modalCreate.querySelector("#c_scope").value;
-            toggleByScope(modalCreate, scope);
-        });
-        modalCreate.addEventListener("shown.bs.modal", () => {
-            modalCreate
-                .querySelector('input[name="MAKHUYENMAI"]')
-                ?.focus({ preventScroll: true });
-        });
-        modalCreate
-            .querySelector("#c_scope")
-            ?.addEventListener("change", (e) => {
-                toggleByScope(modalCreate, e.target.value);
-            });
-        // Auto uppercase code
-        modalCreate.querySelector("#c_code")?.addEventListener("input", (e) => {
-            e.target.value = e.target.value.toUpperCase().replace(/\s+/g, "");
-        });
-        // Quick client validate percent
-        modalCreate.querySelector("#c_type")?.addEventListener("change", () => {
-            const t = modalCreate.querySelector("#c_type").value;
-            const v = modalCreate.querySelector("#c_value");
-            v.min = 0;
-            v.step = t === "Giảm %" ? 0.01 : 1000;
+    // ===== Select2 init =====
+    if (window.$ && $(".select2").length) {
+        $(".select2").select2({
+            theme: "bootstrap-5",
+            placeholder: "Chọn...",
+            allowClear: true,
+            width: "100%",
         });
     }
 
-    // ===== Edit Modal
+    // ===== Flash Alert2 =====
+    const flash = document.getElementById("flash");
+    if (flash && hasSwal) {
+        const { success, error, info, warning } = flash.dataset;
+        let icon, title, msg;
+        if (success) {
+            icon = "success";
+            title = "Thành công";
+            msg = success;
+        } else if (error) {
+            icon = "error";
+            title = "Thất bại";
+            msg = error;
+        } else if (info) {
+            icon = "info";
+            title = "Thông báo";
+            msg = info;
+        } else if (warning) {
+            icon = "warning";
+            title = "Cảnh báo";
+            msg = warning;
+        }
+        if (msg) Swal.fire({ icon, title, text: msg, confirmButtonText: "OK" });
+    }
+
+    // ===== Create Modal =====
+    const modalCreate = document.getElementById("modalCreate");
+    if (modalCreate) {
+        const scopeSelect = modalCreate.querySelector("#c_scope");
+        const codeInput = modalCreate.querySelector("#c_code");
+
+        // Bật/tắt đúng ngay khi mở modal và khi đổi chọn
+        modalCreate.addEventListener("show.bs.modal", () => {
+            setTimeout(() => toggleByScope(modalCreate, scopeSelect.value), 0);
+        });
+        modalCreate.addEventListener("shown.bs.modal", () => {
+            toggleByScope(modalCreate, scopeSelect.value);
+        });
+        scopeSelect.addEventListener("change", (e) => {
+            toggleByScope(modalCreate, e.target.value);
+        });
+
+        // Chuẩn hoá mã KM
+        codeInput?.addEventListener("input", (e) => {
+            e.target.value = e.target.value.toUpperCase().replace(/\s+/g, "");
+        });
+
+        // Dual list (create)
+        const cAvailable = document.getElementById("c_available_products");
+        const cSelected = document.getElementById("c_selected_products");
+        const cMoveRight = document.getElementById("c_move_right");
+        const cMoveLeft = document.getElementById("c_move_left");
+
+        cMoveRight?.addEventListener("click", () =>
+            moveOptions(cAvailable, cSelected)
+        );
+        cMoveLeft?.addEventListener("click", () =>
+            moveOptions(cSelected, cAvailable)
+        );
+
+        // Filter realtime (create)
+        const nameFilter = document.getElementById("filterName");
+        const typeFilter = document.getElementById("filterType");
+        const supplierFilter = document.getElementById("filterSupplier");
+
+        function filterProducts() {
+            if (!cAvailable) return;
+            const name = (nameFilter?.value || "").toLowerCase();
+            const type = typeFilter?.value || "";
+            const supplier = supplierFilter?.value || "";
+            Array.from(cAvailable.options).forEach((opt) => {
+                const matchName = opt.textContent.toLowerCase().includes(name);
+                const matchType = !type || opt.dataset.type === type;
+                const matchSupplier =
+                    !supplier || opt.dataset.supplier === supplier;
+                opt.hidden = !(matchName && matchType && matchSupplier);
+            });
+        }
+        nameFilter?.addEventListener("input", filterProducts);
+        typeFilter?.addEventListener("change", filterProducts);
+        supplierFilter?.addEventListener("change", filterProducts);
+        filterProducts(); // chạy 1 lần đầu
+    }
+
+    // ===== Edit Modal =====
     const editModal = document.getElementById("modalEdit");
     if (editModal) {
         editModal.addEventListener("show.bs.modal", (evt) => {
             const btn = evt.relatedTarget;
-            const id = btn?.getAttribute("data-id") || "";
-            const name = btn?.getAttribute("data-name") || "";
-            const type = btn?.getAttribute("data-type") || "";
-            const discount = btn?.getAttribute("data-discount") || 0;
-            const start = btn?.getAttribute("data-start") || "";
-            const end = btn?.getAttribute("data-end") || "";
+            if (!btn) return;
+
+            const id = btn.dataset.id || "";
+            const name = btn.dataset.name || "";
+            const type = btn.dataset.type || "";
+            const discount = btn.dataset.discount || 0;
+            const start = btn.dataset.start || "";
+            const end = btn.dataset.end || "";
+            const scope = btn.dataset.scope || "PRODUCT";
+            const priority = btn.dataset.priority || 10;
             const products =
-                btn
-                    ?.getAttribute("data-products")
-                    ?.split(",")
-                    .filter(Boolean) || [];
-            const scope = btn?.getAttribute("data-scope") || "PRODUCT";
-            const priority = btn?.getAttribute("data-priority") || 10;
+                btn.dataset.products?.split(",").filter(Boolean) || [];
             let rule = {};
             try {
-                rule = JSON.parse(btn?.getAttribute("data-json") || "{}");
+                rule = JSON.parse(btn.dataset.json || "{}");
             } catch {}
 
             editModal.querySelector("#e_id").value = id;
@@ -82,72 +144,68 @@ document.addEventListener("DOMContentLoaded", () => {
             editModal.querySelector("#e_end").value = end;
             editModal.querySelector("#e_scope").value = scope;
             editModal.querySelector("#e_priority").value = priority;
-
             toggleByScope(editModal, scope);
 
-            // voucher fields
             editModal.querySelector("#e_min").value =
                 rule?.min_order_total || "";
             editModal.querySelector("#e_max").value = rule?.max_discount || "";
             editModal.querySelector("#e_non_stackable").checked =
                 !!rule?.non_stackable;
 
-            // product fields
-            const selProducts = editModal.querySelector("#e_products");
-            if (selProducts) {
-                Array.from(selProducts.options).forEach((option) => {
-                    option.selected = products.includes(option.value);
-                });
-            }
-            // set action
+            // Dual list (edit)
+            const eAvailable = editModal.querySelector("#e_available_products");
+            const eSelected = editModal.querySelector("#e_selected_products");
+            const allOpts = Array.from(eAvailable.querySelectorAll("option"));
+            eAvailable.innerHTML = "";
+            eSelected.innerHTML = "";
+            allOpts.forEach((opt) => {
+                (products.includes(opt.value)
+                    ? eSelected
+                    : eAvailable
+                ).appendChild(opt.cloneNode(true));
+            });
+
+            const moveRight = document.getElementById("e_move_right");
+            const moveLeft = document.getElementById("e_move_left");
+            // gỡ handler cũ trước khi gán mới (tránh trùng)
+            moveRight.replaceWith(moveRight.cloneNode(true));
+            moveLeft.replaceWith(moveLeft.cloneNode(true));
+            const moveRightFresh = document.getElementById("e_move_right");
+            const moveLeftFresh = document.getElementById("e_move_left");
+            moveRightFresh.addEventListener("click", () =>
+                moveOptions(eAvailable, eSelected)
+            );
+            moveLeftFresh.addEventListener("click", () =>
+                moveOptions(eSelected, eAvailable)
+            );
+
+            // Update form action
             const form = editModal.querySelector("#formEdit");
             const tpl = form.getAttribute("data-action-template") || "";
             form.action = tpl.replace(":id", id);
         });
+
+        const eScope = editModal.querySelector("#e_scope");
+        eScope?.addEventListener("change", (e) =>
+            toggleByScope(editModal, e.target.value)
+        );
     }
 
-    // ===== Confirm Delete
+    // ===== Confirm Delete =====
     document.querySelectorAll("form.form-delete").forEach((f) => {
-        f.addEventListener("submit", function (e) {
+        f.addEventListener("submit", (e) => {
             e.preventDefault();
             if (!hasSwal) return f.submit();
             Swal.fire({
+                icon: "warning",
                 title: "Xoá khuyến mãi?",
                 text: "Thao tác này không thể hoàn tác.",
-                icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Xoá",
                 cancelButtonText: "Huỷ",
                 reverseButtons: true,
                 focusCancel: true,
-            }).then((res) => {
-                if (res.isConfirmed) f.submit();
-            });
+            }).then((res) => res.isConfirmed && f.submit());
         });
     });
-
-    // ===== Toast từ flash
-    const flash = document.getElementById("flash");
-    if (flash && hasSwal) {
-        const msg =
-            flash.dataset.success ||
-            flash.dataset.error ||
-            flash.dataset.info ||
-            flash.dataset.warning;
-        if (msg) {
-            let icon = "success";
-            if (flash.dataset.error) icon = "error";
-            else if (flash.dataset.info) icon = "info";
-            else if (flash.dataset.warning) icon = "warning";
-            Swal.fire({
-                toast: true,
-                position: "top-end",
-                icon,
-                title: msg,
-                showConfirmButton: false,
-                timer: 2200,
-                timerProgressBar: true,
-            });
-        }
-    }
 });

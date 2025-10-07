@@ -219,7 +219,7 @@ body:has(.page-checkout) {
 
 /* QR Code hiển thị bên trái */
 #payQRImage {
-    width: 220px;             /* cố định kích thước QR */
+    width: 220px; /* cố định kích thước QR */
     height: 220px;
     object-fit: contain;
     background: #fff;
@@ -308,4 +308,51 @@ body:has(.page-checkout) {
         flex-direction: column;
         gap: 10px;
     }
+}
+
+/* Giảm giá/Voucher & banner thành công */
+.alert.ok {
+    background: #f1fbf3;
+    border: 1px solid #cfe9d4;
+    color: var(--ok);
+}
+
+/* Totals box */
+.totals-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.totals-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--card-brd);
+}
+.totals-list li:last-child {
+    border-bottom: none;
+}
+.totals-list .discount-line {
+    color: var(--discount);
+    font-weight: 700;
+}
+.totals-list .grand {
+    font-size: 18px;
+    font-weight: 800;
+    color: #a84f3d;
+}
+
+/* Voucher badge */
+.voucher-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--card-brd);
+    background: #fff4ea;
+    color: var(--wood);
+    font-size: 12px;
+    font-weight: 700;
 }

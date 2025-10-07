@@ -44,30 +44,27 @@ class PromotionsController extends Controller
         ];
         $scopeOptions = ['ORDER' => 'Voucher (toàn đơn)', 'PRODUCT' => 'Theo sản phẩm'];
 
-        $products = SanPham::select('MASANPHAM','TENSANPHAM')->orderBy('TENSANPHAM')->get();
-        $loais    = DB::table('LOAI')->select('MALOAI','TENLOAI','MADANHMUC')->orderBy('TENLOAI')->get();
-        $danhmucs = DB::table('DANHMUCSANPHAM')->select('MADANHMUC','TENDANHMUC')->orderBy('TENDANHMUC')->get();
+        $products = SanPham::select('MASANPHAM','TENSANPHAM','MALOAI','MANHACUNGCAP')->orderBy('TENSANPHAM')->get();
+        $loais    = DB::table('LOAI')->select('MALOAI','TENLOAI')->orderBy('TENLOAI')->get();
         $nccs     = DB::table('NHACUNGCAP')->select('MANHACUNGCAP','TENNHACUNGCAP')->orderBy('TENNHACUNGCAP')->get();
 
         return view('staff.promotions', compact(
             'promotions','promotionTypes','scopeOptions','q','loai','phamvi','state',
-            'products','loais','danhmucs','nccs'
+            'products','loais','nccs'
         ));
     }
 
-    /** Gom danh sách MASANPHAM từ các tiêu chí lọc (SP/Loại/Danh mục/NCC) */
+    /** Gom danh sách MASANPHAM từ các tiêu chí lọc (SP/Loại/NCC) */
     protected function resolveProductIdsFromTargets(Request $request): array
     {
         $ids = collect($request->input('sanphams', []))->filter()->values();
 
         $maloais = (array) $request->input('maloais', []);
-        $madms   = (array) $request->input('madanhmucs', []);
         $manccs  = (array) $request->input('manccs', []);
 
-        if ($maloais || $madms || $manccs) {
+        if ($maloais || $manccs) {
             $q = SanPham::query();
             if ($maloais) $q->whereIn('MALOAI', $maloais);
-            if ($madms)   $q->whereHas('loai', fn($w)=>$w->whereIn('MADANHMUC',$madms));
             if ($manccs)  $q->whereIn('MANHACUNGCAP', $manccs);
 
             $ids = $ids->merge($q->pluck('MASANPHAM'));
@@ -101,7 +98,6 @@ class PromotionsController extends Controller
             'non_stackable'   => 'nullable|boolean',
             'sanphams'        => 'array',
             'maloais'         => 'array',
-            'madanhmucs'      => 'array',
             'manccs'          => 'array',
         ];
 
@@ -130,10 +126,9 @@ class PromotionsController extends Controller
             $hasTargets =
                 !empty($request->input('sanphams', [])) ||
                 !empty($request->input('maloais', [])) ||
-                !empty($request->input('madanhmucs', [])) ||
                 !empty($request->input('manccs', []));
             if (!$hasTargets) {
-                return back()->withInput()->with('error', 'Vui lòng chọn ít nhất 1 tiêu chí áp dụng (sản phẩm/loại/danh mục/NCC).');
+                return back()->withInput()->with('error', 'Vui lòng chọn ít nhất 1 tiêu chí áp dụng (sản phẩm/loại/NCC).');
             }
         }
 
@@ -145,7 +140,6 @@ class PromotionsController extends Controller
             'targets'         => [
                 'sanphams'   => array_values((array)$request->input('sanphams', [])),
                 'maloais'    => array_values((array)$request->input('maloais', [])),
-                'madanhmucs' => array_values((array)$request->input('madanhmucs', [])),
                 'manccs'     => array_values((array)$request->input('manccs', [])),
             ]
         ];
@@ -198,7 +192,6 @@ class PromotionsController extends Controller
             'non_stackable'    => 'nullable|boolean',
             'sanphams'         => 'array',
             'maloais'          => 'array',
-            'madanhmucs'       => 'array',
             'manccs'           => 'array',
         ]);
 
@@ -216,10 +209,9 @@ class PromotionsController extends Controller
             $hasTargets =
                 !empty($request->input('sanphams', [])) ||
                 !empty($request->input('maloais', [])) ||
-                !empty($request->input('madanhmucs', [])) ||
                 !empty($request->input('manccs', []));
             if (!$hasTargets) {
-                return back()->withInput()->with('error', 'Vui lòng chọn ít nhất 1 tiêu chí áp dụng (sản phẩm/loại/danh mục/NCC).');
+                return back()->withInput()->with('error', 'Vui lòng chọn ít nhất 1 tiêu chí áp dụng (sản phẩm/loại/NCC).');
             }
         }
 
@@ -230,7 +222,6 @@ class PromotionsController extends Controller
             'targets'         => [
                 'sanphams'   => array_values((array)$request->input('sanphams', [])),
                 'maloais'    => array_values((array)$request->input('maloais', [])),
-                'madanhmucs' => array_values((array)$request->input('madanhmucs', [])),
                 'manccs'     => array_values((array)$request->input('manccs', [])),
             ]
         ];
@@ -273,7 +264,7 @@ class PromotionsController extends Controller
         $code = strtoupper(trim($request->query('code','')));
         if (!$code) return response()->json(['ok'=>false,'msg'=>'Thiếu mã.'], 422);
 
-        $km = KhuyenMai::voucher()->active()->where('MAKHUYENMAI',$code)->first();
+        $km = KhuyenMai::where('PHAMVI', 'ORDER')->active()->where('MAKHUYENMAI',$code)->first();
         if (!$km) return response()->json(['ok'=>false,'msg'=>'Mã không hợp lệ hoặc đã hết hạn.'], 404);
 
         $rules = json_decode($km->DIEUKIEN_JSON ?? '[]', true) ?: [];

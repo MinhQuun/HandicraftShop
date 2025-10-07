@@ -306,6 +306,7 @@ class OrderController extends Controller
     public function confirm($id)
     {
         $maKhachHang = $this->resolveMaKhachHang();
+
         $order = DonHang::where('MADONHANG', $id)
             ->when($maKhachHang, fn($q) => $q->where('MAKHACHHANG', $maKhachHang))
             ->firstOrFail();
@@ -313,12 +314,32 @@ class OrderController extends Controller
         $details = DB::table('CHITIETDONHANG as d')
             ->join('SANPHAM as s', 's.MASANPHAM', '=', 'd.MASANPHAM')
             ->select('d.MASANPHAM', 'd.SOLUONG', 'd.DONGIA', 's.TENSANPHAM')
-            ->where('d.MADONHANG', $order->MADONHANG)->get();
+            ->where('d.MADONHANG', $order->MADONHANG)
+            ->get();
+
+        // Tính lại tạm tính & giảm giá từ dữ liệu đã chốt
+        $subtotal = (int) $details->sum(fn($d) => (int)$d->SOLUONG * (int)$d->DONGIA);
+        $discount = max(0, $subtotal - (int)$order->TONGTHANHTIEN);
+
+        // Thông tin voucher (nếu có)
+        $voucher = null;
+        if (!empty($order->MAKHUYENMAI)) {
+            $voucher = KhuyenMai::find($order->MAKHUYENMAI); // chỉ để hiển thị tên/loại
+        }
 
         $address  = DiaChiGiaoHang::find($order->MADIACHI);
         $payment  = HinhThucTT::find($order->MATT);
         $customer = DB::table('KHACHHANG')->where('MAKHACHHANG', $order->MAKHACHHANG)->first();
 
-        return view('pages.order_confirm', compact('order', 'details', 'address', 'payment', 'customer'));
+        return view('pages.order_confirm', [
+            'order'     => $order,
+            'details'   => $details,
+            'address'   => $address,
+            'payment'   => $payment,
+            'customer'  => $customer,
+            'subtotal'  => $subtotal,
+            'discount'  => $discount,
+            'voucher'   => $voucher, // có thể null
+        ]);
     }
 }
