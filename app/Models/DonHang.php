@@ -37,4 +37,8 @@ class DonHang extends Model
     {
         return $this->belongsTo(HinhThucTT::class, 'MATT', 'MATT');
     }    
+    public function khuyenMai()
+    {
+        return $this->belongsTo(KhuyenMai::class, 'MAKHUYENMAI', 'MAKHUYENMAI');
+    }
 }

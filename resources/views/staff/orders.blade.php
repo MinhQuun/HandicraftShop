@@ -227,6 +227,11 @@
                             </div>
                         </div>
                         <div class="col-12 text-end">
+                            <label class="form-label">Khuyến mãi</label>
+                            <p class="form-control-plaintext fw-bold text-end" id="md_promotion">—</p>
+                        </div>
+                                                
+                        <div class="col-12 text-end">
                             <label class="form-label">Tổng tiền</label>
                             <p class="form-control-plaintext fw-bold text-end" id="md_tongtien"></p>
                         </div>

@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
             setText("md_note", data.GHICHU ?? "—");
             setText("md_tongtien", fmtVND(data.TONGTHANHTIEN ?? data.TONGTIEN));
 
-            // Lines
+            // ====== Chi tiết sản phẩm ======
             const tbody = detailModal.querySelector("#tblDetailLines tbody");
             tbody.innerHTML = "";
             data.chiTiets.forEach((ln, i) => {
@@ -79,9 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 tr.innerHTML = `
                     <td>${i + 1}</td>
                     <td>${ln.MASANPHAM}</td>
-                    <td class="text-truncate" title="${ln.TENSP}">${
-                    ln.TENSP
-                }</td>
+                    <td class="text-truncate" title="${ln.TENSP}">${ln.TENSP}</td>
                     <td class="text-end">${fmtNumber(ln.SOLUONG)}</td>
                     <td class="text-end">${fmtVND(ln.DONGIA)}</td>
                     <td class="text-end">${fmtVND(ln.THANHTIEN)}</td>
@@ -89,16 +87,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 tbody.appendChild(tr);
             });
 
-            // Nút "Hoàn thành & tạo PX" trong modal: gọi updateStatus
+            // ====== Khuyến mãi ======
+            const promoEl = document.getElementById("md_promotion");
+            if (promoEl) {
+                if (data.khuyenMai) {
+                    let discountAmount = data.TIEN_GIAM ?? 0; // Tiền giảm đã tính sẵn trong controller
+                    promoEl.innerHTML = `
+                        Mã: ${data.khuyenMai.MAKHUYENMAI} 
+                        Tiền giảm: ${fmtVND(discountAmount)}
+                    `;
+                } else {
+                    promoEl.textContent = "—";
+                }
+            }
+
+
+            // ====== Nút "Hoàn thành & tạo PX" ======
             const formConfirm = document.getElementById("md_form_confirm");
             if (formConfirm) {
                 formConfirm.action = buildUpdateUrl(data.MADONHANG);
-                // Ẩn nếu đơn đã Hoàn thành hoặc Hủy
                 formConfirm.classList.toggle(
                     "d-none",
                     ["Hoàn thành", "Hủy"].includes(data.TRANGTHAI)
                 );
-                // Thêm xác nhận trước khi submit
                 formConfirm.addEventListener(
                     "submit",
                     (e) => {

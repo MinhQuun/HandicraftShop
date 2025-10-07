@@ -62,34 +62,51 @@ class OrderController extends Controller
     // ============ SHOW (AJAX) ============
     public function show($id)
     {
-        $order = DonHang::with(['khachHang', 'diaChi', 'chiTiets.sanPham'])->findOrFail($id);
+        $order = DonHang::with([
+            'khachHang', 
+            'diaChi', 
+            'chiTiets.sanPham', 
+            'khuyenMai'   // load khuyến mãi
+        ])->findOrFail($id);
+
+        // Tính tổng tiền trước khuyến mãi
+        $subtotal = $order->chiTiets->sum(fn($ct) => $ct->SOLUONG * $ct->DONGIA);
+
+        // Tiền giảm = subtotal - TONGTHANHTIEN
+        $discountAmount = max(0, $subtotal - $order->TONGTHANHTIEN);
 
         return response()->json([
-            'MADONHANG' => $order->MADONHANG,
-            'khachHang' => $order->khachHang ? [
+            'MADONHANG'       => $order->MADONHANG,
+            'khachHang'       => $order->khachHang ? [
                 'MAKHACHHANG' => $order->khachHang->MAKHACHHANG,
                 'HOTEN'       => $order->khachHang->HOTEN
             ] : null,
-            'diaChi' => $order->diaChi ? [
+            'diaChi'          => $order->diaChi ? [
                 'MADIACHI' => $order->diaChi->MADIACHI,
                 'DIACHI'   => $order->diaChi->DIACHI
             ] : null,
-            'NGAYDAT'       => $order->NGAYDAT,
-            'MATT'          => $order->MATT, // nếu cần hiển thị phương thức TT
-            'GHICHU'        => $order->GHICHU,
-            // trả cả 2 key để JS hiển thị an toàn
-            'TONGTHANHTIEN'      => $order->TONGTHANHTIEN ?? $order->TONGTHANHTIEN,
-            'TONGTHANHTIEN' => $order->TONGTHANHTIEN,
-            'TRANGTHAI'     => $order->TRANGTHAI,
-            'chiTiets'      => $order->chiTiets->map(fn($ct) => [
+            'NGAYDAT'         => $order->NGAYDAT,
+            'MATT'            => $order->MATT,
+            'GHICHU'          => $order->GHICHU,
+            'TONGTHANHTIEN'   => $order->TONGTHANHTIEN,
+            'subtotal'        => $subtotal,
+            'TIEN_GIAM'       => $discountAmount, // tiền giảm để hiển thị
+            'TRANGTHAI'       => $order->TRANGTHAI,
+            'chiTiets'        => $order->chiTiets->map(fn($ct) => [
                 'MASANPHAM' => $ct->MASANPHAM,
                 'TENSP'     => $ct->sanPham->TENSANPHAM ?? '—',
                 'SOLUONG'   => $ct->SOLUONG,
                 'DONGIA'    => $ct->DONGIA,
                 'THANHTIEN' => $ct->SOLUONG * $ct->DONGIA
-            ])->toArray()
+            ])->toArray(),
+            'khuyenMai'       => $order->khuyenMai ? [
+                'MAKHUYENMAI'   => $order->khuyenMai->MAKHUYENMAI,
+                'LOAIKHUYENMAI' => $order->khuyenMai->LOAIKHUYENMAI,
+                'GIAMGIA'       => $order->khuyenMai->GIAMGIA,
+            ] : null,
         ]);
     }
+
 
     // ============ UPDATE STATUS (từ combobox + nút Xác nhận) ============
     public function updateStatus(Request $request, $id)
