@@ -4,21 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class SanPhamKhuyenMai extends Model
+class SanPhamKhuyenMai extends Pivot
 {
-    use HasFactory;
-
     protected $table = 'SANPHAM_KHUYENMAI';
-
-    protected $primaryKey = ['MASANPHAM', 'MAKHUYENMAI'];
-
     public $incrementing = false;
-
     public $timestamps = false;
-
-    protected $fillable = [
-        'MASANPHAM',
-        'MAKHUYENMAI',
-    ];
+    protected $fillable = ['MASANPHAM','MAKHUYENMAI'];
 }

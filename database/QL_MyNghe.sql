@@ -37,13 +37,22 @@ CREATE TABLE LOAI
 -- =========================================================
 CREATE TABLE KHUYENMAI 
 (
-    MAKHUYENMAI VARCHAR(10) NOT NULL,
-    LOAIKHUYENMAI VARCHAR(50),
-    TENKHUYENMAI VARCHAR(100),
-    NGAYBATDAU DATETIME,
-    NGAYKETTHUC DATETIME,
-    GIAMGIA DECIMAL(5,2),
-    PRIMARY KEY (MAKHUYENMAI)
+    MAKHUYENMAI   VARCHAR(10)  NOT NULL,
+    LOAIKHUYENMAI VARCHAR(50),             -- 'Giảm %' | 'Giảm fixed' | 'Flash Sale' | ...
+    TENKHUYENMAI  VARCHAR(100),
+    NGAYBATDAU    DATETIME,
+    NGAYKETTHUC   DATETIME,
+    GIAMGIA DECIMAL(12,2) NOT NULL DEFAULT 0,
+
+    -- Phạm vi & cấu hình mềm để hỗ trợ 2 mô hình
+    PHAMVI        ENUM('ORDER','PRODUCT') NOT NULL DEFAULT 'PRODUCT',
+    DIEUKIEN_JSON JSON NULL,               -- { non_stackable, min_order_total, max_discount, targets{...} }
+    UUTIEN        INT NOT NULL DEFAULT 10, -- Ưu tiên chồng khuyến mãi (cao hơn = ưu tiên hơn)
+
+    PRIMARY KEY (MAKHUYENMAI),
+    KEY IX_KM_DATE (NGAYBATDAU, NGAYKETTHUC),
+    KEY IX_KM_PHAMVI (PHAMVI),
+    KEY IX_KM_LOAI (LOAIKHUYENMAI)
 ) ENGINE=InnoDB;
 
 -- =========================================================
@@ -73,6 +82,7 @@ CREATE TABLE users
     created_at TIMESTAMP NULL DEFAULT NULL,
     updated_at TIMESTAMP NULL DEFAULT NULL
 ) ENGINE=InnoDB;
+
 -- =========================================================
 -- PASSWORD RESETS
 -- =========================================================
@@ -137,15 +147,15 @@ CREATE TABLE HINHTHUCTT (
 -- =========================================================
 CREATE TABLE SANPHAM 
 (
-    MASANPHAM   VARCHAR(10) NOT NULL,
-    TENSANPHAM  VARCHAR(255) NOT NULL,
-    HINHANH     VARCHAR(255),
-    GIANHAP     DECIMAL(18,0) DEFAULT 0,
-    GIABAN      DECIMAL(18,0) DEFAULT 0,
-    SOLUONGTON  INT NOT NULL DEFAULT 0,
-    MOTA        VARCHAR(1000),
-    MALOAI      VARCHAR(10),
-    MAKHUYENMAI VARCHAR(10),
+    MASANPHAM    VARCHAR(10) NOT NULL,
+    TENSANPHAM   VARCHAR(255) NOT NULL,
+    HINHANH      VARCHAR(255),
+    GIANHAP      DECIMAL(18,0) DEFAULT 0,
+    GIABAN       DECIMAL(18,0) DEFAULT 0,
+    SOLUONGTON   INT NOT NULL DEFAULT 0,
+    MOTA         VARCHAR(1000),
+    MALOAI       VARCHAR(10),
+    MAKHUYENMAI  VARCHAR(10),
     MANHACUNGCAP INT NULL,
     PRIMARY KEY (MASANPHAM),
     KEY IX_SP_MALOAI (MALOAI),
@@ -157,7 +167,7 @@ CREATE TABLE SANPHAM
 ) ENGINE=InnoDB;
 
 -- =========================================================
--- Liên kết SP - KM (nếu 1 SP có nhiều KM)
+-- Liên kết SP - KM (cho phép 1 SP có nhiều KM)
 -- =========================================================
 CREATE TABLE SANPHAM_KHUYENMAI 
 (
@@ -232,6 +242,7 @@ CREATE TABLE DONHANG
     CONSTRAINT FK_DH_DC   FOREIGN KEY (MADIACHI)    REFERENCES DIACHI_GIAOHANG(MADIACHI) ON DELETE RESTRICT,
     CONSTRAINT FK_DH_TT   FOREIGN KEY (MATT)        REFERENCES HINHTHUCTT(MATT)
 ) ENGINE=InnoDB;
+
 ALTER TABLE DONHANG
     ADD COLUMN MAKHUYENMAI VARCHAR(10) NULL,
     ADD CONSTRAINT FK_DH_KM
@@ -285,7 +296,7 @@ CREATE TABLE CT_PHIEUNHAP (
 CREATE TABLE PHIEUXUAT (
     MAPX         INT NOT NULL AUTO_INCREMENT,
     MAKHACHHANG  INT NULL,                   -- bán lẻ/tham chiếu KH
-    MADIACHI INT NOT NULL,
+    MADIACHI     INT NOT NULL,
     NGAYXUAT     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     NHANVIEN_ID  BIGINT UNSIGNED NOT NULL,
     TRANGTHAI    ENUM('NHAP','DA_XAC_NHAN','HUY') NOT NULL DEFAULT 'NHAP',

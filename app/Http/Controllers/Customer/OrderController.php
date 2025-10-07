@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    /* ===== Helpers: user & cart ===== */
+
     protected function resolveMaKhachHang(): ?int
     {
         if (!Auth::check()) return null;
@@ -31,53 +33,101 @@ class OrderController extends Controller
         session(['cart' => $cart]);
     }
 
-    protected function calculateTotal($items, $promo = null)
+    /* ===== Voucher helpers (schema khuyến mãi mới) ===== */
+
+    /** Tìm voucher còn hiệu lực theo code (PHAMVI=ORDER, trong khoảng ngày) */
+    protected function findActiveVoucher(string $code): ?KhuyenMai
     {
-        $totalPrice = $items->sum(fn($i) => (int)$i['SOLUONG'] * (int)$i['GIABAN']);
-        if ($promo) {
-            if ($promo->LOAI === 'percent') {
-                $totalPrice = round($totalPrice * (1 - $promo->GIAMGIA / 100));
-            } elseif ($promo->LOAI === 'fixed') {
-                $totalPrice = max(0, $totalPrice - $promo->GIAMGIA);
+        $code = mb_strtoupper(trim($code), 'UTF-8');
+        if ($code === '') return null;
+
+        return KhuyenMai::query()
+            ->where('PHAMVI', 'ORDER')
+            ->where('MAKHUYENMAI', $code)
+            ->where('NGAYBATDAU', '<=', now())
+            ->where('NGAYKETTHUC', '>=', now())
+            ->first();
+    }
+
+    /** Chuẩn hoá model KM -> mảng lưu session/view */
+    protected function normalizeVoucher(KhuyenMai $km): array
+    {
+        // Nếu Model chưa cast DIEUKIEN_JSON => decode thủ công
+        $rules = is_array($km->DIEUKIEN_JSON)
+            ? $km->DIEUKIEN_JSON
+            : (json_decode($km->DIEUKIEN_JSON ?? '[]', true) ?: []);
+
+        $type = ($km->LOAIKHUYENMAI === 'Giảm %') ? 'percent' : 'fixed';
+
+        return [
+            'code'          => $km->MAKHUYENMAI,
+            'name'          => $km->TENKHUYENMAI,
+            'type'          => $type,                         // percent | fixed
+            'value'         => (float)$km->GIAMGIA,           // % hoặc số tiền (đ)
+            'min_total'     => (float)($rules['min_order_total'] ?? 0),
+            'max_discount'  => (float)($rules['max_discount'] ?? 0),
+            'non_stackable' => (bool)($rules['non_stackable'] ?? false),
+            'from'          => optional($km->NGAYBATDAU)->toDateString(),
+            'to'            => optional($km->NGAYKETTHUC)->toDateString(),
+        ];
+    }
+
+    /**
+     * Tính tiền với voucher: trả về ['subtotal'=>x, 'discount'=>y, 'total'=>z]
+     *  - %: discount = round(subtotal * value/100), cap bởi max_discount (>0)
+     *  - fixed: discount = min(value, subtotal)
+     *  - chỉ áp khi subtotal >= min_total
+     */
+    protected function computeTotals($items, ?array $voucher): array
+    {
+        $subtotal = (int) collect($items)->sum(fn($i) => (int)$i['SOLUONG'] * (int)$i['GIABAN']);
+        $discount = 0;
+
+        if ($voucher && $subtotal > 0) {
+            if ($subtotal >= (int)$voucher['min_total']) {
+                if ($voucher['type'] === 'percent') {
+                    $discount = (int) round($subtotal * ($voucher['value'] / 100));
+                    $cap = (int)$voucher['max_discount'];
+                    if ($cap > 0) $discount = min($discount, $cap);
+                } else { // fixed
+                    $discount = (int) min($voucher['value'], $subtotal);
+                }
             }
         }
-        return (int) $totalPrice;
+
+        $total = max(0, $subtotal - $discount);
+        return ['subtotal' => $subtotal, 'discount' => $discount, 'total' => $total];
     }
+
+    /* ===== Hiển thị trang thanh toán ===== */
 
     public function create()
     {
         $cart = $this->getCart();
         if (empty($cart)) return redirect()->route('cart')->with('message', 'Giỏ hàng trống.');
 
+        // Tạm thời dùng GIABAN gốc, CHƯA áp KM theo sản phẩm (sẽ làm sau)
         $items = collect($cart)->map(function ($item, $id) {
-            $product = SanPham::where('MASANPHAM', $id)->first();
-            if ($product) {
-                $giaBan = (int) $product->GIABAN;
-                if ($product->MAKHUYENMAI) {
-                    $km = KhuyenMai::where('MAKHUYENMAI', $product->MAKHUYENMAI)
-                        ->where('NGAYBATDAU', '<=', now())
-                        ->where('NGAYKETTHUC', '>=', now())
-                        ->first();
-                    if ($km && $km->GIAMGIA > 0 && $km->LOAI === 'product') {
-                        $giaBan = (int) round($giaBan * (1 - ($km->GIAMGIA / 100)));
-                    }
-                }
-                $item['GIABAN'] = $giaBan;
-                $item['SOLUONG'] = min((int) $item['SOLUONG'], (int) $product->SOLUONGTON);
+            $p = SanPham::where('MASANPHAM', $id)->first();
+            if ($p) {
+                $item['GIABAN']      = (int)$p->GIABAN;
+                $item['SOLUONG']     = min((int)$item['SOLUONG'], (int)$p->SOLUONGTON);
+                $item['TENSANPHAM']  = $item['TENSANPHAM'] ?? $p->TENSANPHAM;
             }
             return $item;
         });
 
+        // Loại item hết tồn sau chuẩn hoá
         $items = $items->filter(function ($item, $id) {
             $p = SanPham::where('MASANPHAM', $id)->first();
-            return $p && $p->SOLUONGTON >= $item['SOLUONG'];
+            return $p && $p->SOLUONGTON >= (int)$item['SOLUONG'];
         });
         $this->putCart($items->toArray());
         if ($items->isEmpty()) return redirect()->route('cart')->with('message', 'Giỏ hàng trống sau khi kiểm tra tồn kho.');
 
         $totalQty = $items->sum('SOLUONG');
-        $promo = session('promo');
-        $totalPrice = $this->calculateTotal($items, $promo);
+        $voucher  = session('voucher'); // mảng chuẩn hoá
+        $totals   = $this->computeTotals($items, $voucher);
 
         $paymentMethods = collect();
         $customer = null;
@@ -86,35 +136,65 @@ class OrderController extends Controller
 
         if ($maKhachHang) {
             $currentAddress = DiaChiGiaoHang::where('MAKHACHHANG', $maKhachHang)
-                ->orderByDesc('MADIACHI')
-                ->first();
+                ->orderByDesc('MADIACHI')->first();
 
             $paymentMethods = HinhThucTT::all();
             $customer = DB::table('KHACHHANG')->where('MAKHACHHANG', $maKhachHang)->first();
         }
 
-        return view('pages.checkout', compact(
-            'items', 'totalQty', 'totalPrice', 'paymentMethods', 'customer', 'currentAddress', 'promo'
-        ));
+        return view('pages.checkout', [
+            'items'          => $items,
+            'totalQty'       => $totalQty,
+            'subtotal'       => $totals['subtotal'],
+            'discount'       => $totals['discount'],
+            'totalPrice'     => $totals['total'],
+            'paymentMethods' => $paymentMethods,
+            'customer'       => $customer,
+            'currentAddress' => $currentAddress,
+            'voucher'        => $voucher,
+        ]);
     }
+
+    /* ===== Áp mã voucher (AJAX) ===== */
 
     public function applyPromo(Request $request)
     {
-        $code = $request->input('promo_code');
-        $promo = KhuyenMai::where('MAKHUYENMAI', $code)
-            ->where('NGAYBATDAU', '<=', now())
-            ->where('NGAYKETTHUC', '>=', now())
-            ->where('LOAI', 'order')
-            ->first();
-
-        if ($promo) {
-            session(['promo' => $promo]);
-            return response()->json(['success' => true, 'message' => 'Áp dụng mã thành công!', 'discount' => $promo->GIAMGIA]);
-        } else {
-            session()->forget('promo');
-            return response()->json(['success' => false, 'message' => 'Mã không hợp lệ.']);
+        $code = (string) $request->input('promo_code', '');
+        $km = $this->findActiveVoucher($code);
+        if (!$km) {
+            session()->forget('voucher');
+            return response()->json(['success' => false, 'message' => 'Mã không hợp lệ hoặc đã hết hạn.'], 422);
         }
+
+        $voucher = $this->normalizeVoucher($km);
+
+        // Tính lại theo giỏ hiện tại để trả kết quả tức thì
+        $items  = collect($this->getCart());
+        if ($items->isEmpty()) {
+            session()->forget('voucher');
+            return response()->json(['success' => false, 'message' => 'Giỏ hàng trống.'], 422);
+        }
+
+        $totals = $this->computeTotals($items, $voucher);
+
+        // Lưu voucher (mảng) vào session
+        session(['voucher' => $voucher]);
+
+        return response()->json([
+            'success'      => true,
+            'message'      => 'Áp dụng mã thành công!',
+            'code'         => $voucher['code'],
+            'discount'     => $totals['discount'],
+            'subtotal'     => $totals['subtotal'],
+            'total'        => $totals['total'],
+            'min_total'    => $voucher['min_total'],
+            'max_discount' => $voucher['max_discount'],
+            'type'         => $voucher['type'],
+            'value'        => $voucher['value'],
+        ]);
     }
+
+    /* ===== Đặt hàng ===== */
 
     public function store(Request $request)
     {
@@ -133,32 +213,22 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
-            $items = collect($cart);
-
-            // Kiểm tra tồn kho với lock
-            $items = $items->map(function ($item, $id) {
-                $product = SanPham::where('MASANPHAM', $id)->lockForUpdate()->first();
-                if (!$product || $product->SOLUONGTON < (int)$item['SOLUONG']) {
+            // Re-validate tồn kho dưới lock + giữ GIABAN gốc (chưa áp KM theo SP)
+            $items = collect($cart)->map(function ($item, $id) {
+                $p = SanPham::where('MASANPHAM', $id)->lockForUpdate()->first();
+                if (!$p || $p->SOLUONGTON < (int)$item['SOLUONG']) {
                     throw new \Exception('Sản phẩm ' . ($item['TENSANPHAM'] ?? $id) . ' đã hết hàng.');
                 }
-                $giaBan = (int)$product->GIABAN;
-                if ($product->MAKHUYENMAI) {
-                    $km = KhuyenMai::where('MAKHUYENMAI', $product->MAKHUYENMAI)
-                        ->where('NGAYBATDAU', '<=', now())
-                        ->where('NGAYKETTHUC', '>=', now())
-                        ->first();
-                    if ($km && $km->GIAMGIA > 0 && $km->LOAI === 'product') {
-                        $giaBan = (int)round($giaBan * (1 - ($km->GIAMGIA / 100)));
-                    }
-                }
-                $item['GIABAN'] = $giaBan;
+                $item['GIABAN'] = (int)$p->GIABAN;
                 return $item;
-            })->all();
+            });
 
-            $totalQty = array_sum(array_column($items, 'SOLUONG'));
-            $promo = session('promo');
-            $totalPrice = $this->calculateTotal(collect($items), $promo);
+            $voucher = session('voucher'); // mảng chuẩn hoá
+            // Tính lại totals để chốt (tránh thao túng phía client)
+            $totals  = $this->computeTotals($items, $voucher);
+            $totalQty = (int) $items->sum('SOLUONG');
 
+            /* ===== Địa chỉ ===== */
             $maDiaChi  = $validated['address_id'] ?? null;
             // Chuẩn hoá chuỗi địa chỉ: trim + gộp khoảng trắng
             $textDiaChi = preg_replace('/\s+/u', ' ', trim($validated['DIACHI']));
@@ -166,45 +236,28 @@ class OrderController extends Controller
             // Hàm so sánh không phân biệt hoa/thường
             $toLower = fn($s) => mb_strtolower($s ?? '', 'UTF-8');
 
-            // Nếu có chọn 1 địa chỉ sẵn (address_id) nhưng người dùng sửa nội dung khác đi,
-            // -> KHÔNG ghi đè bản ghi cũ, mà tạo bản ghi mới (hoặc tái sử dụng nếu đã có bản ghi trùng y hệt trước đó).
             if ($maDiaChi) {
                 $addr = DiaChiGiaoHang::where('MADIACHI', $maDiaChi)
-                    ->where('MAKHACHHANG', $maKhachHang)
-                    ->first();
+                    ->where('MAKHACHHANG', $maKhachHang)->first();
+                if (!$addr) throw new \Exception('Địa chỉ không hợp lệ.');
 
-                if (!$addr) {
-                    throw new \Exception('Địa chỉ không hợp lệ.');
-                }
-
-                if ($toLower($addr->DIACHI) === $toLower($textDiaChi)) {
-                    // Nội dung không đổi -> dùng lại địa chỉ hiện tại
-                    // $maDiaChi giữ nguyên
-                } else {
-                    // Tìm xem đã có địa chỉ giống hệt chưa (tránh trùng)
+                if ($toLower($addr->DIACHI) !== $toLower($textDiaChi)) {
                     $existing = DiaChiGiaoHang::where('MAKHACHHANG', $maKhachHang)
-                        ->whereRaw('LOWER(DIACHI) = ?', [$toLower($textDiaChi)])
-                        ->first();
-
-                    if ($existing) {
-                        $maDiaChi = $existing->MADIACHI; // tái sử dụng
-                    } else {
+                        ->whereRaw('LOWER(DIACHI) = ?', [$toLower($textDiaChi)])->first();
+                    if ($existing) $maDiaChi = $existing->MADIACHI;
+                    else {
                         $new = new DiaChiGiaoHang();
                         $new->MAKHACHHANG = $maKhachHang;
                         $new->DIACHI      = $textDiaChi;
                         $new->save();
-                        $maDiaChi = $new->MADIACHI;      // dùng địa chỉ mới
+                        $maDiaChi = $new->MADIACHI;
                     }
                 }
             } else {
-                // Không chọn địa chỉ sẵn -> thêm mới hoặc tái sử dụng nếu đã tồn tại địa chỉ y hệt
                 $existing = DiaChiGiaoHang::where('MAKHACHHANG', $maKhachHang)
-                    ->whereRaw('LOWER(DIACHI) = ?', [$toLower($textDiaChi)])
-                    ->first();
-
-                if ($existing) {
-                    $maDiaChi = $existing->MADIACHI;
-                } else {
+                    ->whereRaw('LOWER(DIACHI) = ?', [$toLower($textDiaChi)])->first();
+                if ($existing) $maDiaChi = $existing->MADIACHI;
+                else {
                     $addr = new DiaChiGiaoHang();
                     $addr->MAKHACHHANG = $maKhachHang;
                     $addr->DIACHI      = $textDiaChi;
@@ -213,20 +266,20 @@ class OrderController extends Controller
                 }
             }
 
+            /* ===== Tạo đơn hàng ===== */
             $order = new DonHang();
             $order->MAKHACHHANG   = $maKhachHang;
             $order->MADIACHI      = $maDiaChi;
             $order->NGAYDAT       = now();
             $order->MATT          = $validated['MATT'];
             $order->GHICHU        = $validated['GHICHU'] ?? null;
-            $order->TONGSLHANG    = (int)$totalQty;
-            $order->TONGTHANHTIEN = (int)$totalPrice;
-            $order->MAKHUYENMAI   = $promo ? $promo->MAKHUYENMAI : null;
+            $order->TONGSLHANG    = $totalQty;
+            $order->TONGTHANHTIEN = $totals['total'];
+            $order->MAKHUYENMAI   = $voucher['code'] ?? null;
 
             $methodsCfg = config('payment_methods.methods', []);
             $type = $methodsCfg[$order->MATT]['type'] ?? 'offline';
             $order->TRANGTHAI = ($type === 'online') ? 'Chờ thanh toán' : 'Chờ xử lý';
-
             $order->save();
 
             foreach ($items as $id => $item) {
@@ -234,11 +287,12 @@ class OrderController extends Controller
                 $detail->MADONHANG = $order->MADONHANG;
                 $detail->MASANPHAM = $id;
                 $detail->SOLUONG   = (int)$item['SOLUONG'];
-                $detail->DONGIA    = (int)$item['GIABAN'];
+                $detail->DONGIA    = (int)$item['GIABAN']; // đơn giá gốc (chưa trừ voucher)
                 $detail->save();
             }
 
-            session()->forget(['cart', 'promo']);
+            // Xoá giỏ & voucher
+            session()->forget(['cart', 'voucher']);
             DB::commit();
 
             return redirect()->route('orders.confirm', $order->MADONHANG)

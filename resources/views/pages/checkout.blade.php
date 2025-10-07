@@ -70,18 +70,57 @@
                     <div class="promo-section">
                         <label class="form-label">Mã khuyến mãi</label>
                         <div class="input-group">
-                            <input type="text" id="promo_code" class="form-control" placeholder="Nhập mã...">
-                            <button id="apply_promo" class="btn-gradient"><i class="fas fa-tag"></i> Áp dụng</button>
+                            <input
+                                type="text"
+                                id="promo_code"
+                                class="form-control"
+                                placeholder="Nhập mã..."
+                                value="{{ old('promo_code', $voucher['code'] ?? '') }}">
+                            <button
+                                id="apply_promo"
+                                class="btn-gradient"
+                                data-url="{{ route('checkout.applyPromo') }}">
+                                <i class="fas fa-tag"></i> Áp dụng
+                            </button>
                         </div>
-                        <small id="promo_message" class="text-muted"></small>
+
+                        {{-- Đang áp dụng --}}
+                        <div id="voucher_applied" style="margin-top:8px;{{ empty($voucher) ? 'display:none;' : '' }}">
+                            <span class="badge bg-success" style="padding:6px 10px;border-radius:999px;">
+                                Đang dùng mã: <strong id="voucher_code">{{ $voucher['code'] ?? '' }}</strong>
+                            </span>
+                            <small class="text-muted ms-2" id="voucher_desc">
+                                @if(!empty($voucher))
+                                    ({{ $voucher['type']==='percent' ? $voucher['value'].'%' : number_format($voucher['value'],0,',','.') . 'đ' }}
+                                    @if(($voucher['min_total'] ?? 0) > 0) – tối thiểu {{ number_format($voucher['min_total'],0,',','.') }}đ @endif
+                                    @if(($voucher['max_discount'] ?? 0) > 0) – tối đa {{ number_format($voucher['max_discount'],0,',','.') }}đ @endif
+                                    )
+                                @endif
+                            </small>
+                        </div>
+
+                        <small id="promo_message" class="text-muted d-block" style="margin-top:6px;"></small>
                     </div>
 
                     <div class="checkout-totals">
                         <h5>Tổng số lượng: {{ $totalQty }}</h5>
-                        @if($promo)
-                            <h5 class="discount">Giảm giá: {{ $promo->GIAMGIA }}% (Mã: {{ $promo->MAKHUYENMAI }})</h5>
-                        @endif
-                        <h5 id="total_price">Tổng thành tiền: {{ number_format($totalPrice, 0, ',', '.') }} VNĐ</h5>
+
+                        <div class="d-flex justify-content-between">
+                            <span>Tạm tính:</span>
+                            <strong id="subtotal_value">{{ number_format($subtotal, 0, ',', '.') }} VNĐ</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between {{ ($discount ?? 0) > 0 ? '' : 'd-none' }}" id="discount_row">
+                            <span class="discount">Giảm giá:</span>
+                            <strong id="discount_value">- {{ number_format($discount ?? 0, 0, ',', '.') }} VNĐ</strong>
+                        </div>
+
+                        <hr class="my-2">
+
+                        <div class="d-flex justify-content-between">
+                            <span><strong>Tổng thành tiền:</strong></span>
+                            <strong id="total_value" class="text-primary">{{ number_format($totalPrice, 0, ',', '.') }} VNĐ</strong>
+                        </div>
                     </div>
 
                     <div class="trust-signals">

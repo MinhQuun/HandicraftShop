@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/checkout', [OrderController::class, 'create'])->name('checkout');
     Route::post('/orders',  [OrderController::class, 'store'])->name('orders.store');
+    Route::post('/checkout/apply-promo', [OrderController::class, 'applyPromo'])->name('checkout.applyPromo');
     // (Nếu sau này bỏ confirm phía khách có thể xóa route này)
     Route::get('/orders/{id}/confirm', [OrderController::class, 'confirm'])->name('orders.confirm');
 

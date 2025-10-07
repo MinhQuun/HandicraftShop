@@ -256,3 +256,44 @@
 .modal-open .promotions-filter {
     visibility: hidden;
 }
+
+/* Badge scope & state */
+.badge-scope {
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    font-weight: 700;
+}
+.badge-scope.order {
+    background: #fff7e6;
+    color: #b36b00;
+    border: 1px solid #ffe0a1;
+}
+.badge-scope.product {
+    background: #e9fbf4;
+    color: #1a7f46;
+    border: 1px solid #bcefd6;
+}
+.badge-state {
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    font-weight: 700;
+}
+.badge-upcoming {
+    background: #eef6fb;
+    color: #2b6cb0;
+    border: 1px solid #cfe5ff;
+}
+.badge-active {
+    background: #e9fbf4;
+    color: #1a7f46;
+    border: 1px solid #bcefd6;
+}
+.badge-expired {
+    background: #ffeded;
+    color: #c0392b;
+    border: 1px solid #ffc7c7;
+}
+.small-note {
+    font-size: 0.83rem;
+    color: #617481;
+}

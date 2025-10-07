@@ -23,6 +23,8 @@
   <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
   @stack('styles')
 
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
 </head>
 <body>
 
