@@ -123,6 +123,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     header.TRANGTHAI !== "NHAP"
                 );
             }
+            const btnPDF = document.getElementById("btnExportPDF");
+            if (btnPDF) {
+                btnPDF.onclick = () => {
+                    // giả sử route xuất PDF: /staff/receipts/{id}/pdf
+                    const url = `/staff/receipts/${header.MAPN}/pdf`;
+                    window.open(url, "_blank"); // mở PDF trong tab mới
+                };
+            }
 
             bsDetail && bsDetail.show();
         } catch (e) {

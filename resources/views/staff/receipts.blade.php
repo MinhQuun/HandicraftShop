@@ -195,6 +195,9 @@
                             @csrf @method('put')
                             <button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i> Xác nhận phiếu</button>
                         </form>
+                        <button type="button" class="btn btn-secondary me-2" id="btnExportPDF">
+                            <i class="bi bi-file-earmark-pdf"></i> Xuất PDF
+                        </button>                        
                     </div>
                 </div>
             </div>

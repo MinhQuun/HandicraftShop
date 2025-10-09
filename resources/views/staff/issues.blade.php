@@ -207,6 +207,9 @@
                     @csrf @method('put')
                     <button type="submit" class="btn btn-success">Xác nhận phiếu</button>
                 </form>
+                <a id="btnExportPdf" href="#" target="_blank" class="btn btn-outline-danger">
+                    <i class="fa fa-file-pdf"></i> Xuất PDF
+                </a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf; 
 
 class ReceiptController extends Controller
 {
@@ -235,5 +236,47 @@ class ReceiptController extends Controller
         }
         DB::table('PHIEUNHAP')->where('MAPN', $id)->delete();
         return back()->with('success', 'Đã xoá phiếu nhập.');
+    }
+    public function exportPdf($id)
+    {
+        $header = DB::table('PHIEUNHAP as p')
+            ->join('NHACUNGCAP as n', 'n.MANHACUNGCAP', '=', 'p.MANHACUNGCAP')
+            ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
+            ->where('p.MAPN', $id)
+            ->select(
+                'p.MAPN',
+                'p.NGAYNHAP',
+                'p.TRANGTHAI',
+                'p.GHICHU',
+                'n.TENNHACUNGCAP',
+                'u.name as NHANVIEN'
+            )
+            ->first();
+
+        if (!$header) {
+            return back()->with('error', 'Không tìm thấy phiếu nhập.');
+        }
+
+        $details = DB::table('CT_PHIEUNHAP as ct')
+            ->join('SANPHAM as sp', 'sp.MASANPHAM', '=', 'ct.MASANPHAM')
+            ->where('ct.MAPN', $id)
+            ->select(
+                'ct.MASANPHAM',
+                'sp.TENSANPHAM',
+                'ct.SOLUONG',
+                'ct.DONGIA',
+                DB::raw('ct.SOLUONG * ct.DONGIA as THANHTIEN')
+            )
+            ->get();
+
+        $tongtien = $details->sum(fn($d) => $d->THANHTIEN);
+
+        $pdf = Pdf::loadView('staff.receipts_pdf', [
+            'header'   => $header,
+            'details'  => $details,
+            'TONGTIEN' => $tongtien,
+        ]);
+
+        return $pdf->download("phieu_nhap_{$header->MAPN}.pdf");
     }
 }

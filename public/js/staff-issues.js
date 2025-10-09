@@ -130,7 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 formConfirm.action = confirmUrl;
                 formConfirm.classList.toggle("d-none", h.TRANGTHAI !== "NHAP");
             }
-
+            const btnPdf = document.getElementById("btnExportPdf");
+            if (btnPdf) {
+                btnPdf.href = `/staff/issues/${id}/pdf`;
+            }
             bsDetail && bsDetail.show();
         } catch (e) {
             console.error(e);

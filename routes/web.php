@@ -230,6 +230,9 @@ Route::prefix('staff')
         Route::put('/receipts/{id}/confirm',    [ReceiptController::class, 'confirm'])->name('receipts.confirm');
         Route::put('/receipts/{id}/cancel',     [ReceiptController::class, 'cancel'])->name('receipts.cancel');
         Route::delete('/receipts/{id}',         [ReceiptController::class, 'destroy'])->name('receipts.destroy');
+        Route::get('receipts/{id}/pdf', [ReceiptController::class, 'exportPdf'])
+    ->name('receipts.pdf');
+
 
         // Đơn hàng
         Route::get('/orders',             [StaffOrderController::class, 'index'])->name('orders.index');
@@ -244,6 +247,8 @@ Route::prefix('staff')
         Route::get('/issues/create', function () {
             return redirect()->route('staff.issues.index', ['open' => 'create']);
         })->name('issues.create');
+        Route::get('/issues/{id}/pdf', [IssueController::class, 'exportPdf'])
+    ->name('issues.exportPdf');
 
         // Thống kê (stub)
         Route::prefix('reports')->name('reports.')->group(function () {

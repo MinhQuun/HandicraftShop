@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf; 
 
 class IssueController extends Controller
 {
@@ -141,4 +142,58 @@ class IssueController extends Controller
             return back()->with('error', 'Lỗi hủy phiếu xuất: ' . $e->getMessage());
         }
     }
+    public function exportPdf($id)
+    {
+        // Lấy thông tin phiếu xuất
+        $header = DB::table('PHIEUXUAT as px')
+            ->leftJoin('KHACHHANG as kh', 'px.MAKHACHHANG', '=', 'kh.MAKHACHHANG')
+            ->leftJoin('users as nv', 'px.NHANVIEN_ID', '=', 'nv.id')
+            ->leftJoin('DIACHI_GIAOHANG as dc', 'dc.MADIACHI', '=', 'px.MADIACHI')
+            ->select(
+                'px.MAPX',
+                'px.NGAYXUAT',
+                'px.TRANGTHAI',
+                'px.GHICHU',
+                'px.TONGSL',
+                'kh.HOTEN as KHACHHANG',
+                'kh.MAKHACHHANG',
+                DB::raw('COALESCE(dc.DIACHI, "Chưa cập nhật") as DIACHI'),
+                'nv.name as NHANVIEN'
+            )
+            ->where('px.MAPX', $id)
+            ->first();
+
+        if (!$header) {
+            return back()->with('error', 'Không tìm thấy phiếu xuất.');
+        }
+
+        // Lấy chi tiết sản phẩm
+        $lines = DB::table('CT_PHIEUXUAT as ct')
+            ->join('SANPHAM as sp', 'ct.MASANPHAM', '=', 'sp.MASANPHAM')
+            ->where('ct.MAPX', $id)
+            ->select(
+                'ct.MASANPHAM',
+                'sp.TENSANPHAM',
+                'ct.SOLUONG',
+                'ct.DONGIA',
+                DB::raw('ct.SOLUONG * ct.DONGIA as THANHTIEN')
+            )
+            ->get();
+
+        $tongSL = $lines->sum('SOLUONG');
+        $tongTien = $lines->sum('THANHTIEN');
+
+        $data = [
+            'header' => $header,
+            'lines' => $lines,
+            'tongSL' => $tongSL,
+            'tongTien' => $tongTien,
+        ];
+
+        $pdf = Pdf::loadView('staff.issues_pdf', $data)->setPaper('a4', 'portrait');
+        $fileName = 'PhieuXuat_' . $header->MAPX . '.pdf';
+        return $pdf->download($fileName);
+    }
+
+
 }
