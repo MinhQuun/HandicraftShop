@@ -48,6 +48,7 @@ class Reports_InoutController extends Controller
                 's.HINHANH',
                 's.SOLUONGTON',
                 's.GIABAN',
+                's.GIANHAP',
                 's.MOTA', 
                 'l.TENLOAI',
                 'n.TENNHACUNGCAP'
@@ -88,6 +89,7 @@ class Reports_InoutController extends Controller
                 'in' => $in,
                 'out' => $out,
                 'closing' => $closing,
+                'GIANHAP' => $p->GIANHAP,
                 'GIABAN' => $p->GIABAN,
                 'MOTA' => $p->MOTA, 
             ];

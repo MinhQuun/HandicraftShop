@@ -75,11 +75,12 @@
                     <th style="width:90px">Mã</th>
                     <th style="width:60px">Hình</th>
                     <th style="min-width:240px">Tên sản phẩm</th>
+                    <th style="width:18%;">Giá nhập</th>
                     <th style="width:12%">Tồn đầu</th>
                     <th style="width:12%">Nhập trong kỳ</th>
                     <th style="width:12%">Xuất trong kỳ</th>
                     <th style="width:12%">Tồn cuối</th>
-                    <th style="width:18%;">Giá</th>
+                    <th style="width:18%;">Giá bán</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,6 +95,7 @@
                     data-in="{{ $r->in }}"
                     data-out="{{ $r->out }}"
                     data-closing="{{ $r->closing }}"
+                    data-gianhap="{{ $r->GIANHAP }}"
                     data-price="{{ $r->GIABAN }}"
                     data-mota="{{ $r->MOTA ?? '' }}"
                 >
@@ -107,6 +109,7 @@
                         @endif
                     </td>
                     <td class="text-truncate" title="{{ $r->TENSANPHAM }}">{{ $r->TENSANPHAM }}</td>
+                    <td>{{ number_format($r->GIANHAP ?? 0,0,',','.') }} ₫</td>
                     <td><span class="badge stock-ok">{{ $r->opening }}</span></td>
                     <td><span class="badge stock-warn">{{ $r->in }}</span></td>
                     <td><span class="badge stock-bad">{{ $r->out }}</span></td>
@@ -162,6 +165,7 @@
             <p><strong>Nhập trong kỳ:</strong> <span id="modalProductIn"></span></p>
             <p><strong>Xuất trong kỳ:</strong> <span id="modalProductOut"></span></p>
             <p><strong>Tồn cuối:</strong> <span id="modalProductClosing"></span></p>
+            <p><strong>Giá nhập:</strong> <span id="modalProductGianhap"></span> ₫</p>
             <p><strong>Giá bán:</strong> <span id="modalProductPrice"></span> ₫</p>
             <p><strong>Mô tả:</strong> <span id="modalProductDesc"></span></p>
           </div>

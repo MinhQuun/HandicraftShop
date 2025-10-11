@@ -77,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('modalProductIn').textContent = this.dataset.in;
             document.getElementById('modalProductOut').textContent = this.dataset.out;
             document.getElementById('modalProductClosing').textContent = this.dataset.closing;
+            document.getElementById('modalProductGianhap').textContent = Number(this.dataset.gianhap).toLocaleString();
             document.getElementById('modalProductPrice').textContent = Number(this.dataset.price).toLocaleString();
             document.getElementById('modalProductDesc').textContent = this.dataset.mota || '—';
             
