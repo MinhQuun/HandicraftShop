@@ -25,6 +25,7 @@ use App\Http\Controllers\Staff\ReceiptController;
 use App\Http\Controllers\Staff\IssueController;
 use App\Http\Controllers\Staff\OrderController as StaffOrderController;
 use App\Http\Controllers\Staff\PromotionsController;
+use App\Http\Controllers\Staff\Reports_InoutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -252,10 +253,11 @@ Route::prefix('staff')
 
         // Thống kê (stub)
         Route::prefix('reports')->name('reports.')->group(function () {
-            Route::view('/inout',     'staff.stub')->name('inout');
+            Route::get('/inout', [Reports_InoutController::class, 'index'])->name('inout');
             Route::view('/inventory', 'staff.stub')->name('inventory');
             Route::view('/sales',     'staff.stub')->name('sales');
             Route::view('/lowstock',  'staff.stub')->name('lowstock');
             Route::view('/top',       'staff.stub')->name('top');
         });
+        
     });

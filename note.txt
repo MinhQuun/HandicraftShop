@@ -36,3 +36,4 @@ php artisan view:clear
 
 
 
+composer require barryvdh/laravel-dompdf
