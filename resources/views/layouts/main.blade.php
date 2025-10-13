@@ -38,14 +38,16 @@
     @yield('content')
   </main>
 
-  
+
   @include('partials.footer')
+  @include('partials.chatbot')
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 
   <script src="{{ asset('js/script.js') }}" defer></script>
   <script src="{{ asset('js/auth.js') }}" defer></script>
   <script src="{{ asset('js/flash.js') }}" defer></script>
+  <script src="{{ asset('js/chatbot.js') }}" defer></script>
 
   @stack('scripts')
 </body>
