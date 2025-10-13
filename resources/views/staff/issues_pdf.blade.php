@@ -29,6 +29,12 @@
         <tr>
             <td colspan="2"><strong>Địa chỉ:</strong> {{ $header->DIACHI }}</td>
         </tr>
+        @if($header->MAKHUYENMAI)
+            <tr>
+                <td><strong>Khuyến mãi:</strong> {{ $header->LOAIKHUYENMAI ?? 'Khuyến mãi' }} ({{ $header->GIAMGIA ?? 0 }}%)</td>
+                <td><strong>Tiền giảm:</strong> {{ number_format($discountAmount ?? 0, 0, ',', '.') }} ₫</td>
+            </tr>
+        @endif
     </table>
 
     <table>
