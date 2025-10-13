@@ -36,3 +36,21 @@ php artisan key:generate
 php artisan migrate
 php artisan serve
 # http://127.0.0.1:8000
+```
+
+---
+
+## 🔐 Lấy OpenAI API Key cho Chatbot
+1. Đăng nhập (hoặc tạo tài khoản) tại [https://platform.openai.com/](https://platform.openai.com/).
+2. Mở menu người dùng góc trên bên phải → chọn **View API keys**.
+3. Nhấn **Create new secret key**, đặt tên gợi nhớ rồi bấm **Create secret key**.
+4. Sao chép chuỗi khóa ngay khi hiển thị (không xem lại được), lưu vào trình quản lý bí mật an toàn.
+5. Cập nhật file `.env` của dự án:
+   ```env
+   OPENAI_API_KEY="sk-..."
+   OPENAI_CHAT_MODEL="gpt-4o-mini"   # hoặc model bạn được phép sử dụng
+   OPENAI_CHAT_ENDPOINT="https://api.openai.com/v1/chat/completions"
+   ```
+6. Khởi động lại ứng dụng (hoặc `php artisan config:clear`) để Laravel đọc khóa mới.
+
+> ⚠️ Việc gọi API sẽ tính phí theo tài khoản OpenAI của bạn; hãy chắc chắn rằng bạn đã bật phương thức thanh toán hợp lệ.
