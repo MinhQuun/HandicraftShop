@@ -21,6 +21,7 @@
 
   <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
   <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/chatbot.css') }}">
   @stack('styles')
 
   <meta name="csrf-token" content="{{ csrf_token() }}">

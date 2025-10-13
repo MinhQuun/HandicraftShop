@@ -1,0 +1,272 @@
+/* ================== HandicraftShop Chatbot (Namespaced) ================== */
+.hc-chatbot {
+    --hc-primary-1: #3a4d9b; /* header chatbot (xanh đậm) */
+    --hc-primary-2: #6f8fe5;
+    --hc-accent-1: #c8a97e; /* wheat */
+    --hc-accent-2: #6a8f55; /* moss */
+    --hc-paper: #f7f3ea; /* nền giấy ấm (panel body) */
+    --hc-white: #ffffff;
+    --hc-text: #1f2a44;
+    --hc-muted: #768194;
+
+    --hc-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+    --hc-radius: 16px;
+    --hc-radius-lg: 20px; /* Tăng độ cong cho vẻ ngoài hiện đại */
+    --hc-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* --- TOGGLE (giữ hiệu ứng đã làm, tối ưu hóa) --- */
+.hc-chatbot .hc-chatbot-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    border: 0;
+    cursor: pointer;
+    padding: 12px 20px;
+    border-radius: 12px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--hc-accent-1), var(--hc-accent-2));
+    box-shadow: 0 8px 20px rgba(41, 37, 36, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+}
+.hc-chatbot .hc-chatbot-toggle:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.1);
+    box-shadow: 0 12px 28px rgba(41, 37, 36, 0.25);
+}
+.hc-chatbot .hc-chatbot-toggle:focus {
+    outline: 2px solid rgba(200, 169, 126, 0.7);
+    outline-offset: 2px;
+}
+
+/* --- PANEL + HEADER (cải tiến tiêu đề) --- */
+.hc-chatbot .hc-chatbot-panel {
+    width: min(400px, calc(100vw - 32px));
+    border: none;
+    border-radius: var(--hc-radius-lg);
+    overflow: hidden;
+    display: none;
+    background: var(--hc-white);
+    box-shadow: var(--hc-shadow);
+}
+.hc-chatbot.is-open .hc-chatbot-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.hc-chatbot .hc-chatbot-header {
+    background: linear-gradient(
+        135deg,
+        var(--hc-primary-1),
+        var(--hc-primary-2)
+    );
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 12px 16px;
+}
+.hc-chatbot .hc-chatbot-title {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--hc-accent-1), var(--hc-accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent; /* Kết hợp với gradient text */
+    margin: 0;
+}
+.hc-chatbot .hc-chatbot-subtitle {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+.hc-chatbot .hc-chatbot-close-btn {
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.hc-chatbot .hc-chatbot-close-btn:hover,
+.hc-chatbot .hc-chatbot-close-btn:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #fff;
+}
+
+/* --- BODY (đổi nền giấy ấm, tối ưu hóa) --- */
+.hc-chatbot .hc-chatbot-body {
+    background: var(--hc-paper);
+    gap: 10px;
+    min-height: 360px;
+    padding: 16px;
+}
+
+/* --- MESSAGES + SCROLLBAR --- */
+.hc-chatbot .hc-chatbot-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    padding-right: 8px;
+    scroll-behavior: smooth;
+    max-height: calc(70vh - 140px);
+}
+.hc-chatbot .hc-chatbot-messages::-webkit-scrollbar {
+    width: 8px;
+}
+.hc-chatbot .hc-chatbot-messages::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+.hc-chatbot .hc-chatbot-messages::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--hc-accent-1), var(--hc-accent-2));
+    border-radius: 4px;
+}
+.hc-chatbot .hc-chatbot-messages {
+    scrollbar-width: thin;
+}
+
+/* --- MESSAGE BUBBLES (đồng bộ tone, cải tiến) --- */
+.hc-chatbot .hc-chatbot-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.hc-chatbot .hc-chatbot-message--user {
+    justify-content: flex-end;
+}
+
+.hc-chatbot .hc-chatbot-bubble {
+    border-radius: var(--hc-radius);
+    padding: 12px 16px;
+    max-width: 75%;
+    font-size: 1rem;
+    line-height: 1.6;
+    box-shadow: 0 4px 16px rgba(20, 28, 57, 0.08);
+    transition: transform 0.2s var(--hc-ease);
+}
+.hc-chatbot .hc-chatbot-message--assistant .hc-chatbot-bubble {
+    background: linear-gradient(135deg, var(--hc-accent-1), var(--hc-accent-2));
+    color: #fff;
+    border: 1px solid rgba(200, 169, 126, 0.3);
+}
+.hc-chatbot .hc-chatbot-message--user .hc-chatbot-bubble {
+    background: linear-gradient(135deg, #5b7f47, var(--hc-accent-2));
+    color: #fff;
+    margin-left: auto;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.hc-chatbot .hc-chatbot-bubble:hover {
+    transform: translateY(-2px);
+}
+
+.hc-chatbot .hc-chatbot-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: var(--hc-primary-1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* --- STATUS --- */
+.hc-chatbot .hc-chatbot-status {
+    min-height: 18px;
+    color: var(--hc-muted);
+    text-align: center;
+}
+
+/* --- FORM (input & nút gửi đồng bộ) --- */
+.hc-chatbot .hc-chatbot-form .input-group > .form-control {
+    border: 1px solid rgba(200, 169, 126, 0.5);
+    background: #fff;
+    border-radius: var(--hc-radius) 0 0 var(--hc-radius);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.hc-chatbot .hc-chatbot-form .input-group > .form-control:focus {
+    border-color: rgba(200, 169, 126, 0.9);
+    box-shadow: 0 0 0 3px rgba(200, 169, 126, 0.2);
+}
+.hc-chatbot .hc-chatbot-form .input-group > .form-control::placeholder {
+    color: #a7a7a7;
+}
+
+.hc-chatbot .hc-chatbot-form .btn {
+    border: 0;
+    color: #fff;
+    background: linear-gradient(135deg, var(--hc-accent-2), #557745);
+    border-radius: 0 var(--hc-radius) var(--hc-radius) 0;
+    padding: 8px 16px;
+    transition: transform 0.2s var(--hc-ease), filter 0.2s var(--hc-ease);
+}
+.hc-chatbot .hc-chatbot-form .btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+    box-shadow: 0 6px 16px rgba(42, 65, 33, 0.2);
+}
+.hc-chatbot .hc-chatbot-form .btn:active {
+    transform: translateY(0);
+}
+
+/* --- Nút “xuống cuối” (accent) --- */
+.hc-chatbot .hc-chatbot-scroll-bottom {
+    position: absolute;
+    right: 16px;
+    bottom: 80px;
+    display: none;
+    border-radius: 50%;
+    padding: 8px;
+    font-size: 14px;
+    background: #fff;
+    border: 1px solid rgba(200, 169, 126, 0.7);
+    color: #5c7048;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+.hc-chatbot .hc-chatbot-scroll-bottom.is-visible {
+    display: inline-flex;
+}
+.hc-chatbot .hc-chatbot-scroll-bottom:hover {
+    transform: scale(1.1);
+}
+
+/* --- Mobile --- */
+@media (max-width: 576px) {
+    .hc-chatbot {
+        right: 16px;
+        bottom: 16px;
+        width: calc(100% - 32px);
+        align-items: stretch;
+    }
+    .hc-chatbot .hc-chatbot-toggle {
+        width: 100%;
+        justify-content: center;
+    }
+    .hc-chatbot.is-open .hc-chatbot-toggle {
+        display: none;
+    }
+    .hc-chatbot .hc-chatbot-panel {
+        width: 100%;
+    }
+    .hc-chatbot .hc-chatbot-messages {
+        max-height: calc(70vh - 160px);
+    }
+}
