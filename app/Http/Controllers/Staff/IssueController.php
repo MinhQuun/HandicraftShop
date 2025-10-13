@@ -21,6 +21,7 @@ class IssueController extends Controller
             ->join('KHACHHANG as k', 'k.MAKHACHHANG', '=', 'p.MAKHACHHANG')
             ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
             ->leftJoin('CT_PHIEUXUAT as ct', 'ct.MAPX', '=', 'p.MAPX')
+            ->leftJoin('KHUYENMAI as km', 'km.MAKHUYENMAI', '=', 'p.MAKHUYENMAI')
             ->when($q, function ($query) use ($q) {
                 $like = "%{$q}%";
                 $query->where(function ($x) use ($like) {
@@ -42,9 +43,12 @@ class IssueController extends Controller
                 'k.HOTEN as KHACHHANG',
                 'k.MAKHACHHANG',
                 'u.name as NHANVIEN',
-                DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA), 0) as TONGTIEN')
+                'p.TONGTIEN as TONGTIEN', // Sử dụng TONGTIEN đã lưu trong PHIEUXUAT
+                'km.MAKHUYENMAI',
+                'km.LOAIKHUYENMAI',
+                'km.GIAMGIA'
             )
-            ->groupBy('p.MAPX', 'p.NGAYXUAT', 'p.TRANGTHAI', 'p.TONGSL', 'p.GHICHU', 'k.HOTEN', 'k.MAKHACHHANG', 'u.name')
+            ->groupBy('p.MAPX', 'p.NGAYXUAT', 'p.TRANGTHAI', 'p.TONGSL', 'p.GHICHU', 'k.HOTEN', 'k.MAKHACHHANG', 'u.name', 'p.TONGTIEN', 'km.MAKHUYENMAI', 'km.LOAIKHUYENMAI', 'km.GIAMGIA')
             ->orderBy('p.MAPX', 'asc')
             ->paginate(10)
             ->withQueryString();
@@ -64,6 +68,7 @@ class IssueController extends Controller
             ->join('KHACHHANG as k', 'k.MAKHACHHANG', '=', 'p.MAKHACHHANG')
             ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
             ->leftJoin('DIACHI_GIAOHANG as dc', 'dc.MADIACHI', '=', 'p.MADIACHI')
+            ->leftJoin('KHUYENMAI as km', 'km.MAKHUYENMAI', '=', 'p.MAKHUYENMAI')
             ->where('p.MAPX', $id)
             ->select(
                 'p.MAPX',
@@ -74,7 +79,11 @@ class IssueController extends Controller
                 'k.HOTEN as KHACHHANG',
                 'k.MAKHACHHANG',
                 'u.name as NHANVIEN',
-                'dc.DIACHI'
+                'dc.DIACHI',
+                'p.TONGTIEN',
+                'km.MAKHUYENMAI',
+                'km.LOAIKHUYENMAI',
+                'km.GIAMGIA'
             )
             ->first();
 
@@ -95,11 +104,15 @@ class IssueController extends Controller
             )
             ->get();
 
-        $tongtien = $details->sum(fn($d) => $d->THANHTIEN);
+        $subtotal = $details->sum(fn($d) => $d->THANHTIEN);
+        $discountAmount = $header->GIAMGIA > 0 ? $subtotal * ($header->GIAMGIA / 100) : 0;
+        $tongtien = $header->TONGTIEN; // Sử dụng TONGTIEN đã lưu trong PHIEUXUAT
 
         return response()->json([
             'header'   => $header,
             'lines'    => $details,
+            'subtotal' => $subtotal,
+            'discountAmount' => $discountAmount,
             'TONGTIEN' => $tongtien,
         ]);
     }
@@ -142,6 +155,7 @@ class IssueController extends Controller
             return back()->with('error', 'Lỗi hủy phiếu xuất: ' . $e->getMessage());
         }
     }
+
     public function exportPdf($id)
     {
         // Lấy thông tin phiếu xuất
@@ -149,6 +163,7 @@ class IssueController extends Controller
             ->leftJoin('KHACHHANG as kh', 'px.MAKHACHHANG', '=', 'kh.MAKHACHHANG')
             ->leftJoin('users as nv', 'px.NHANVIEN_ID', '=', 'nv.id')
             ->leftJoin('DIACHI_GIAOHANG as dc', 'dc.MADIACHI', '=', 'px.MADIACHI')
+            ->leftJoin('KHUYENMAI as km', 'km.MAKHUYENMAI', '=', 'px.MAKHUYENMAI')
             ->select(
                 'px.MAPX',
                 'px.NGAYXUAT',
@@ -158,7 +173,11 @@ class IssueController extends Controller
                 'kh.HOTEN as KHACHHANG',
                 'kh.MAKHACHHANG',
                 DB::raw('COALESCE(dc.DIACHI, "Chưa cập nhật") as DIACHI'),
-                'nv.name as NHANVIEN'
+                'nv.name as NHANVIEN',
+                'px.TONGTIEN',
+                'km.MAKHUYENMAI',
+                'km.LOAIKHUYENMAI',
+                'km.GIAMGIA'
             )
             ->where('px.MAPX', $id)
             ->first();
@@ -181,12 +200,18 @@ class IssueController extends Controller
             ->get();
 
         $tongSL = $lines->sum('SOLUONG');
-        $tongTien = $lines->sum('THANHTIEN');
+        $subtotal = $lines->sum('THANHTIEN');
+
+        // Tính tiền giảm nếu có khuyến mãi
+        $discountAmount = $header->GIAMGIA > 0 ? $subtotal * ($header->GIAMGIA / 100) : 0;
+        $tongTien = $header->TONGTIEN; // Sử dụng TONGTIEN đã lưu trong PHIEUXUAT
 
         $data = [
             'header' => $header,
             'lines' => $lines,
             'tongSL' => $tongSL,
+            'subtotal' => $subtotal,
+            'discountAmount' => $discountAmount,
             'tongTien' => $tongTien,
         ];
 
@@ -194,6 +219,4 @@ class IssueController extends Controller
         $fileName = 'PhieuXuat_' . $header->MAPX . '.pdf';
         return $pdf->download($fileName);
     }
-
-
 }

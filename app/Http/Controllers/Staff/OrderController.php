@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\DonHang;
 use App\Models\ChiTietDonHang;
 use App\Models\SanPham;
@@ -11,7 +12,6 @@ use App\Models\PhieuXuat;
 use App\Models\CTPhieuXuat;
 use App\Models\KhachHang;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -107,7 +107,6 @@ class OrderController extends Controller
         ]);
     }
 
-
     // ============ UPDATE STATUS (từ combobox + nút Xác nhận) ============
     public function updateStatus(Request $request, $id)
     {
@@ -148,7 +147,7 @@ class OrderController extends Controller
                 $order->NGAYGIAO  = now();
                 $order->save();
 
-                // 3) Tạo Phiếu Xuất
+                // 3) Tạo Phiếu Xuất với thông tin khuyến mãi
                 $addrId = $order->MADIACHI ?? DB::table('DIACHI_GIAOHANG')
                     ->where('MAKHACHHANG', $order->MAKHACHHANG)
                     ->value('MADIACHI');
@@ -160,8 +159,8 @@ class OrderController extends Controller
                     'NHANVIEN_ID' => Auth::id(),
                     'TRANGTHAI'   => 'NHAP',
                     'TONGSL'      => $order->TONGSLHANG,
-                    // Khuyến nghị thêm cột MADONHANG trong PHIEUXUAT để liên kết:
-                    // 'MADONHANG'   => $order->MADONHANG,
+                    'MAKHUYENMAI' => $order->MAKHUYENMAI, // Truyền khuyến mãi từ đơn hàng
+                    'TONGTIEN'    => $order->TONGTHANHTIEN, // Tổng tiền đã áp dụng khuyến mãi
                 ]);
 
                 // 4) Ghi chi tiết PX
@@ -224,6 +223,8 @@ class OrderController extends Controller
                 'NHANVIEN_ID' => Auth::id(),
                 'TRANGTHAI'   => 'NHAP',
                 'TONGSL'      => $order->TONGSLHANG,
+                'MAKHUYENMAI' => $order->MAKHUYENMAI, // Truyền khuyến mãi từ đơn hàng
+                'TONGTIEN'    => $order->TONGTHANHTIEN, // Tổng tiền đã áp dụng khuyến mãi
             ]);
 
             $issue = PhieuXuat::findOrFail($issueId);

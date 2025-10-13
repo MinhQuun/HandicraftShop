@@ -82,6 +82,8 @@
                     <th>Nhân viên</th>
                     <th>Ngày xuất</th>
                     <th class="text-end">Tổng tiền</th>
+                    <th>Khuyến mãi</th>
+                    <th class="text-end">Tổng tiền đã áp dụng KM</th>
                     <th>Trạng thái</th>
                 </tr>
             </thead>
@@ -90,6 +92,7 @@
                     @php
                         $rowNumber = ($issues->currentPage()-1)*$issues->perPage() + $idx + 1;
                         $badgeClass = $issue->TRANGTHAI === 'DA_XAC_NHAN' ? 'stock-ok' : ($issue->TRANGTHAI === 'HUY' ? 'stock-bad' : 'stock-warn');
+                        $promotionText = $issue->MAKHUYENMAI ? ($issue->LOAIKHUYENMAI ?? 'Khuyến mãi') . ' (' . $issue->GIAMGIA . '%)' : '—';
                     @endphp
                     <tr data-id="{{ $issue->MAPX }}" class="row-detail" style="cursor:pointer">
                         <td>{{ $rowNumber }}</td>
@@ -97,7 +100,9 @@
                         <td>{{ $issue->KHACHHANG ?? '—' }}</td>
                         <td>{{ $issue->NHANVIEN }}</td>
                         <td>{{ \Carbon\Carbon::parse($issue->NGAYXUAT)->format('d/m/Y H:i') }}</td>
-                        <td class="text-end">{{ number_format($issue->TONGTIEN,0,',','.') }}</td>
+                        <td class="text-end">{{ number_format($issue->TONGTIEN + ($issue->GIAMGIA ? ($issue->TONGTIEN * $issue->GIAMGIA / 100) : 0), 0, ',', '.') }}</td>
+                        <td>{{ $promotionText }}</td>
+                        <td class="text-end">{{ number_format($issue->TONGTIEN, 0, ',', '.') }}</td>
                         <td><span class="badge {{ $badgeClass }}">{{ $issue->TRANGTHAI }}</span></td>
                         <td class="text-end">
                             @if($issue->TRANGTHAI === 'NHAP')
@@ -113,7 +118,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="text-center">Không có phiếu xuất.</td></tr>
+                    <tr><td colspan="10" class="text-center">Không có phiếu xuất.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -193,6 +198,14 @@
                         <div class="mb-1">
                             <label class="fw-bold">Tổng số lượng</label>
                             <p class="form-control-plaintext fw-bold" id="md_tongsl">0</p>
+                        </div>
+                        <div class="mb-1">
+                            <label class="fw-bold">Khuyến mãi</label>
+                            <p class="form-control-plaintext fw-bold" id="md_promotion">—</p>
+                        </div>
+                        <div class="mb-1">
+                            <label class="fw-bold">Tiền giảm</label>
+                            <p class="form-control-plaintext fw-bold" id="md_tiengiam">0 ₫</p>
                         </div>
                         <div>
                             <label class="fw-bold">Tổng tiền</label>

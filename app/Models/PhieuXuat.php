@@ -15,7 +15,7 @@ class PhieuXuat extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'MAKHACHHANG', 'MADIACHI', 'NGAYXUAT', 'TONGSL', 'TRANGTHAI'
+        'MAKHACHHANG', 'MADIACHI', 'NGAYXUAT', 'TONGSL', 'TRANGTHAI', 'MAKHUYENMAI', 'TONGTIEN'
     ];
 
     public function khachHang(): BelongsTo
@@ -31,5 +31,10 @@ class PhieuXuat extends Model
     public function diaChi(): BelongsTo
     {
         return $this->belongsTo(DiaChiGiaoHang::class, 'MADIACHI', 'MADIACHI');
+    }
+
+    public function khuyenMai(): BelongsTo
+    {
+        return $this->belongsTo(KhuyenMai::class, 'MAKHUYENMAI', 'MAKHUYENMAI');
     }
 }

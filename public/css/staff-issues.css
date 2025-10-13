@@ -293,3 +293,12 @@
     visibility: hidden;
 }
 
+#md_promotion {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #1aa3a3;
+    background: #eef6f7;
+}
