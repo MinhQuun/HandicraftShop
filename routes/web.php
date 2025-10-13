@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\Customer\ProductController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\ContactController;
@@ -57,6 +58,11 @@ Route::prefix('/')
 // Liên hệ
 Route::get('/lien-he',  [ContactController::class, 'show'])->name('contact.form');
 Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
+
+// Chatbot AI hỗ trợ khách hàng
+Route::post('/chatbot/query', ChatbotController::class)
+    ->name('chatbot.send')
+    ->middleware('throttle:20,1');
 
 // Đánh giá sản phẩm (yêu cầu đăng nhập)
 Route::post('/sp/{id}/danh-gia', [ReviewController::class, 'store'])
