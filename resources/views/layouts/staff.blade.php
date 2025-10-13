@@ -179,12 +179,6 @@
               <i class="bi bi-exclamation-triangle me-2"></i> Hết hàng / Sắp hết
             </a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('staff.reports.top') ? 'active' : '' }}"
-              href="{{ route('staff.reports.top') }}">
-              <i class="bi bi-trophy me-2"></i> Top sản phẩm / khách hàng
-            </a>
-          </li>
         </ul>
       </div>
     </aside>

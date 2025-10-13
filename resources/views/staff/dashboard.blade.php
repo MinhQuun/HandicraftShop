@@ -93,9 +93,7 @@
       <a href="{{ route('staff.reports.inout') }}" class="chip">
         <i class="bi bi-arrow-left-right me-1"></i> Nhập – Xuất – Tồn
       </a>
-      <a href="{{ route('staff.reports.top') }}" class="chip">
-        <i class="bi bi-trophy me-1"></i> Top bán chạy
-      </a>
+      
 
       {{-- Hàng đợi / cảnh báo (chỉ hiện khi > 0) --}}
       @if($ordersPending > 0)
