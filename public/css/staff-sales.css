@@ -1,0 +1,113 @@
+/* staff-sales.css - phong cách đồng bộ với staff-inout.css */
+
+:root {
+    --bg-sky-1: #f1f7fb;
+    --card: #fff;
+    --card-brd: #d7e6ee;
+    --text: #23323a;
+    --muted: #617481;
+    --teal: #1aa3a3;
+    --blue: #3a86ff;
+    --indigo: #5e60ce;
+    --shadow: 0 16px 32px rgba(37, 103, 131, 0.08);
+}
+
+.page-header .kicker {
+    display: inline-block;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(26, 163, 163, 0.08);
+    border: 1px solid var(--card-brd);
+    color: var(--muted);
+}
+.page-header .title {
+    margin: 8px 0 6px;
+    font-weight: 800;
+    font-size: clamp(24px, 4vw, 32px);
+    background: linear-gradient(90deg, var(--indigo), var(--blue), var(--teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.page-header .muted { color: var(--muted); }
+
+/* Card */
+.card {
+    border-radius: 14px;
+    border: 1px solid var(--card-brd);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+/* Chart container */
+#revenueChart {
+    width: 100% !important;
+    max-height: 360px;
+}
+
+/* Filter card reuse */
+.products-filter {
+    border: 1px solid var(--card-brd);
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+.products-filter .form-control,
+.products-filter .form-select {
+    border-radius: 10px;
+    border-color: var(--card-brd);
+}
+
+/* Table style reuse */
+.products-table thead th {
+    background: linear-gradient(180deg, #f7fbff, #f2f8fd);
+    border-bottom: 1px solid var(--card-brd);
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+}
+.products-table td, .products-table th {
+    vertical-align: middle;
+    border-color: #e6eff5;
+}
+.products-table tbody tr:hover {
+    background: #f9feff;
+}
+
+/* Button styles */
+.products-filter .btn-outline-primary {
+    border-radius: 999px;
+    border-color: #b9d2ff;
+    color: var(--blue);
+    background: #f0f6ff;
+    transition: all 0.25s;
+}
+.products-filter .btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+.products-filter .btn-outline-secondary {
+    border-radius: 999px;
+    border-color: var(--card-brd);
+    background: #f7fbfd;
+    color: var(--text);
+    transition: all 0.25s;
+}
+.products-filter .btn-outline-secondary:hover {
+    background: #eef6fb;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #revenueChart { max-height: 260px; }
+}

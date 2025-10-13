@@ -27,6 +27,7 @@ use App\Http\Controllers\Staff\OrderController as StaffOrderController;
 use App\Http\Controllers\Staff\PromotionsController;
 use App\Http\Controllers\Staff\Reports_InoutController;
 use App\Http\Controllers\Staff\Reports_InventoryController;
+use App\Http\Controllers\Staff\Reports_SalesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -256,7 +257,7 @@ Route::prefix('staff')
         Route::prefix('reports')->name('reports.')->group(function () {
             Route::get('/inout', [Reports_InoutController::class, 'index'])->name('inout');
             Route::get('/inventory', [Reports_InventoryController::class, 'index'])->name('inventory');
-            Route::view('/sales',     'staff.stub')->name('sales');
+            Route::get('/sales', [Reports_SalesController::class, 'index'])->name('sales');
             Route::view('/lowstock',  'staff.stub')->name('lowstock');
             Route::view('/top',       'staff.stub')->name('top');
         });
