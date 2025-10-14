@@ -3,6 +3,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/staff-sales.css') }}">
+<link rel="stylesheet" href="{{ asset('css/staff-reports.css') }}">
 @endpush
 
 @section('content')
@@ -17,6 +18,30 @@
     data-error="{{ session('error') }}"
     data-info="{{ session('info') }}"
     data-warning="{{ session('warning') }}">
+</div>
+
+{{-- KPI cards --}}
+<div class="report-kpis">
+  <div class="kpi-card">
+    <div class="kpi-title">Tổng doanh thu</div>
+    <div class="kpi-value">{{ number_format($totRevenue ?? array_sum($chartRevenues)) }}₫</div>
+    <div class="kpi-sub">Trong khoảng đã chọn</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">Tổng chi phí</div>
+    <div class="kpi-value">{{ number_format($totCost ?? array_sum($chartCosts)) }}₫</div>
+    <div class="kpi-sub">Giá vốn ước tính</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">Lợi nhuận</div>
+    <div class="kpi-value">{{ number_format($totProfit ?? array_sum($chartProfits)) }}₫</div>
+    <div class="kpi-sub">Doanh thu - Chi phí</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">Đơn hoàn thành</div>
+    <div class="kpi-value">{{ number_format($ordersCount ?? 0) }}</div>
+    <div class="kpi-sub">AOV: {{ number_format($avgOrder ?? 0) }}₫</div>
+  </div>
 </div>
 
 {{-- Biểu đồ tổng quan --}}

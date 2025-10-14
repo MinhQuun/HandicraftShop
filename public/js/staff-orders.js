@@ -103,6 +103,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             // ====== Nút "Hoàn thành & tạo PX" ======
+            // Inject promotion display (product-level + voucher)
+            try {
+                const promoEl2 = document.getElementById("md_promotion");
+                if (promoEl2) {
+                    let productSaveSum = 0;
+                    for (const ln of (data.chiTiets || [])) {
+                        let orig = (typeof ln.GIABAN === 'number') ? ln.GIABAN : null;
+                        if (orig == null) {
+                            try {
+                                const r = await fetch((window.apiProductPriceTmpl || '/api/products/__ID__/price').replace('__ID__', ln.MASANPHAM));
+                                if (r.ok) {
+                                    const j = await r.json();
+                                    if (typeof j.GIABAN === 'number') orig = j.GIABAN;
+                                }
+                            } catch {}
+                        }
+                        const unit = Number(ln.DONGIA || 0);
+                        const qty  = Number(ln.SOLUONG || 0);
+                        if (typeof orig !== 'number' || isNaN(orig)) orig = unit;
+                        const save = Math.max(0, orig - unit);
+                        productSaveSum += save * qty;
+                    }
+                    const voucherTxt = data.khuyenMai ? ("Mã: " + data.khuyenMai.MAKHUYENMAI + " (−" + fmtVND(Number(data.TIEN_GIAM||0)) + ")") : '';
+                    const prodTxt = productSaveSum > 0 ? ("KM sản phẩm: −" + fmtVND(productSaveSum)) : '';
+                    const finalTxt = [prodTxt, voucherTxt].filter(Boolean).join(' | ');
+                    if (finalTxt) promoEl2.textContent = finalTxt;
+                }
+            } catch {}
+
             const formConfirm = document.getElementById("md_form_confirm");
             if (formConfirm) {
                 formConfirm.action = buildUpdateUrl(data.MADONHANG);

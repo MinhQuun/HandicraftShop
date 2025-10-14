@@ -30,6 +30,7 @@ use App\Http\Controllers\Staff\Reports_InoutController;
 use App\Http\Controllers\Staff\Reports_InventoryController;
 use App\Http\Controllers\Staff\Reports_SalesController;
 use App\Http\Controllers\Staff\Reports_LowstockController;
+use App\Http\Controllers\Api\ProductApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -249,6 +250,8 @@ Route::prefix('staff')
         Route::get('/orders',             [StaffOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{id}',        [StaffOrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{id}/status', [StaffOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+        // JSON chi tiết đơn hàng (enriched)
+        Route::get('/orders/{id}/json',   [StaffOrderController::class, 'showRich'])->name('orders.showRich');
 
         // Phiếu xuất
         Route::get('/issues',              [IssueController::class, 'index'])->name('issues.index');
@@ -269,4 +272,7 @@ Route::prefix('staff')
             Route::get('/lowstock', [Reports_LowstockController::class, 'index'])->name('lowstock');
         });
         
-    }); 
+    });
+
+// Lightweight API for staff UI
+Route::get('/api/products/{id}/price', [ProductApiController::class, 'price'])->name('api.products.price');

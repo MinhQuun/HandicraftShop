@@ -3,6 +3,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/staff-lowstock.css') }}">
+<link rel="stylesheet" href="{{ asset('css/staff-reports.css') }}">
 @endpush
 
 @section('content')

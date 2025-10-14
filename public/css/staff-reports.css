@@ -1,0 +1,60 @@
+/* Shared styles for Staff Reports (KPI cards, headers, tables) */
+
+:root {
+    --card: #fff;
+    --card-brd: #e7d6c4;
+    --muted: #6f6559;
+    --wood: #8c6d3b;
+    --moss: #6a8f55;
+    --shadow: 0 12px 28px rgba(120, 92, 58, 0.12);
+}
+
+.report-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.kpi-card {
+    border: 1px solid var(--card-brd);
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fff7ee, #fffaf6);
+    box-shadow: var(--shadow);
+    padding: 16px;
+}
+.kpi-title {
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+.kpi-value {
+    color: var(--wood);
+    font-weight: 900;
+    font-size: 1.4rem;
+}
+.kpi-sub {
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+@media (max-width: 992px) {
+    .report-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 576px) {
+    .report-kpis {
+        grid-template-columns: 1fr;
+    }
+}
+
+.products-filter {
+    border: 1px solid var(--card-brd);
+    border-radius: 14px;
+}
+.products-table thead th {
+    background: #fff4ea;
+    color: var(--wood);
+    text-transform: uppercase;
+    font-size: 0.78rem;
+}
