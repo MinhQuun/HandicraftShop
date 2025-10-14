@@ -33,6 +33,29 @@ class CartController extends Controller
     public function show(Request $r)
     {
         $items = collect($this->getCart());
+        // Đồng bộ giá theo KM sản phẩm (nếu đang hiệu lực) và tồn kho hiện tại
+        $items = $items->map(function ($item, $id) {
+            $p = SanPham::where('MASANPHAM', $id)->first();
+            if ($p) {
+                $orig = (int) ($p->GIABAN ?? 0);
+                $sale = (int) ($p->gia_sau_km ?? $orig);
+                $save = max(0, $orig - $sale);
+                $pct  = ($orig > 0 && $save > 0) ? (int) round(100 * $save / $orig) : 0;
+
+                $item['GIABAN']       = $sale; // dùng để tính tiền
+                $item['ORIG']         = $orig;
+                $item['SALE']         = $sale;
+                $item['SAVE']         = $save;
+                $item['PCT']          = $pct;
+                $item['HAS_DISCOUNT'] = $save > 0;
+
+                $item['SOLUONG']     = min((int)$item['SOLUONG'], (int)($p->SOLUONGTON ?? $item['SOLUONG']));
+                $item['TENSANPHAM']  = $item['TENSANPHAM'] ?? $p->TENSANPHAM;
+                $item['HINHANH']     = $item['HINHANH'] ?? (string)($p->HINHANH ?? '');
+            }
+            return $item;
+        });
+        $this->putCart($items->toArray());
 
         // Trong giỏ vẫn phải tính đúng số lượng và tổng tiền
         $totalQty   = (int) $items->sum('SOLUONG');
@@ -67,7 +90,7 @@ class CartController extends Controller
                 'MASANPHAM'   => $p->MASANPHAM,
                 'TENSANPHAM'  => $p->TENSANPHAM,
                 'HINHANH'     => (string)($p->HINHANH ?? ''),
-                'GIABAN'      => (int)($p->GIABAN ?? 0),
+                'GIABAN'      => (int) ($p->gia_sau_km ?? $p->GIABAN ?? 0),
                 'SOLUONG'     => min($qty, $maxStock),
             ];
         } else {

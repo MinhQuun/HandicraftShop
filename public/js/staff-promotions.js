@@ -20,6 +20,37 @@ document.addEventListener("DOMContentLoaded", () => {
         from.selectedIndex = -1;
     };
 
+    // Preview selected products helper
+    const fmtCurrency = (v) => {
+        try { return Number(v || 0).toLocaleString('vi-VN'); } catch { return v; }
+    };
+    const buildPreviewItem = (opt) => {
+        const id = opt.value;
+        const name = opt.dataset?.name || opt.textContent?.trim() || id;
+        const price = opt.dataset?.price || '';
+        const image = opt.dataset?.image || '';
+        const imgUrl = image
+            ? (window.assetImgPrefix ? window.assetImgPrefix + encodeURIComponent(image) : (window.location.origin + '/assets/images/' + encodeURIComponent(image)))
+            : (window.location.origin + '/HinhAnh/LOGO/Logo.jpg');
+        return `
+            <div class="sp-card">
+                <div class="thumb" style="background-image:url('${imgUrl}')"></div>
+                <div class="meta">
+                    <div class="name" title="${name}">${name}</div>
+                    <div class="price">${price ? fmtCurrency(price)+' VNĐ' : ''}</div>
+                </div>
+                <div class="id">${id}</div>
+            </div>
+        `;
+    };
+    const renderPreview = (selectEl, previewId) => {
+        const wrap = document.getElementById(previewId);
+        if (!wrap || !selectEl) return;
+        const opts = Array.from(selectEl.querySelectorAll('option'));
+        if (!opts.length) { wrap.innerHTML = '<div class="text-muted small">Chưa chọn sản phẩm nào.</div>'; return; }
+        wrap.innerHTML = opts.map(buildPreviewItem).join('');
+    };
+
     // ===== Select2 init =====
     if (window.$ && $(".select2").length) {
         $(".select2").select2({
@@ -83,12 +114,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const cMoveRight = document.getElementById("c_move_right");
         const cMoveLeft = document.getElementById("c_move_left");
 
-        cMoveRight?.addEventListener("click", () =>
-            moveOptions(cAvailable, cSelected)
-        );
-        cMoveLeft?.addEventListener("click", () =>
-            moveOptions(cSelected, cAvailable)
-        );
+        const updateCreatePreview = () => renderPreview(cSelected, 'c_selected_preview');
+        cMoveRight?.addEventListener('click', () => { moveOptions(cAvailable, cSelected); updateCreatePreview(); });
+        cMoveLeft?.addEventListener('click', () => { moveOptions(cSelected, cAvailable); updateCreatePreview(); });
+        cSelected?.addEventListener('change', updateCreatePreview);
+        updateCreatePreview();
 
         // Filter realtime (create)
         const nameFilter = document.getElementById("filterName");
@@ -165,19 +195,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 ).appendChild(opt.cloneNode(true));
             });
 
-            const moveRight = document.getElementById("e_move_right");
-            const moveLeft = document.getElementById("e_move_left");
+            const moveRight = document.getElementById('e_move_right');
+            const moveLeft = document.getElementById('e_move_left');
             // gỡ handler cũ trước khi gán mới (tránh trùng)
             moveRight.replaceWith(moveRight.cloneNode(true));
             moveLeft.replaceWith(moveLeft.cloneNode(true));
-            const moveRightFresh = document.getElementById("e_move_right");
-            const moveLeftFresh = document.getElementById("e_move_left");
-            moveRightFresh.addEventListener("click", () =>
-                moveOptions(eAvailable, eSelected)
-            );
-            moveLeftFresh.addEventListener("click", () =>
-                moveOptions(eSelected, eAvailable)
-            );
+            const moveRightFresh = document.getElementById('e_move_right');
+            const moveLeftFresh = document.getElementById('e_move_left');
+            const updateEditPreview = () => renderPreview(eSelected, 'e_selected_preview');
+            moveRightFresh.addEventListener('click', () => { moveOptions(eAvailable, eSelected); updateEditPreview(); });
+            moveLeftFresh.addEventListener('click', () => { moveOptions(eSelected, eAvailable); updateEditPreview(); });
+            eSelected.addEventListener('change', updateEditPreview);
+            updateEditPreview();
 
             // Update form action
             const form = editModal.querySelector("#formEdit");

@@ -49,6 +49,7 @@ Route::view('/contact',  'pages.contact')->name('contact');
 Route::prefix('/')
     ->group(function () {
         Route::get('/tat-ca-san-pham', [ProductController::class, 'allProducts'])->name('all_product');
+        Route::get('/khuyen-mai',       [ProductController::class, 'promotions'])->name('sp.promotions');
         Route::get('/danh-muc',        [ProductController::class, 'byCategory'])->name('category'); // ?dm=...
         Route::get('/loai/{maLoai}',   [ProductController::class, 'byType'])->name('sp.byType');
         Route::get('/tim-kiem',        [ProductController::class, 'search'])->name('sp.search');

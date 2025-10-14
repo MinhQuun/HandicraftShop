@@ -42,15 +42,23 @@
         @forelse ($items as $item)
           @php
             $img = trim((string)($item['HINHANH'] ?? ''));
-            $imgUrl = $img !== '' ? asset('assets/images/' . $img)
-                                  : asset('HinhAnh/LOGO/Logo.jpg');
-            $price = (float)$item['GIABAN'];
-            $qty   = (int)$item['SOLUONG'];
+            $imgUrl = $img !== '' ? asset('assets/images/' . $img) : asset('HinhAnh/LOGO/Logo.jpg');
+            $qty   = (int)($item['SOLUONG'] ?? 1);
+            $orig  = (float)($item['ORIG'] ?? $item['GIABAN']);
+            $sale  = (float)($item['SALE'] ?? $item['GIABAN']);
+            $save  = max(0, $orig - $sale);
+            $pct   = (int)($item['PCT'] ?? ($orig>0?round(100*$save/$orig):0));
+            $price = $sale;
             $sub   = $price * $qty;
           @endphp
           <tr class="cart-row">
             <td class="fw-bold">{{ $item['MASANPHAM'] }}</td>
-            <td>{{ $item['TENSANPHAM'] }}</td>
+            <td>
+              {{ $item['TENSANPHAM'] }}
+              @if($save > 0)
+                <span class="badge-sale ms-2" title="Tiết kiệm {{ number_format($save,0,',','.') }}đ">-{{ $pct }}%</span>
+              @endif
+            </td>
 
             <td class="col-hide-md">
               <img src="{{ $imgUrl }}" alt="{{ $item['TENSANPHAM'] }}" class="product-image">
@@ -73,8 +81,19 @@
             </td>
 
             <td class="col-hide-md">
-              <span class="price">{{ number_format($price, 0, ',', '.') }}</span>
-              <span class="currency">VNĐ</span>
+              @if($save > 0)
+                <div>
+                  <span class="old-price">{{ number_format($orig, 0, ',', '.') }}</span>
+                </div>
+                <div>
+                  <span class="new-price">{{ number_format($sale, 0, ',', '.') }}</span>
+                  <span class="currency">VNĐ</span>
+                </div>
+                <div class="save-note">Tiết kiệm {{ number_format($save, 0, ',', '.') }}đ</div>
+              @else
+                <span class="price">{{ number_format($price, 0, ',', '.') }}</span>
+                <span class="currency">VNĐ</span>
+              @endif
             </td>
 
             <td>

@@ -31,8 +31,7 @@ class SanPham extends Model
 
     public function khuyenmais()
     {
-        return $this->belongsToMany(KhuyenMai::class, 'SANPHAM_KHUYENMAI', 'MASANPHAM', 'MAKHUYENMAI')
-            ->withPivot([])->withTimestamps(false);
+        return $this->belongsToMany(KhuyenMai::class, 'SANPHAM_KHUYENMAI', 'MASANPHAM', 'MAKHUYENMAI');
     }
 
     /** Scopes tiện dụng */

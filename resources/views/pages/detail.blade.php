@@ -37,7 +37,23 @@
             @endif
           </div>
 
-          <p class="product-price">{{ number_format($p->GIABAN, 0, ',', '.') }} VNĐ</p>
+          @php
+            $orig = (float)($p->GIABAN ?? 0);
+            $sale = (float)($p->gia_sau_km ?? $orig);
+            $hasSale = $sale < $orig;
+          @endphp
+          @if($hasSale)
+            <p class="product-price">
+              <span style="text-decoration: line-through; color:#a17a44; font-weight:600; margin-right:8px;">
+                {{ number_format($orig, 0, ',', '.') }} VNĐ
+              </span>
+              <span style="color:#6a8f55; font-weight:800;">
+                {{ number_format($sale, 0, ',', '.') }} VNĐ
+              </span>
+            </p>
+          @else
+            <p class="product-price">{{ number_format($orig, 0, ',', '.') }} VNĐ</p>
+          @endif
 
           {{-- Loại & Nhà cung cấp --}}
           <div class="product-meta">
@@ -231,8 +247,21 @@
                           alt="{{ $item->TENSANPHAM }}"
                           class="img-fluid related-product-img" />
                     <h4 class="related-product-title">{{ $item->TENSANPHAM }}</h4>
+                    @php
+                      $origR = (float)($item->GIABAN ?? 0);
+                      $saleR = (float)($item->gia_sau_km ?? $origR);
+                    @endphp
                     <p class="related-product-price">
-                      {{ number_format($item->GIABAN, 0, ',', '.') }} VNĐ
+                      @if($saleR < $origR)
+                        <span style="text-decoration: line-through; color:#a17a44; font-weight:600; margin-right:6px;">
+                          {{ number_format($origR, 0, ',', '.') }} VNĐ
+                        </span>
+                        <span style="color:#6a8f55; font-weight:800;">
+                          {{ number_format($saleR, 0, ',', '.') }} VNĐ
+                        </span>
+                      @else
+                        {{ number_format($origR, 0, ',', '.') }} VNĐ
+                      @endif
                     </p>
                     <a href="{{ route('sp.detail', $item->MASANPHAM) }}" class="view-details-btn">
                       Xem chi tiết

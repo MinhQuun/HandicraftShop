@@ -41,27 +41,38 @@
                         <table class="checkout-table">
                             <thead>
                                 <tr>
-                                    <th>Sản phẩm</th>
-                                    <th>Số lượng</th>
-                                    <th>Giá</th>
-                                    <th>Tổng</th>
+                                    <th style="min-width:220px;">Sản phẩm</th>
+                                    <th style="width:90px;">SL</th>
+                                    <th style="width:120px;">Giá gốc</th>
+                                    <th style="width:90px;">% giảm</th>
+                                    <th style="width:130px;">Giảm (đ)</th>
+                                    <th style="width:130px;">Giá sau</th>
+                                    <th style="width:150px;">Thành tiền</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse ($items as $item)
                                     @php
-                                        $price = (float)$item['GIABAN'];
-                                        $qty = (int)$item['SOLUONG'];
-                                        $sub = $price * $qty;
+                                        $id    = $item['MASANPHAM'] ?? null;
+                                        $qty   = (int)$item['SOLUONG'];
+                                        $sp    = $id ? \App\Models\SanPham::where('MASANPHAM',$id)->first() : null;
+                                        $orig  = $sp ? (float)($sp->GIABAN ?? ($item['GIABAN'] ?? 0)) : (float)($item['GIABAN'] ?? 0);
+                                        $sale  = $sp ? (float)($sp->gia_sau_km ?? $orig) : (float)($item['GIABAN'] ?? 0);
+                                        $save  = max(0, $orig - $sale);
+                                        $pct   = $orig > 0 && $sale < $orig ? round(100 * ($orig - $sale) / $orig) : 0;
+                                        $sub   = $sale * $qty;
                                     @endphp
                                     <tr>
                                         <td>{{ $item['TENSANPHAM'] }}</td>
                                         <td class="text-center">{{ $qty }}</td>
-                                        <td class="text-end">{{ number_format($price, 0, ',', '.') }} VNĐ</td>
+                                        <td class="text-end">{{ number_format($orig, 0, ',', '.') }}</td>
+                                        <td class="text-center">{{ $pct }}%</td>
+                                        <td class="text-end">{{ number_format($save, 0, ',', '.') }}</td>
+                                        <td class="text-end">{{ number_format($sale, 0, ',', '.') }}</td>
                                         <td class="text-end">{{ number_format($sub, 0, ',', '.') }} VNĐ</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="4" class="text-center">Giỏ hàng trống.</td></tr>
+                                    <tr><td colspan="7" class="text-center">Giỏ hàng trống.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -102,25 +113,52 @@
                         <small id="promo_message" class="text-muted d-block" style="margin-top:6px;"></small>
                     </div>
 
-                    <div class="checkout-totals">
-                        <h5>Tổng số lượng: {{ $totalQty }}</h5>
+                    @php
+                        $productSaveSum = 0;
+                        foreach ($items as $it) {
+                            $iid  = $it['MASANPHAM'] ?? null;
+                            $qty  = (int)($it['SOLUONG'] ?? 0);
+                            $sp   = $iid ? \App\Models\SanPham::where('MASANPHAM',$iid)->first() : null;
+                            $orig = $sp ? (float)($sp->GIABAN ?? ($it['GIABAN'] ?? 0)) : (float)($it['GIABAN'] ?? 0);
+                            $sale = $sp ? (float)($sp->gia_sau_km ?? $orig) : (float)($it['GIABAN'] ?? 0);
+                            $productSaveSum += max(0, $orig - $sale) * $qty;
+                        }
+                        $voucherApplied = !empty($voucher ?? null);
+                        $voucherSave = (int) ($discount ?? 0);
+                    @endphp
 
-                        <div class="d-flex justify-content-between">
-                            <span>Tạm tính:</span>
-                            <strong id="subtotal_value">{{ number_format($subtotal, 0, ',', '.') }} VNĐ</strong>
-                        </div>
-
-                        <div class="d-flex justify-content-between {{ ($discount ?? 0) > 0 ? '' : 'd-none' }}" id="discount_row">
-                            <span class="discount">Giảm giá:</span>
-                            <strong id="discount_value">- {{ number_format($discount ?? 0, 0, ',', '.') }} VNĐ</strong>
-                        </div>
-
-                        <hr class="my-2">
-
-                        <div class="d-flex justify-content-between">
-                            <span><strong>Tổng thành tiền:</strong></span>
-                            <strong id="total_value" class="text-primary">{{ number_format($totalPrice, 0, ',', '.') }} VNĐ</strong>
-                        </div>
+                    <div class="card mt-3">
+                        <h5 class="card-title">Thanh toán</h5>
+                        <ul class="totals-list">
+                            <li>
+                                <span>Tổng số lượng</span>
+                                <span>{{ $totalQty }}</span>
+                            </li>
+                            <li>
+                                <span>Tạm tính</span>
+                                <span id="subtotal_value">{{ number_format($subtotal, 0, ',', '.') }} VNĐ</span>
+                            </li>
+                            @if($productSaveSum > 0)
+                            <li class="discount-line">
+                                <span>Giảm theo sản phẩm</span>
+                                <span>-{{ number_format($productSaveSum, 0, ',', '.') }} VNĐ</span>
+                            </li>
+                            @endif
+                            @if($voucherApplied && $voucherSave > 0)
+                            <li class="discount-line" id="discount_row">
+                                <span>Giảm theo mã
+                                    <span class="voucher-badge" title="Mã đang áp dụng">
+                                        <i class="fas fa-tag"></i> {{ $voucher['code'] ?? '' }}
+                                    </span>
+                                </span>
+                                <span id="discount_value">- {{ number_format($voucherSave, 0, ',', '.') }} VNĐ</span>
+                            </li>
+                            @endif
+                            <li class="grand">
+                                <span>Tổng thành tiền</span>
+                                <span id="total_value">{{ number_format($totalPrice, 0, ',', '.') }} VNĐ</span>
+                            </li>
+                        </ul>
                     </div>
 
                     <div class="trust-signals">
@@ -139,7 +177,7 @@
             </div>
 
             <div class="col-lg-6">
-                <div class="checkout-form card">
+                <div class="checkout-form card summary-sticky">
                     <h4 class="card-title">Thông tin giao hàng</h4>
 
                     @if(!empty($customer))

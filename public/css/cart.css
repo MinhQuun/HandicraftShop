@@ -186,6 +186,21 @@ body:has(.page-cart) {
     color: var(--muted);
 }
 
+/* Discount visuals */
+.badge-sale {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    background: linear-gradient(135deg, #e63946, #ff7f50);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(230,57,70,0.2);
+}
+.old-price { color: #a17a44; text-decoration: line-through; font-weight: 600; }
+.new-price { color: var(--moss); font-weight: 900; }
+.save-note { color: #2d7a35; font-size: 0.85rem; font-weight: 700; }
+
 /* row actions */
 .row-actions {
     display: flex;

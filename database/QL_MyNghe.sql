@@ -166,6 +166,7 @@ CREATE TABLE SANPHAM
     CONSTRAINT FK_SP_NCC    FOREIGN KEY (MANHACUNGCAP) REFERENCES NHACUNGCAP(MANHACUNGCAP)     ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+ALTER TABLE SANPHAM ADD FULLTEXT(TENSANPHAM, MOTA);
 -- =========================================================
 -- Liên kết SP - KM (cho phép 1 SP có nhiều KM)
 -- =========================================================

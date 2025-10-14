@@ -44,7 +44,8 @@ class PromotionsController extends Controller
         ];
         $scopeOptions = ['ORDER' => 'Voucher (toàn đơn)', 'PRODUCT' => 'Theo sản phẩm'];
 
-        $products = SanPham::select('MASANPHAM','TENSANPHAM','MALOAI','MANHACUNGCAP')->orderBy('TENSANPHAM')->get();
+        $products = SanPham::select('MASANPHAM','TENSANPHAM','MALOAI','MANHACUNGCAP','HINHANH','GIABAN')
+            ->orderBy('TENSANPHAM')->get();
         $loais    = DB::table('LOAI')->select('MALOAI','TENLOAI')->orderBy('TENLOAI')->get();
         $nccs     = DB::table('NHACUNGCAP')->select('MANHACUNGCAP','TENNHACUNGCAP')->orderBy('TENNHACUNGCAP')->get();
 

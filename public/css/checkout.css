@@ -113,6 +113,21 @@ body:has(.page-checkout) {
     color: var(--wood);
 }
 
+/* Scrollable summary table with sticky header */
+.checkout-summary .table-responsive {
+    max-height: 440px;
+    overflow: auto;
+    border-radius: 12px;
+    border: 1px solid var(--card-brd);
+    background: #fffefb;
+}
+.checkout-summary .checkout-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.03);
+}
+
 /* Promo Section */
 .promo-section {
     margin-top: 20px;
@@ -310,6 +325,12 @@ body:has(.page-checkout) {
     }
 }
 
+/* Make first right card sticky on confirmation too */
+.page-checkout .row .col-lg-5 > .card:first-child {
+    position: sticky;
+    top: 16px;
+}
+
 /* Giảm giá/Voucher & banner thành công */
 .alert.ok {
     background: #f1fbf3;
@@ -355,4 +376,24 @@ body:has(.page-checkout) {
     color: var(--wood);
     font-size: 12px;
     font-weight: 700;
+}
+
+/* Sticky cards on the right for better scroll UX */
+.summary-sticky {
+    position: sticky;
+    top: 16px;
+}
+
+/* Nice, subtle scrollbars */
+.checkout-summary .table-responsive::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+}
+.checkout-summary .table-responsive::-webkit-scrollbar-thumb {
+    background: #e7d6c4;
+    border-radius: 10px;
+}
+.checkout-summary .table-responsive::-webkit-scrollbar-track {
+    background: #fffaf5;
+    border-radius: 10px;
 }

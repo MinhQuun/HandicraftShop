@@ -142,4 +142,25 @@ class ProductController extends Controller
         ));
     }
 
+    /** Danh sách sản phẩm đang khuyến mãi (scope PRODUCT) */
+    public function promotions(Request $r)
+    {
+        [$page, $perPage] = $this->pageParams($r);
+
+        $query = SanPham::query()
+            ->whereHas('khuyenmais', function ($q) {
+                $q->where('PHAMVI', 'PRODUCT')
+                  ->where('NGAYBATDAU', '<=', now())
+                  ->where('NGAYKETTHUC', '>=', now());
+            })
+            ->with('activePromotions');
+
+        $this->applyPriceAndSort($r, $query);
+
+        $sp = $query->paginate($perPage, ['*'], 'page', $page)->withQueryString();
+        [$min, $max, $sort] = $this->priceParams($r);
+
+        return view('pages.promo_products', compact('sp', 'page', 'perPage', 'min', 'max', 'sort'));
+    }
+
 }

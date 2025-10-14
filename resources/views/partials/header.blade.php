@@ -33,6 +33,8 @@
             <ul class="mega-sub">
               {{-- Tất cả sản phẩm --}}
               <li><a href="{{ route('all_product') }}">Tất cả sản phẩm</a></li>
+              {{-- Sản phẩm khuyến mãi --}}
+              <li><a href="{{ route('sp.promotions') }}">Sản phẩm khuyến mãi</a></li>
 
               {{-- Danh mục cấp 1 --}}
               @foreach ($menus as $dm)

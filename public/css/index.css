@@ -317,3 +317,46 @@ body {
         transition: none;
     }
 }
+
+/* ===== Product Card - Sale Ribbon & Price Styles (Rustic Vintage) ===== */
+.sale-ribbon {
+    position: absolute;
+    top: 12px;
+    left: -8px;
+    background: linear-gradient(135deg, #e63946, #ff7f50);
+    color: #fff;
+    padding: 6px 14px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    transform: rotate(-8deg);
+    box-shadow: 0 6px 14px rgba(230, 57, 70, 0.28);
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    z-index: 5;
+}
+.old-price {
+    color: #a17a44;
+    text-decoration: line-through;
+    font-weight: 600;
+    margin: 0;
+}
+.new-price {
+    color: #6a8f55;
+    font-weight: 800;
+    font-size: 1.2em;
+    margin: 0;
+}
+.price-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+}
+.product-card {
+    position: relative;
+}
+.product-image {
+    position: relative;
+    z-index: 1;
+}

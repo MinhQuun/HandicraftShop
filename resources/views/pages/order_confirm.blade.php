@@ -92,6 +92,53 @@
                     </ul>
                 </div>
 
+                @php
+                    $voucherDisc = 0;
+                    if (!empty($order->MAKHUYENMAI) && $voucher) {
+                        $rules = is_array($voucher->DIEUKIEN_JSON) ? $voucher->DIEUKIEN_JSON : (json_decode($voucher->DIEUKIEN_JSON ?? '[]', true) ?: []);
+                        $min   = (float)($rules['min_order_total'] ?? 0);
+                        $cap   = (float)($rules['max_discount'] ?? 0);
+                        if ($subtotal >= $min) {
+                            if (($voucher->LOAIKHUYENMAI ?? '') === 'Giảm %') {
+                                $voucherDisc = (int) round($subtotal * ((float)$voucher->GIAMGIA / 100));
+                                if ($cap > 0) $voucherDisc = min($voucherDisc, (int)$cap);
+                            } else {
+                                $voucherDisc = (int) min((float)$voucher->GIAMGIA, $subtotal);
+                            }
+                        }
+                    }
+                    $productDisc = max(0, (int)$discount - (int)$voucherDisc);
+                @endphp
+
+                <div class="card" style="margin-bottom:16px;">
+                    <h4 class="card-title">Chi tiết khuyến mãi</h4>
+                    <ul class="totals-list">
+                        @if($productDisc > 0)
+                        <li class="discount-line">
+                            <span>Giảm theo sản phẩm</span>
+                            <span>-{{ number_format($productDisc, 0, ',', '.') }} VND</span>
+                        </li>
+                        @endif
+                        @if($voucherDisc > 0)
+                        <li class="discount-line">
+                            <span>GiẢM THEO MÃ
+                                @if(!empty($order->MAKHUYENMAI))
+                                    <span class="voucher-badge" title="Mã đã áp dụng">
+                                        <i class="fas fa-tag"></i> {{ $order->MAKHUYENMAI }}
+                                    </span>
+                                @endif
+                            </span>
+                            <span>-{{ number_format($voucherDisc, 0, ',', '.') }} VND</span>
+                        </li>
+                        @endif
+                        @if($productDisc <= 0 && $voucherDisc <= 0)
+                        <li>
+                            <span class="text-muted">Không có khuyến mãi áp dụng.</span>
+                        </li>
+                        @endif
+                    </ul>
+                </div>
+
                 <div class="checkout-form card">
                     <h4 class="card-title">Thông tin giao hàng</h4>
                     <p><strong>Khách hàng:</strong> {{ $customer->HOTEN ?? '—' }}</p>

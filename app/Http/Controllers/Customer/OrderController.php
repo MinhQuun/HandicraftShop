@@ -80,7 +80,15 @@ class OrderController extends Controller
      */
     protected function computeTotals($items, ?array $voucher): array
     {
-        $subtotal = (int) collect($items)->sum(fn($i) => (int)$i['SOLUONG'] * (int)$i['GIABAN']);
+        // Tính lại đơn giá theo khuyến mãi sản phẩm (nếu có) để đảm bảo tổng tiền chuẩn
+        $subtotal = (int) collect($items)->sum(function ($i) {
+            $id = $i['MASANPHAM'] ?? null;
+            $qty = (int) ($i['SOLUONG'] ?? 0);
+            if (!$id || $qty <= 0) return 0;
+            $p = SanPham::where('MASANPHAM', $id)->first();
+            $unit = $p ? (int) ($p->gia_sau_km ?? $p->GIABAN ?? 0) : (int) ($i['GIABAN'] ?? 0);
+            return $qty * $unit;
+        });
         $discount = 0;
 
         if ($voucher && $subtotal > 0) {

@@ -297,3 +297,40 @@
     font-size: 0.83rem;
     color: #617481;
 }
+
+/* Selected preview for PRODUCT scope */
+.selected-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.selected-preview .sp-card {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 2px;
+    align-items: center;
+    min-width: 260px;
+    max-width: 360px;
+    border: 1px solid var(--card-brd);
+    border-radius: 10px;
+    padding: 8px;
+    background: #f9feff;
+}
+.selected-preview .sp-card .thumb {
+    grid-row: 1 / span 2;
+    width: 48px; height: 48px; border-radius: 8px;
+    background-size: cover; background-position: center; background-color: #eef5f9;
+    border: 1px solid #e1ecf3;
+}
+.selected-preview .sp-card .meta .name {
+    font-weight: 700; font-size: .9rem; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.selected-preview .sp-card .meta .price {
+    font-size: .85rem; color: var(--muted);
+}
+.selected-preview .sp-card .id {
+    grid-column: 2; font-size: .75rem; color: #7a8a95;
+}

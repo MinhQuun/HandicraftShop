@@ -240,6 +240,7 @@
                     {{-- PRODUCT only --}}
                     <div class="col-12 c-product-only d-none">
                         <label class="form-label">Gán trực tiếp sản phẩm</label>
+
                         <div class="d-flex gap-2 mb-2">
                             <input type="text" id="filterName" class="form-control" placeholder="Tìm theo tên sản phẩm...">
                             <select id="filterType" class="form-select" style="max-width:200px">
@@ -255,12 +256,18 @@
                                 @endforeach
                             </select>
                         </div>
+
                         <div class="dual-listbox d-flex">
                             <select id="c_available_products" class="form-select" multiple size="10">
                                 @foreach($products as $product)
-                                    <option data-type="{{ $product->MALOAI ?? '' }}" data-supplier="{{ $product->MANHACUNGCAP ?? '' }}" value="{{ $product->MASANPHAM }}">
-                                    {{ $product->TENSANPHAM }}
-                                    </option>
+                                    <option
+                                        data-type="{{ $product->MALOAI ?? '' }}"
+                                        data-supplier="{{ $product->MANHACUNGCAP ?? '' }}"
+                                        data-name="{{ $product->TENSANPHAM }}"
+                                        data-image="{{ trim((string)($product->HINHANH ?? '')) }}"
+                                        data-price="{{ (float)($product->GIABAN ?? 0) }}"
+                                        value="{{ $product->MASANPHAM }}"
+                                    >{{ $product->TENSANPHAM }}</option>
                                 @endforeach
                             </select>
                             <div class="buttons d-flex flex-column justify-content-center px-2">
@@ -269,6 +276,8 @@
                             </div>
                             <select name="sanphams[]" id="c_selected_products" class="form-select" multiple size="10"></select>
                         </div>
+
+                        <div id="c_selected_preview" class="selected-preview mt-2"></div>
                         <div class="small-note mt-1">Chọn sản phẩm từ trái và di chuyển sang phải.</div>
                     </div>
 
@@ -378,10 +387,16 @@
                     {{-- PRODUCT only --}}
                     <div class="col-12 e-product-only d-none">
                         <label class="form-label">Gán trực tiếp sản phẩm</label>
+
                         <div class="dual-listbox d-flex">
                             <select id="e_available_products" class="form-select" multiple size="10">
                                 @foreach($products as $product)
-                                    <option value="{{ $product->MASANPHAM }}">{{ $product->TENSANPHAM }}</option>
+                                    <option
+                                        data-name="{{ $product->TENSANPHAM }}"
+                                        data-image="{{ trim((string)($product->HINHANH ?? '')) }}"
+                                        data-price="{{ (float)($product->GIABAN ?? 0) }}"
+                                        value="{{ $product->MASANPHAM }}"
+                                    >{{ $product->TENSANPHAM }}</option>
                                 @endforeach
                             </select>
                             <div class="buttons d-flex flex-column justify-content-center px-2">
@@ -390,6 +405,8 @@
                             </div>
                             <select name="sanphams[]" id="e_selected_products" class="form-select" multiple size="10"></select>
                         </div>
+
+                        <div id="e_selected_preview" class="selected-preview mt-2"></div>
                     </div>
 
                     <div class="col-12 e-product-only d-none">
