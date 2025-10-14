@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf; 
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class IssueController extends Controller
 {
@@ -218,5 +219,80 @@ class IssueController extends Controller
         $pdf = Pdf::loadView('staff.issues_pdf', $data)->setPaper('a4', 'portrait');
         $fileName = 'PhieuXuat_' . $header->MAPX . '.pdf';
         return $pdf->download($fileName);
+    }
+
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $q        = trim($request->get('q', ''));
+        $customer = $request->get('customer');
+        $status   = $request->get('status');
+        $from     = $request->get('from');
+        $to       = $request->get('to');
+
+        $file = 'phieu-xuat-' . now()->format('Ymd-His') . '.csv';
+
+        $response = new StreamedResponse(function () use ($q, $customer, $status, $from, $to) {
+            echo "\xEF\xBB\xBF"; // BOM for Excel
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['STT','MÃ PX','Khách hàng','Nhân viên','Ngày xuất','Khuyến mãi','Tổng trước KM (đ)','Tổng sau KM (đ)','Trạng thái']);
+
+            $query = DB::table('PHIEUXUAT as p')
+                ->join('KHACHHANG as k', 'k.MAKHACHHANG', '=', 'p.MAKHACHHANG')
+                ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
+                ->leftJoin('KHUYENMAI as km', 'km.MAKHUYENMAI', '=', 'p.MAKHUYENMAI')
+                ->when($q, function ($query) use ($q) {
+                    $like = "%{$q}%";
+                    $query->where(function ($x) use ($like) {
+                        $x->whereRaw('CAST(p.MAPX AS CHAR) LIKE ?', [$like])
+                            ->orWhere('k.HOTEN', 'like', $like)
+                            ->orWhere('u.name', 'like', $like);
+                    });
+                })
+                ->when($customer, fn($q2) => $q2->where('p.MAKHACHHANG', $customer))
+                ->when($status, fn($q2) => $q2->where('p.TRANGTHAI', $status))
+                ->when($from, fn($q2) => $q2->whereDate('p.NGAYXUAT', '>=', $from))
+                ->when($to, fn($q2) => $q2->whereDate('p.NGAYXUAT', '<=', $to))
+                ->select(
+                    'p.MAPX',
+                    'p.NGAYXUAT',
+                    'p.TRANGTHAI',
+                    'k.HOTEN as KHACHHANG',
+                    'u.name as NHANVIEN',
+                    'p.TONGTIEN',
+                    'km.LOAIKHUYENMAI',
+                    'km.GIAMGIA'
+                )
+                ->orderBy('p.MAPX', 'asc');
+
+            $i = 0;
+            $query->chunk(1000, function ($rows) use (&$i, $out) {
+                foreach ($rows as $r) {
+                    $i++;
+                    $discount = $r->GIAMGIA ? (float)$r->GIAMGIA : 0;
+                    $totalAfter = (float) $r->TONGTIEN;
+                    $totalBefore = $totalAfter + ($discount > 0 ? $totalAfter * $discount / 100 : 0);
+                    $kmText = $r->LOAIKHUYENMAI ? ($r->LOAIKHUYENMAI . ' (' . $discount . '%)') : '';
+
+                    fputcsv($out, [
+                        $i,
+                        $r->MAPX,
+                        $r->KHACHHANG ?? '',
+                        $r->NHANVIEN ?? '',
+                        (string) \Carbon\Carbon::parse($r->NGAYXUAT)->format('d/m/Y H:i'),
+                        $kmText,
+                        $totalBefore,
+                        $totalAfter,
+                        $r->TRANGTHAI,
+                    ]);
+                }
+            });
+
+            fclose($out);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$file.'"');
+
+        return $response;
     }
 }

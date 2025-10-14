@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf; 
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReceiptController extends Controller
 {
@@ -278,5 +279,73 @@ class ReceiptController extends Controller
         ]);
 
         return $pdf->download("phieu_nhap_{$header->MAPN}.pdf");
+    }
+
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $q       = trim($request->get('q', ''));
+        $ncc     = $request->get('ncc');
+        $status  = $request->get('status');
+        $from    = $request->get('from');
+        $to      = $request->get('to');
+
+        $file = 'phieu-nhap-' . now()->format('Ymd-His') . '.csv';
+
+        $response = new StreamedResponse(function () use ($q, $ncc, $status, $from, $to) {
+            echo "\xEF\xBB\xBF"; // UTF-8 BOM for Excel Vietnamese
+            $out = fopen('php://output', 'w');
+
+            fputcsv($out, ['STT','MÃ PN','Nhà cung cấp','Nhân viên','Ngày nhập','Trạng thái','Tổng tiền (đ)']);
+
+            $query = DB::table('PHIEUNHAP as p')
+                ->join('NHACUNGCAP as n', 'n.MANHACUNGCAP', '=', 'p.MANHACUNGCAP')
+                ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
+                ->leftJoin('CT_PHIEUNHAP as ct', 'ct.MAPN', '=', 'p.MAPN')
+                ->when($q, function ($query) use ($q) {
+                    $like = "%{$q}%";
+                    $query->where(function ($x) use ($like) {
+                        $x->whereRaw('CAST(p.MAPN AS CHAR) LIKE ?', [$like])
+                          ->orWhere('n.TENNHACUNGCAP', 'like', $like)
+                          ->orWhere('u.name', 'like', $like);
+                    });
+                })
+                ->when($ncc,    fn($q2) => $q2->where('p.MANHACUNGCAP', $ncc))
+                ->when($status, fn($q2) => $q2->where('p.TRANGTHAI', $status))
+                ->when($from,   fn($q2) => $q2->whereDate('p.NGAYNHAP', '>=', $from))
+                ->when($to,     fn($q2) => $q2->whereDate('p.NGAYNHAP', '<=', $to))
+                ->select(
+                    'p.MAPN',
+                    'p.NGAYNHAP',
+                    'p.TRANGTHAI',
+                    'n.TENNHACUNGCAP',
+                    'u.name as NHANVIEN',
+                    DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA), 0) as TONGTIEN')
+                )
+                ->groupBy('p.MAPN', 'p.NGAYNHAP', 'p.TRANGTHAI', 'n.TENNHACUNGCAP', 'u.name')
+                ->orderBy('p.MAPN', 'asc');
+
+            $i = 0;
+            $query->chunk(1000, function ($rows) use (&$i, $out) {
+                foreach ($rows as $r) {
+                    $i++;
+                    fputcsv($out, [
+                        $i,
+                        $r->MAPN,
+                        $r->TENNHACUNGCAP,
+                        $r->NHANVIEN,
+                        (string) \Carbon\Carbon::parse($r->NGAYNHAP)->format('d/m/Y H:i'),
+                        $r->TRANGTHAI,
+                        (float) $r->TONGTIEN,
+                    ]);
+                }
+            });
+
+            fclose($out);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$file.'"');
+
+        return $response;
     }
 }

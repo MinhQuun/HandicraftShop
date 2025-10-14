@@ -12,6 +12,7 @@ use App\Models\PhieuXuat;
 use App\Models\CTPhieuXuat;
 use App\Models\KhachHang;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderController extends Controller
 {
@@ -31,7 +32,7 @@ class OrderController extends Controller
 
         if ($q = $request->input('q')) {
             $query->where('MADONHANG', 'like', "%{$q}%")
-                  ->orWhereHas('khachHang', fn($qb) => $qb->where('HOTEN', 'like', "%{$q}%"));
+                    ->orWhereHas('khachHang', fn($qb) => $qb->where('HOTEN', 'like', "%{$q}%"));
         }
 
         if ($customer = $request->input('customer')) {
@@ -63,9 +64,9 @@ class OrderController extends Controller
     public function show($id)
     {
         $order = DonHang::with([
-            'khachHang', 
-            'diaChi', 
-            'chiTiets.sanPham', 
+            'khachHang',
+            'diaChi',
+            'chiTiets.sanPham',
             'khuyenMai'   // load khuyến mãi
         ])->findOrFail($id);
 
@@ -259,5 +260,58 @@ class OrderController extends Controller
         $order->save();
 
         return redirect()->route('staff.orders.index')->with('success', 'Hủy đơn hàng thành công.');
+    }
+
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $file = 'don-hang-' . now()->format('Ymd-His') . '.csv';
+
+        $response = new StreamedResponse(function () use ($request) {
+            echo "\xEF\xBB\xBF"; // BOM cho Excel
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['STT','Mã Đơn','Khách hàng','Địa chỉ','Ngày đặt','Tổng thành tiền (đ)','Trạng thái']);
+
+            $query = DonHang::query()->with(['khachHang', 'diaChi']);
+
+            if ($q = $request->input('q')) {
+                $query->where('MADONHANG', 'like', "%{$q}%")
+                        ->orWhereHas('khachHang', fn($qb) => $qb->where('HOTEN', 'like', "%{$q}%"));
+            }
+            if ($customer = $request->input('customer')) {
+                $query->where('MAKHACHHANG', $customer);
+            }
+            if ($status = $request->input('status')) {
+                $query->where('TRANGTHAI', $status);
+            }
+            if ($from = $request->input('from')) {
+                $query->where('NGAYDAT', '>=', $from);
+            }
+            if ($to = $request->input('to')) {
+                $query->where('NGAYDAT', '<=', $to);
+            }
+
+            $i = 0;
+            $query->orderBy('NGAYDAT', 'desc')->chunk(500, function ($rows) use (&$i, $out) {
+                foreach ($rows as $r) {
+                    $i++;
+                    fputcsv($out, [
+                        $i,
+                        $r->MADONHANG,
+                        optional($r->khachHang)->HOTEN,
+                        optional($r->diaChi)->DIACHI,
+                        (string) ($r->NGAYDAT ? \Carbon\Carbon::parse($r->NGAYDAT)->format('d/m/Y H:i') : ''),
+                        (float) $r->TONGTHANHTIEN,
+                        $r->TRANGTHAI,
+                    ]);
+                }
+            });
+
+            fclose($out);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$file.'"');
+
+        return $response;
     }
 }

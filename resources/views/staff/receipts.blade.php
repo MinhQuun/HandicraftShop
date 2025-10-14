@@ -1,4 +1,4 @@
-@extends('layouts.staff')
+﻿@extends('layouts.staff')
 @section('title', 'Quản lý Phiếu nhập')
 
 @push('styles')
@@ -76,7 +76,7 @@
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreate">
                     <i class="bi bi-plus-circle me-1"></i> Thêm mới
                 </button>
-                <a href="{{ route('staff.products.exportCsv', request()->only('q','loai')) }}"
+                <a href="{{ route('staff.receipts.exportCsv', request()->only('q','ncc','status','from','to')) }}"
                         class="btn-outline-success">
                         <i class="fa-solid fa-file-excel"></i>  Xuất Excel
                 </a>
@@ -201,11 +201,11 @@
                             @csrf @method('put')
                             <button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i> Xác nhận phiếu</button>
                         </form>
-                    <div class="d-flex justify-content-end mt-3">
-                        <button type="button" class="btn btn-outline-danger" id="btnExportPDF">
-                            <i class="bi bi-file-earmark-pdf"></i> Xuất PDF
-                        </button> 
-                    </div>                       
+                        <div class="d-flex justify-content-end mt-3">
+                            <button type="button" class="btn btn-outline-danger" id="btnExportPDF">
+                                <i class="bi bi-file-earmark-pdf"></i> Xuất PDF
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

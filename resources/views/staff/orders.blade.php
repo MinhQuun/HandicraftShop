@@ -1,4 +1,4 @@
-@extends('layouts.staff')
+﻿@extends('layouts.staff')
 @section('title', 'Quản lý Đơn hàng')
 
 @push('styles')
@@ -26,7 +26,7 @@
                 <div class="col-lg-4 col-md-6">
                     <label class="form-label">Tìm kiếm</label>
                     <input type="text" name="q" value="{{ request('q') }}" class="form-control"
-                           placeholder="Mã đơn, Khách hàng">
+                            placeholder="Mã đơn, Khách hàng">
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label">Khách hàng</label>
@@ -74,9 +74,9 @@
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h5 class="m-0">Danh sách đơn hàng</h5>
             <div class="d-flex gap-2">
-                <a href="{{ route('staff.products.exportCsv', request()->only('q','loai')) }}"
-                            class="btn-outline-success">
-                            <i class="fa-solid fa-file-excel"></i>  Xuất Excel
+                <a href="{{ route('staff.orders.exportCsv', request()->only('q','customer','status','from','to')) }}"
+                    class="btn-outline-success">
+                    <i class="fa-solid fa-file-excel"></i> Xuất Excel
                 </a>
             </div>
         </div>
@@ -131,8 +131,8 @@
                             @if($editable)
                                 {{-- Nút lưu trạng thái (gửi PUT /staff/orders/{id}/status) --}}
                                 <form data-no-row-open
-                                      action="{{ route('staff.orders.updateStatus', $order->MADONHANG) }}"
-                                      method="post" class="d-inline form-update-status">
+                                        action="{{ route('staff.orders.updateStatus', $order->MADONHANG) }}"
+                                        method="post" class="d-inline form-update-status">
                                     @csrf @method('put')
                                     <input type="hidden" name="status" value="{{ $st }}">
                                     <button type="submit" class="btn btn-sm btn-success-soft btn-save-status"
@@ -236,7 +236,6 @@
                             <label class="form-label">Khuyến mãi</label>
                             <p class="form-control-plaintext fw-bold text-end" id="md_promotion">—</p>
                         </div>
-                                                
                         <div class="col-12 text-end">
                             <label class="form-label">Tổng tiền</label>
                             <p class="form-control-plaintext fw-bold text-end" id="md_tongtien"></p>

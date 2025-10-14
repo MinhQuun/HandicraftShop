@@ -1,36 +1,42 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
 
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\ChatbotController;
-use App\Http\Controllers\Customer\ProductController;
-use App\Http\Controllers\Customer\CartController;
-use App\Http\Controllers\Customer\ContactController;
-use App\Http\Controllers\Customer\ReviewController;
-use App\Http\Controllers\Customer\OrderController;
-use App\Http\Controllers\Customer\CustomerOrderController;
-use App\Http\Controllers\Customer\ProfileController;
-use App\Http\Controllers\Customer\ForgotPasswordController;
-
-use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Middleware\RoleMiddleware;
 
-use App\Http\Controllers\Staff\SupplierController;
-use App\Http\Controllers\Staff\ProductController as StaffProductController;
-use App\Http\Controllers\Staff\KhachHangController;
-use App\Http\Controllers\Staff\ReviewController as StaffReviewController;
-use App\Http\Controllers\Staff\ReceiptController;
+// Controllers (Customer)
+use App\Http\Controllers\Customer\CartController;
+use App\Http\Controllers\Customer\ContactController;
+use App\Http\Controllers\Customer\CustomerOrderController;
+use App\Http\Controllers\Customer\ForgotPasswordController;
+use App\Http\Controllers\Customer\OrderController;
+use App\Http\Controllers\Customer\ProductController;
+use App\Http\Controllers\Customer\ProfileController;
+use App\Http\Controllers\Customer\ReviewController;
+
+// Controllers (Admin)
+use App\Http\Controllers\Admin\UserAdminController;
+
+// Controllers (Staff)
 use App\Http\Controllers\Staff\IssueController;
+use App\Http\Controllers\Staff\KhachHangController;
 use App\Http\Controllers\Staff\OrderController as StaffOrderController;
 use App\Http\Controllers\Staff\PromotionsController;
+use App\Http\Controllers\Staff\ProductController as StaffProductController;
+use App\Http\Controllers\Staff\ReceiptController;
 use App\Http\Controllers\Staff\Reports_InoutController;
 use App\Http\Controllers\Staff\Reports_InventoryController;
-use App\Http\Controllers\Staff\Reports_SalesController;
 use App\Http\Controllers\Staff\Reports_LowstockController;
+use App\Http\Controllers\Staff\Reports_SalesController;
+use App\Http\Controllers\Staff\ReviewController as StaffReviewController;
+use App\Http\Controllers\Staff\SupplierController;
+
+// Controllers (Common)
 use App\Http\Controllers\Api\ProductApiController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,28 +53,28 @@ Route::view('/services', 'pages.services')->name('services');
 Route::view('/contact',  'pages.contact')->name('contact');
 
 // Sản phẩm / Danh mục / Loại / Tìm kiếm / Chi tiết
-Route::prefix('/')
-    ->group(function () {
-        Route::get('/tat-ca-san-pham', [ProductController::class, 'allProducts'])->name('all_product');
-        Route::get('/khuyen-mai',       [ProductController::class, 'promotions'])->name('sp.promotions');
-        Route::get('/danh-muc',        [ProductController::class, 'byCategory'])->name('category'); // ?dm=...
-        Route::get('/loai/{maLoai}',   [ProductController::class, 'byType'])->name('sp.byType');
-        Route::get('/tim-kiem',        [ProductController::class, 'search'])->name('sp.search');
-        Route::get('/san-pham/{id}',   [ProductController::class, 'detail'])->name('sp.detail');
-    });
+Route::prefix('/')->group(function () {
+    Route::get('/tat-ca-san-pham', [ProductController::class, 'allProducts'])->name('all_product');
+    Route::get('/khuyen-mai',       [ProductController::class, 'promotions'])->name('sp.promotions');
+    Route::get('/danh-muc',         [ProductController::class, 'byCategory'])->name('category'); // ?dm=...
+    Route::get('/loai/{maLoai}',    [ProductController::class, 'byType'])->name('sp.byType');
+    Route::get('/tim-kiem',         [ProductController::class, 'search'])->name('sp.search');
+    Route::get('/san-pham/{id}',    [ProductController::class, 'detail'])->name('sp.detail');
+});
 
 // Liên hệ
 Route::get('/lien-he',  [ContactController::class, 'show'])->name('contact.form');
 Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
 
-// Chatbot AI hỗ trợ khách hàng
+// Chatbot AI hỗ trợ khách hàng (rate limit)
 Route::post('/chatbot/query', ChatbotController::class)
     ->name('chatbot.send')
     ->middleware('throttle:20,1');
 
 // Đánh giá sản phẩm (yêu cầu đăng nhập)
 Route::post('/sp/{id}/danh-gia', [ReviewController::class, 'store'])
-    ->middleware('auth')->name('reviews.store');
+    ->middleware('auth')
+    ->name('reviews.store');
 
 
 /*
@@ -92,7 +98,7 @@ Route::post('/logout',   [UserController::class, 'logout'])->name('logout');
 // CRUD users (giữ nguyên ngoại lệ)
 Route::resource('users', UserController::class)->except(['create', 'store']);
 
-// Quên mật khẩu qua OTP (giữ nguyên URL & name)
+// Quên mật khẩu qua OTP
 Route::name('password.')->group(function () {
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetCode'])->name('send');    // POST -> password.send
     Route::post('/verify-otp',      [ForgotPasswordController::class, 'verifyOtp'])->name('verify');      // POST -> password.verify
@@ -120,9 +126,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{id}/confirm', [OrderController::class, 'confirm'])->name('orders.confirm');
 
     // Hồ sơ cá nhân
-    Route::get('/profile',               [ProfileController::class, 'show'])->name('profile.show');
-    Route::put('/profile',               [ProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/password',      [ProfileController::class, 'changePassword'])->name('profile.changePassword');
+    Route::get('/profile',          [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile',          [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'changePassword'])->name('profile.changePassword');
 });
 
 
@@ -135,10 +141,10 @@ Route::middleware(['auth', RoleMiddleware::class . ':khachhang'])
     ->prefix('my-orders')
     ->name('customer.orders.')
     ->group(function () {
-        Route::get('/',           [CustomerOrderController::class, 'index'])->name('index');
-        Route::get('/history',    [CustomerOrderController::class, 'history'])->name('history');
-        Route::get('/{id}/json',  [CustomerOrderController::class, 'showJson'])->name('show.json');
-        Route::post('/{id}/cancel', [CustomerOrderController::class, 'cancel'])->name('cancel');
+        Route::get('/',              [CustomerOrderController::class, 'index'])->name('index');
+        Route::get('/history',       [CustomerOrderController::class, 'history'])->name('history');
+        Route::get('/{id}/json',     [CustomerOrderController::class, 'showJson'])->name('show.json');
+        Route::post('/{id}/cancel',  [CustomerOrderController::class, 'cancel'])->name('cancel');
     });
 
 
@@ -158,11 +164,12 @@ Route::prefix('admin')
             $khachhangId = DB::table('QUYEN')->whereRaw('LOWER(TENQUYEN)="khachhang"')->value('MAQUYEN');
 
             $counts = [
-                'admin'     => (int) DB::table('QUYEN_NGUOIDUNG')->where('MAQUYEN',$adminId)->count(),
-                'nhanvien'  => (int) DB::table('QUYEN_NGUOIDUNG')->where('MAQUYEN',$nhanvienId)->count(),
-                'khachhang' => (int) DB::table('QUYEN_NGUOIDUNG')->where('MAQUYEN',$khachhangId)->count(),
+                'admin'     => (int) DB::table('QUYEN_NGUOIDUNG')->where('MAQUYEN', $adminId)->count(),
+                'nhanvien'  => (int) DB::table('QUYEN_NGUOIDUNG')->where('MAQUYEN', $nhanvienId)->count(),
+                'khachhang' => (int) DB::table('QUYEN_NGUOIDUNG')->where('MAQUYEN', $khachhangId)->count(),
                 'total'     => (int) \App\Models\User::count(),
             ];
+
             return view('admin.dashboard', compact('counts'));
         })->name('admin.dashboard');
 
@@ -191,47 +198,47 @@ Route::prefix('staff')
                 'stats' => [
                     'products'       => DB::table('SANPHAM')->count(),
                     'suppliers'      => DB::table('NHACUNGCAP')->count(),
-                    'orders_pending' => DB::table('DONHANG')->where('TRANGTHAI','Chờ xử lý')->count(),
+                    'orders_pending' => DB::table('DONHANG')->where('TRANGTHAI', 'Chờ xử lý')->count(),
                     'customers'      => DB::table('KHACHHANG')->count(),
                 ]
             ]);
         })->name('dashboard');
 
-        // Nhà cung cấp
-        Route::get('/suppliers',         [SupplierController::class, 'index'])->name('suppliers.index');
-        Route::post('/suppliers',        [SupplierController::class, 'store'])->name('suppliers.store');
-        Route::put('/suppliers/{id}',    [SupplierController::class, 'update'])->name('suppliers.update');
-        Route::delete('/suppliers/{id}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
+        /* Nhà cung cấp */
+        Route::get('/suppliers',            [SupplierController::class, 'index'])->name('suppliers.index');
+        Route::post('/suppliers',           [SupplierController::class, 'store'])->name('suppliers.store');
+        Route::put('/suppliers/{id}',       [SupplierController::class, 'update'])->name('suppliers.update');
+        Route::delete('/suppliers/{id}',    [SupplierController::class, 'destroy'])->name('suppliers.destroy');
         Route::get('/suppliers/export-csv', [SupplierController::class, 'exportCsv'])->name('suppliers.exportCsv');
 
-        // Sản phẩm
-        Route::get('/products',          [StaffProductController::class, 'index'])->name('products.index');
-        Route::post('/products',         [StaffProductController::class, 'store'])->name('products.store');
-        Route::put('/products/{id}',     [StaffProductController::class, 'update'])->name('products.update');
-        Route::delete('/products/{id}',  [StaffProductController::class, 'destroy'])->name('products.destroy');
-        Route::get('/products/export-csv', [StaffProductController::class, 'exportCsv'])->name('products.exportCsv');
-        
-        // Khuyến mãi
-        Route::get('/promotions',         [PromotionsController::class, 'index'])->name('promotions.index');
-        Route::post('/promotions',        [PromotionsController::class, 'store'])->name('promotions.store');
-        Route::put('/promotions/{id}',    [PromotionsController::class, 'update'])->name('promotions.update');
-        Route::delete('/promotions/{id}', [PromotionsController::class, 'destroy'])->name('promotions.destroy');
+        /* Sản phẩm */
+        Route::get('/products',             [StaffProductController::class, 'index'])->name('products.index');
+        Route::post('/products',            [StaffProductController::class, 'store'])->name('products.store');
+        Route::put('/products/{id}',        [StaffProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{id}',     [StaffProductController::class, 'destroy'])->name('products.destroy');
+        Route::get('/products/export-csv',  [StaffProductController::class, 'exportCsv'])->name('products.exportCsv');
 
-        // Khách hàng
+        /* Khuyến mãi */
+        Route::get('/promotions',           [PromotionsController::class, 'index'])->name('promotions.index');
+        Route::post('/promotions',          [PromotionsController::class, 'store'])->name('promotions.store');
+        Route::put('/promotions/{id}',      [PromotionsController::class, 'update'])->name('promotions.update');
+        Route::delete('/promotions/{id}',   [PromotionsController::class, 'destroy'])->name('promotions.destroy');
+
+        /* Khách hàng */
         Route::get('/customers',                [KhachHangController::class, 'index'])->name('customers.index');
         Route::post('/customers',               [KhachHangController::class, 'store'])->name('customers.store');
         Route::put('/customers/{customer}',     [KhachHangController::class, 'update'])->name('customers.update');
         Route::delete('/customers/{customer}',  [KhachHangController::class, 'destroy'])->name('customers.destroy');
 
-        // Hộp thư ý kiến
-        Route::get('/reviews',          [StaffReviewController::class, 'index'])->name('reviews.index');
-        Route::put('/reviews/{id}',     [StaffReviewController::class, 'update'])->name('reviews.update');
-        Route::delete('/reviews/{id}',  [StaffReviewController::class, 'destroy'])->name('reviews.destroy');
+        /* Hộp thư ý kiến */
+        Route::get('/reviews',              [StaffReviewController::class, 'index'])->name('reviews.index');
+        Route::put('/reviews/{id}',         [StaffReviewController::class, 'update'])->name('reviews.update');
+        Route::delete('/reviews/{id}',      [StaffReviewController::class, 'destroy'])->name('reviews.destroy');
 
-        // Thanh toán (stub)
+        /* Thanh toán (stub) */
         Route::view('/payments', 'staff.stub')->name('payments.index');
 
-        // Phiếu nhập
+        /* Phiếu nhập */
         Route::get('/receipts',                 [ReceiptController::class, 'index'])->name('receipts.index');
         Route::post('/receipts',                [ReceiptController::class, 'store'])->name('receipts.store');
         Route::get('/receipts/create', function () {
@@ -242,36 +249,34 @@ Route::prefix('staff')
         Route::put('/receipts/{id}/confirm',    [ReceiptController::class, 'confirm'])->name('receipts.confirm');
         Route::put('/receipts/{id}/cancel',     [ReceiptController::class, 'cancel'])->name('receipts.cancel');
         Route::delete('/receipts/{id}',         [ReceiptController::class, 'destroy'])->name('receipts.destroy');
-        Route::get('receipts/{id}/pdf', [ReceiptController::class, 'exportPdf'])
-    ->name('receipts.pdf');
+        Route::get('/receipts/{id}/pdf',        [ReceiptController::class, 'exportPdf'])->name('receipts.pdf');
+        Route::get('/receipts/export-csv',      [ReceiptController::class, 'exportCsv'])->name('receipts.exportCsv');
 
+        /* Đơn hàng */
+        Route::get('/orders',                   [StaffOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{id}',              [StaffOrderController::class, 'show'])->name('orders.show');
+        Route::put('/orders/{id}/status',       [StaffOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+        Route::get('/orders/export-csv',        [StaffOrderController::class, 'exportCsv'])->name('orders.exportCsv');
+        Route::get('/orders/{id}/json',         [StaffOrderController::class, 'showRich'])->name('orders.showRich'); // JSON chi tiết đơn hàng (enriched)
 
-        // Đơn hàng
-        Route::get('/orders',             [StaffOrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/{id}',        [StaffOrderController::class, 'show'])->name('orders.show');
-        Route::put('/orders/{id}/status', [StaffOrderController::class, 'updateStatus'])->name('orders.updateStatus');
-        // JSON chi tiết đơn hàng (enriched)
-        Route::get('/orders/{id}/json',   [StaffOrderController::class, 'showRich'])->name('orders.showRich');
-
-        // Phiếu xuất
-        Route::get('/issues',              [IssueController::class, 'index'])->name('issues.index');
-        Route::get('/issues/{id}',         [IssueController::class, 'show'])->name('issues.show');
-        Route::put('/issues/{id}/confirm', [IssueController::class, 'confirm'])->name('issues.confirm');
-        Route::put('/issues/{id}/cancel',  [IssueController::class, 'cancel'])->name('issues.cancel');
+        /* Phiếu xuất */
+        Route::get('/issues',                   [IssueController::class, 'index'])->name('issues.index');
+        Route::get('/issues/{id}',              [IssueController::class, 'show'])->name('issues.show');
+        Route::put('/issues/{id}/confirm',      [IssueController::class, 'confirm'])->name('issues.confirm');
+        Route::put('/issues/{id}/cancel',       [IssueController::class, 'cancel'])->name('issues.cancel');
         Route::get('/issues/create', function () {
             return redirect()->route('staff.issues.index', ['open' => 'create']);
         })->name('issues.create');
-        Route::get('/issues/{id}/pdf', [IssueController::class, 'exportPdf'])
-    ->name('issues.exportPdf');
+        Route::get('/issues/{id}/pdf',          [IssueController::class, 'exportPdf'])->name('issues.exportPdf');
+        Route::get('/issues/export-csv',        [IssueController::class, 'exportCsv'])->name('issues.exportCsv');
 
-        // Thống kê (stub)
+        /* Thống kê */
         Route::prefix('reports')->name('reports.')->group(function () {
-            Route::get('/inout', [Reports_InoutController::class, 'index'])->name('inout');
+            Route::get('/inout',     [Reports_InoutController::class, 'index'])->name('inout');
             Route::get('/inventory', [Reports_InventoryController::class, 'index'])->name('inventory');
-            Route::get('/sales', [Reports_SalesController::class, 'index'])->name('sales');
-            Route::get('/lowstock', [Reports_LowstockController::class, 'index'])->name('lowstock');
+            Route::get('/sales',     [Reports_SalesController::class, 'index'])->name('sales');
+            Route::get('/lowstock',  [Reports_LowstockController::class, 'index'])->name('lowstock');
         });
-        
     });
 
 // Lightweight API for staff UI
