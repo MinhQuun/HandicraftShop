@@ -52,9 +52,27 @@
     border: 1px solid var(--card-brd);
     border-radius: 14px;
 }
+/* Tables – match Staff Products look */
 .products-table thead th {
-    background: #fff4ea;
-    color: var(--wood);
+    background: linear-gradient(180deg, #f7fbff, #f2f8fd);
+    border-bottom: 1px solid #d7e6ee; /* align with products' card border */
+    color: #617481; /* products muted */
+    font-weight: 700;
     text-transform: uppercase;
     font-size: 0.78rem;
+    letter-spacing: 0.06em;
+}
+.products-table td,
+.products-table th {
+    vertical-align: middle;
+    border-color: #e6eff5; /* products table divider */
+}
+.products-table tbody tr {
+    transition: background 0.2s;
+}
+.products-table tbody tr:hover {
+    background: #f9feff;
+}
+.products-table td.text-truncate {
+    max-width: 260px;
 }

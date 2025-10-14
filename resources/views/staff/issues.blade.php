@@ -14,10 +14,10 @@
 </section>
 
 <div id="flash"
-     data-success="{{ session('success') }}"
-     data-error="{{ session('error') }}"
-     data-info="{{ session('info') }}"
-     data-warning="{{ session('warning') }}">
+    data-success="{{ session('success') }}"
+    data-error="{{ session('error') }}"
+    data-info="{{ session('info') }}"
+    data-warning="{{ session('warning') }}">
 </div>
 
 {{-- Bộ lọc phiếu xuất --}}
@@ -71,6 +71,12 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h5 class="m-0">Danh sách phiếu xuất</h5>
+        <div class="d-flex gap-2">
+                <a href="{{ route('staff.products.exportCsv', request()->only('q','loai')) }}"
+                            class="btn-outline-success">
+                            <i class="fa-solid fa-file-excel"></i>  Xuất Excel
+                </a>
+        </div>
     </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -223,7 +229,7 @@
                 <a id="btnExportPdf" href="#" target="_blank" class="btn btn-outline-danger">
                     <i class="fa fa-file-pdf"></i> Xuất PDF
                 </a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                
             </div>
         </div>
     </div>

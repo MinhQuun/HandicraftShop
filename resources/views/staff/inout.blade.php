@@ -64,7 +64,7 @@
 
 {{-- Bảng danh sách --}}
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h5 class="m-0">Danh sách sản phẩm</h5>
         <div class="text-muted small">Hiển thị {{ $products->total() }} sản phẩm</div>
     </div>

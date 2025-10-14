@@ -34,7 +34,9 @@
     background-clip: text;
     color: transparent;
 }
-.page-header .muted { color: var(--muted); }
+.page-header .muted {
+    color: var(--muted);
+}
 
 /* Card */
 .card {
@@ -50,7 +52,7 @@
     border: 1px solid var(--card-brd);
     background: var(--card);
     border-radius: 12px;
-    box-shadow: 0 8px 18px rgba(37,103,131,0.04);
+    box-shadow: 0 8px 18px rgba(37, 103, 131, 0.04);
 }
 .products-filter .form-control,
 .products-filter .form-select {
@@ -93,7 +95,8 @@
     font-size: 0.78rem;
     letter-spacing: 0.06em;
 }
-.products-table td, .products-table th {
+.products-table td,
+.products-table th {
     vertical-align: middle;
     border-color: #e6eff5;
 }
@@ -108,9 +111,21 @@
 }
 
 /* Stock badges */
-.badge { border-radius: 999px; padding: 0.35rem 0.6rem; font-weight:700; }
-.badge.stock-ok { background: #e9fbf4; color: #1a7f46; border:1px solid #bcefd6; }
-.badge.stock-bad { background: #ffeded; color:#c0392b; border:1px solid #ffc7c7; }
+.badge {
+    border-radius: 999px;
+    padding: 0.35rem 0.6rem;
+    font-weight: 700;
+}
+.badge.stock-ok {
+    background: #e9fbf4;
+    color: #1a7f46;
+    border: 1px solid #bcefd6;
+}
+.badge.stock-bad {
+    background: #ffeded;
+    color: #c0392b;
+    border: 1px solid #ffc7c7;
+}
 
 /* Pagination */
 .pagination {
@@ -146,7 +161,7 @@
 #productDetailModal .modal-body img {
     max-width: 100%;
     border: 1px solid #e0e0e0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 #productDetailModal h5#modalProductName {
     font-size: 1.25rem;
@@ -182,9 +197,22 @@
 
 /* Responsive */
 @media (max-width: 767px) {
-    #productDetailModal .modal-body .row { flex-direction: column; }
+    #productDetailModal .modal-body .row {
+        flex-direction: column;
+    }
     #productDetailModal .col-md-4,
-    #productDetailModal .col-md-8 { max-width: 100%; flex: 1 1 100%; }
-    #productDetailModal h5#modalProductName { text-align: center; }
-    #productDetailModal img { margin-bottom: 1rem; }
+    #productDetailModal .col-md-8 {
+        max-width: 100%;
+        flex: 1 1 100%;
+    }
+    #productDetailModal h5#modalProductName {
+        text-align: center;
+    }
+    #productDetailModal img {
+        margin-bottom: 1rem;
+    }
+}
+.card-header {
+    background: linear-gradient(180deg, #f9feff, #f4fbfd);
+    border-bottom: 1px solid var(--card-brd);
 }

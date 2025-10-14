@@ -32,7 +32,9 @@
     background-clip: text;
     color: transparent;
 }
-.page-header .muted { color: var(--muted); }
+.page-header .muted {
+    color: var(--muted);
+}
 
 /* Card */
 .card {
@@ -72,7 +74,8 @@
     font-size: 0.78rem;
     letter-spacing: 0.06em;
 }
-.products-table td, .products-table th {
+.products-table td,
+.products-table th {
     vertical-align: middle;
     border-color: #e6eff5;
 }
@@ -109,5 +112,11 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-    #revenueChart { max-height: 260px; }
+    #revenueChart {
+        max-height: 260px;
+    }
+}
+.card-header {
+    background: linear-gradient(180deg, #f9feff, #f4fbfd);
+    border-bottom: 1px solid var(--card-brd);
 }

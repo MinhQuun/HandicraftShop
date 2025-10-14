@@ -73,6 +73,12 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h5 class="m-0">Danh sách đơn hàng</h5>
+            <div class="d-flex gap-2">
+                <a href="{{ route('staff.products.exportCsv', request()->only('q','loai')) }}"
+                            class="btn-outline-success">
+                            <i class="fa-solid fa-file-excel"></i>  Xuất Excel
+                </a>
+            </div>
         </div>
 
         <div class="table-responsive">

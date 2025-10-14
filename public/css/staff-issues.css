@@ -302,3 +302,68 @@
     color: #1aa3a3;
     background: #eef6f7;
 }
+/* Nút xuất Excel */
+.btn-outline-success {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 8px 14px;
+    line-height: 1.1;
+    font-weight: 600;
+    text-decoration: none;
+
+    border-radius: 999px;
+    border: 1px solid #a7e7c2;
+    color: #137a48;
+    background: #f2fbf6;
+
+    transition: transform 0.25s, box-shadow 0.25s, background 0.25s, color 0.25s,
+        border-color 0.25s;
+}
+.btn-outline-success:hover {
+    color: #fff;
+    border-color: transparent;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(40, 167, 69, 0.22);
+}
+/* icon trong nút */
+.btn-outline-success i {
+    font-size: 1em; /* giữ đồng bộ với text */
+    line-height: 1;
+}
+
+/* Nút xuất PDF */
+.btn-outline-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 8px 14px;
+    line-height: 1.1;
+    font-weight: 600;
+    text-decoration: none;
+
+    border-radius: 999px;
+    border: 1px solid #f3b8b8;
+    color: #b71c1c;
+    background: #fff5f5;
+
+    transition: transform 0.25s, box-shadow 0.25s, background 0.25s, color 0.25s,
+        border-color 0.25s;
+}
+
+.btn-outline-danger:hover {
+    color: #fff;
+    border-color: transparent;
+    background: linear-gradient(135deg, #ff5c5c, #d93025);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(217, 48, 37, 0.25);
+}
+
+/* Icon trong nút PDF */
+.btn-outline-danger i {
+    font-size: 1em;
+    line-height: 1;
+}

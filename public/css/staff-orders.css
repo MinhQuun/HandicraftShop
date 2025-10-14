@@ -302,7 +302,6 @@
     background: #eef6f7;
 }
 
-
 /* Khi modal mở, ẩn filter để tránh select native đè lên */
 .modal-open .orders-filter {
     visibility: hidden;
@@ -323,4 +322,35 @@
     --bs-btn-disabled-color: #fff;
     --bs-btn-disabled-bg: #0d6efd;
     --bs-btn-disabled-border-color: #0d6efd;
+}
+/* Nút xuất Excel */
+.btn-outline-success {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 8px 14px;
+    line-height: 1.1;
+    font-weight: 600;
+    text-decoration: none;
+
+    border-radius: 999px;
+    border: 1px solid #a7e7c2;
+    color: #137a48;
+    background: #f2fbf6;
+
+    transition: transform 0.25s, box-shadow 0.25s, background 0.25s, color 0.25s,
+        border-color 0.25s;
+}
+.btn-outline-success:hover {
+    color: #fff;
+    border-color: transparent;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(40, 167, 69, 0.22);
+}
+/* icon trong nút */
+.btn-outline-success i {
+    font-size: 1em; /* giữ đồng bộ với text */
+    line-height: 1;
 }

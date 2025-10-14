@@ -1,5 +1,4 @@
-/* staff-inout.css - phong cách đồng bộ với staff-products.css */
-
+/* ========== PALETTE (keep) ========== */
 :root {
     --bg-sky-1: #f1f7fb;
     --card: #fff;
@@ -9,9 +8,10 @@
     --teal: #1aa3a3;
     --blue: #3a86ff;
     --indigo: #5e60ce;
-    --shadow: 0 16px 32px rgba(37, 103, 131, 0.08);
+    --shadow: 0 16px 32px rgba(37, 103, 131, 0.14); /* UPDATED: cùng cường độ với products */
 }
 
+/* ========== PAGE HEADER (keep same look as products) ========== */
 .page-header .kicker {
     display: inline-block;
     font-size: 0.72rem;
@@ -19,126 +19,51 @@
     text-transform: uppercase;
     padding: 6px 10px;
     border-radius: 999px;
-    background: rgba(26, 163, 163, 0.08);
+    background: rgba(26, 163, 163, 0.12);
     border: 1px solid var(--card-brd);
     color: var(--muted);
 }
 .page-header .title {
-    margin: 8px 0 6px;
+    margin: 10px 0 6px;
     font-weight: 800;
-    font-size: clamp(24px, 4vw, 32px);
+    line-height: 1.1;
+    font-size: clamp(26px, 4vw, 34px);
     background: linear-gradient(90deg, var(--indigo), var(--blue), var(--teal));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 }
-.page-header .muted { color: var(--muted); }
+.page-header .muted {
+    color: var(--muted);
+}
 
-/* Card */
+/* ========== CARD & HEADER (match products) ========== */
 .card {
-    border-radius: 14px;
+    border-radius: 16px;
     border: 1px solid var(--card-brd);
     background: var(--card);
     box-shadow: var(--shadow);
     overflow: hidden;
 }
+.card-header {
+    background: linear-gradient(180deg, #f9feff, #f4fbfd);
+    border-bottom: 1px solid var(--card-brd);
+}
 
-/* Chart container */
+/* ========== CHART AREA ========== */
 #inoutChart {
     width: 100% !important;
     max-height: 360px;
 }
-
-/* Filter card reuse */
-.products-filter {
-    border: 1px solid var(--card-brd);
-    background: var(--card);
-    border-radius: 12px;
-    box-shadow: 0 8px 18px rgba(37,103,131,0.04);
-}
-.products-filter .form-control,
-.products-filter .form-select {
-    border-radius: 10px;
-    border-color: var(--card-brd);
+@media (max-width: 768px) {
+    #inoutChart {
+        max-height: 260px;
+    }
 }
 
-/* Table style reuse */
-.products-table thead th {
-    background: linear-gradient(180deg, #f7fbff, #f2f8fd);
-    border-bottom: 1px solid var(--card-brd);
-    color: var(--muted);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.78rem;
-    letter-spacing: 0.06em;
-}
-.products-table td, .products-table th {
-    vertical-align: middle;
-    border-color: #e6eff5;
-}
-.products-table tbody tr:hover {
-    background: #f9feff;
-}
-.badge { border-radius: 999px; padding: 0.35rem 0.6rem; font-weight:700; }
-.badge.stock-ok { background: #e9fbf4; color: #1a7f46; border:1px solid #bcefd6; }
-.badge.stock-warn { background: #fff7e6; color:#b36b00; border:1px solid #ffe0a1; }
-.badge.stock-bad { background: #ffeded; color:#c0392b; border:1px solid #ffc7c7; }
-
-.btn-primary-soft,
-.btn-danger-soft {
-    border-radius: 10px;
-    padding: 6px 10px;
-    border: 1px solid transparent;
-    transition: all 0.2s;
-}
-.btn-primary-soft {
-    background: rgba(58, 134, 255, 0.09);
-    color: var(--blue);
-    border-color: rgba(58, 134, 255, 0.2);
-}
-.btn-primary-soft:hover {
-    background: linear-gradient(135deg, var(--blue), var(--teal));
-    color: #fff;
-    border-color: transparent;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(58, 134, 255, 0.22);
-}
-.btn-danger-soft {
-    background: rgba(237, 66, 69, 0.08);
-    color: #d64545;
-    border-color: rgba(237, 66, 69, 0.22);
-}
-.btn-danger-soft:hover {
-    background: #ffeded;
-    border-color: rgba(237, 66, 69, 0.35);
-    transform: translateY(-2px);
-}
-
-/* Pagination reuse */
-.pagination {
-    gap: 6px;
-}
-.page-item .page-link {
-    border-radius: 10px;
-    border: 1px solid var(--card-brd);
-    background: #f7fbff;
-    color: var(--text);
-    transition: all 0.2s;
-}
-
-.page-item .page-link:hover {
-    background: linear-gradient(135deg, var(--blue), var(--teal));
-    color: #fff;
-    border-color: transparent;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-}
-.page-item.active .page-link {
-    background: linear-gradient(135deg, var(--blue), var(--teal));
-    color: #fff;
-    border-color: transparent;
-    box-shadow: 0 6px 14px rgba(26, 163, 163, 0.22);
-}
+/* ========== FILTER (dedupe & unify with products) ========== */
+/* REMOVED: block trùng lặp products-filter radius 12px */
+/* KEEP this unified block: */
 .products-filter {
     border: 1px solid var(--card-brd);
     background: var(--card);
@@ -175,6 +100,93 @@
     background: #eef6fb;
     transform: translateY(-2px);
 }
+
+/* ========== TABLE (reuse from products) ========== */
+.products-table thead th {
+    background: linear-gradient(180deg, #f7fbff, #f2f8fd);
+    border-bottom: 1px solid var(--card-brd);
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+}
+.products-table td,
+.products-table th {
+    vertical-align: middle;
+    border-color: #e6eff5;
+}
+.products-table tbody tr {
+    transition: background 0.2s;
+}
+.products-table tbody tr:hover {
+    background: #f9feff;
+}
+
+/* NEW: style ảnh trong bảng để bỏ inline style ở blade */
+.products-table td img {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid var(--card-brd);
+    background: #f5fafc;
+}
+
+/* BADGES (keep mapping) */
+.badge {
+    border-radius: 999px;
+    padding: 0.35rem 0.6rem;
+    font-weight: 700;
+}
+.badge.stock-ok {
+    background: #e9fbf4;
+    color: #1a7f46;
+    border: 1px solid #bcefd6;
+}
+.badge.stock-warn {
+    background: #fff7e6;
+    color: #b36b00;
+    border: 1px solid #ffe0a1;
+}
+.badge.stock-bad {
+    background: #ffeded;
+    color: #c0392b;
+    border: 1px solid #ffc7c7;
+}
+
+/* ========== BUTTONS (soft & primary) ========== */
+.btn-primary-soft,
+.btn-danger-soft {
+    border-radius: 10px;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+.btn-primary-soft {
+    background: rgba(58, 134, 255, 0.09);
+    color: var(--blue);
+    border-color: rgba(58, 134, 255, 0.2);
+}
+.btn-primary-soft:hover {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(58, 134, 255, 0.22);
+}
+.btn-danger-soft {
+    background: rgba(237, 66, 69, 0.08);
+    color: #d64545;
+    border-color: rgba(237, 66, 69, 0.22);
+}
+.btn-danger-soft:hover {
+    background: #ffeded;
+    border-color: rgba(237, 66, 69, 0.35);
+    transform: translateY(-2px);
+}
+
+/* Primary trong card header (Thêm mới / Xuất…) */
 .card .btn.btn-primary {
     border-radius: 999px;
     background: linear-gradient(135deg, var(--indigo), var(--blue));
@@ -187,82 +199,117 @@
     filter: brightness(1.02);
 }
 
-/* Responsive */
-@media (max-width:768px) {
-    #inoutChart { max-height: 260px; }
+/* ========== PAGINATION (reuse) ========== */
+.pagination {
+    gap: 6px;
+}
+.page-item .page-link {
+    border-radius: 10px;
+    border: 1px solid var(--card-brd);
+    background: #f7fbff;
+    color: var(--text);
+    transition: all 0.2s;
+}
+.page-item .page-link:hover {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+.page-item.active .page-link {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 6px 14px rgba(26, 163, 163, 0.22);
 }
 
-/* modal chi tiết */
-/* Modal body */
+/* ========== MODAL (match products) ========== */
+.modal-content {
+    border-radius: 18px;
+    border: 1px solid var(--card-brd);
+    box-shadow: var(--shadow);
+}
+.modal-header {
+    border-bottom: 1px solid var(--card-brd);
+    background: linear-gradient(180deg, #f9feff, #f4fbfd);
+}
+.modal-title {
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--indigo), var(--blue));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
 #productDetailModal .modal-body {
     padding: 1.5rem;
     font-size: 0.95rem;
     color: #333;
 }
-
-/* Hình ảnh sản phẩm */
 #productDetailModal .modal-body img {
     max-width: 100%;
     border: 1px solid #e0e0e0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-
-/* Tiêu đề sản phẩm */
 #productDetailModal h5#modalProductName {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.15rem;
+    font-weight: 700;
     margin-bottom: 0.75rem;
-    color: #007bff;
+    color: var(--blue);
 }
-
-/* Các thông tin chi tiết */
 #productDetailModal p {
     margin-bottom: 0.5rem;
 }
-
 #productDetailModal p strong {
     width: 120px;
     display: inline-block;
     color: #555;
 }
-
-/* Modal footer */
 #productDetailModal .modal-footer {
     border-top: 1px solid #e0e0e0;
     justify-content: center;
 }
-
-/* Thẻ span hiển thị giá */
 #modalProductPrice {
-    font-weight: 600;
-    color: #dc3545; /* đỏ nổi bật */
+    font-weight: 700;
+    color: #dc3545;
 }
-
-/* Mô tả sản phẩm */
 #modalProductDesc {
     display: block;
-    white-space: pre-wrap; /* giữ xuống dòng */
+    white-space: pre-wrap;
     color: #444;
     background: #f8f9fa;
     padding: 0.5rem 0.75rem;
-    border-radius: 4px;
-    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0; /* radius ↑ nhẹ để hợp tổng thể */
 }
 
-/* Responsive: khi màn hình nhỏ, ảnh nằm trên thông tin */
-@media (max-width: 767px) {
-    #productDetailModal .modal-body .row {
-        flex-direction: column;
-    }
-    #productDetailModal .col-md-4,
-    #productDetailModal .col-md-8 {
-        max-width: 100%;
-        flex: 1 1 100%;
-    }
-    #productDetailModal h5#modalProductName {
-        text-align: center;
-    }
-    #productDetailModal img {
-        margin-bottom: 1rem;
+/* ========== EXPORT BUTTON (same as products) ========== */
+.btn-outline-success {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    line-height: 1.1;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 999px;
+    border: 1px solid #a7e7c2;
+    color: #137a48;
+    background: #f2fbf6;
+    transition: transform 0.25s, box-shadow 0.25s, background 0.25s, color 0.25s,
+        border-color 0.25s;
+}
+.btn-outline-success:hover {
+    color: #fff;
+    border-color: transparent;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(40, 167, 69, 0.22);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 576px) {
+    .products-table td.text-truncate {
+        max-width: 180px;
     }
 }
