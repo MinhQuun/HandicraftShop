@@ -244,13 +244,13 @@ Route::prefix('staff')
         Route::get('/receipts/create', function () {
             return redirect()->route('staff.receipts.index', ['open' => 'create']);
         })->name('receipts.create');
+        Route::get('/receipts/export-csv',      [ReceiptController::class, 'exportCsv'])->name('receipts.exportCsv');
         Route::get('/receipts/{id}',            [ReceiptController::class, 'show'])->name('receipts.show');
         Route::put('/receipts/{id}',            [ReceiptController::class, 'update'])->name('receipts.update');
         Route::put('/receipts/{id}/confirm',    [ReceiptController::class, 'confirm'])->name('receipts.confirm');
         Route::put('/receipts/{id}/cancel',     [ReceiptController::class, 'cancel'])->name('receipts.cancel');
         Route::delete('/receipts/{id}',         [ReceiptController::class, 'destroy'])->name('receipts.destroy');
         Route::get('/receipts/{id}/pdf',        [ReceiptController::class, 'exportPdf'])->name('receipts.pdf');
-        Route::get('/receipts/export-csv',      [ReceiptController::class, 'exportCsv'])->name('receipts.exportCsv');
 
         /* Đơn hàng */
         Route::get('/orders',                   [StaffOrderController::class, 'index'])->name('orders.index');
@@ -261,6 +261,7 @@ Route::prefix('staff')
 
         /* Phiếu xuất */
         Route::get('/issues',                   [IssueController::class, 'index'])->name('issues.index');
+        Route::get('/issues/export-csv',        [IssueController::class, 'exportCsv'])->name('issues.exportCsv');
         Route::get('/issues/{id}',              [IssueController::class, 'show'])->name('issues.show');
         Route::put('/issues/{id}/confirm',      [IssueController::class, 'confirm'])->name('issues.confirm');
         Route::put('/issues/{id}/cancel',       [IssueController::class, 'cancel'])->name('issues.cancel');
@@ -268,7 +269,6 @@ Route::prefix('staff')
             return redirect()->route('staff.issues.index', ['open' => 'create']);
         })->name('issues.create');
         Route::get('/issues/{id}/pdf',          [IssueController::class, 'exportPdf'])->name('issues.exportPdf');
-        Route::get('/issues/export-csv',        [IssueController::class, 'exportCsv'])->name('issues.exportCsv');
 
         /* Thống kê */
         Route::prefix('reports')->name('reports.')->group(function () {

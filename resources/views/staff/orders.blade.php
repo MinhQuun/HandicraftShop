@@ -76,7 +76,7 @@
             <div class="d-flex gap-2">
                 <a href="{{ route('staff.orders.exportCsv', request()->only('q','customer','status','from','to')) }}"
                     class="btn-outline-success">
-                    <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                    
                 </a>
             </div>
         </div>

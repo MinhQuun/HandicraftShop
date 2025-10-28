@@ -10,6 +10,8 @@ use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf; 
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 
 class ReceiptController extends Controller
 {
@@ -281,7 +283,7 @@ class ReceiptController extends Controller
         return $pdf->download("phieu_nhap_{$header->MAPN}.pdf");
     }
 
-    public function exportCsv(Request $request): StreamedResponse
+    public function exportCsv(Request $request)
     {
         $q       = trim($request->get('q', ''));
         $ncc     = $request->get('ncc');
@@ -291,28 +293,32 @@ class ReceiptController extends Controller
 
         $file = 'phieu-nhap-' . now()->format('Ymd-His') . '.csv';
 
-        $response = new StreamedResponse(function () use ($q, $ncc, $status, $from, $to) {
-            echo "\xEF\xBB\xBF"; // UTF-8 BOM for Excel Vietnamese
-            $out = fopen('php://output', 'w');
-
-            fputcsv($out, ['STT','MÃ PN','Nhà cung cấp','Nhân viên','Ngày nhập','Trạng thái','Tổng tiền (đ)']);
-
+        try {
+            // Xây dựng query giống index để đảm bảo nhất quán
             $query = DB::table('PHIEUNHAP as p')
                 ->join('NHACUNGCAP as n', 'n.MANHACUNGCAP', '=', 'p.MANHACUNGCAP')
                 ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
                 ->leftJoin('CT_PHIEUNHAP as ct', 'ct.MAPN', '=', 'p.MAPN')
                 ->when($q, function ($query) use ($q) {
                     $like = "%{$q}%";
-                    $query->where(function ($x) use ($like) {
-                        $x->whereRaw('CAST(p.MAPN AS CHAR) LIKE ?', [$like])
-                          ->orWhere('n.TENNHACUNGCAP', 'like', $like)
-                          ->orWhere('u.name', 'like', $like);
+                    return $query->where(function ($sub) use ($like) {
+                        $sub->whereRaw('CAST(p.MAPN AS CHAR) LIKE ?', [$like])
+                            ->orWhere('n.TENNHACUNGCAP', 'like', $like)
+                            ->orWhere('u.name', 'like', $like);
                     });
                 })
-                ->when($ncc,    fn($q2) => $q2->where('p.MANHACUNGCAP', $ncc))
-                ->when($status, fn($q2) => $q2->where('p.TRANGTHAI', $status))
-                ->when($from,   fn($q2) => $q2->whereDate('p.NGAYNHAP', '>=', $from))
-                ->when($to,     fn($q2) => $q2->whereDate('p.NGAYNHAP', '<=', $to))
+                ->when($ncc, function ($query, $ncc) {
+                    return $query->where('p.MANHACUNGCAP', $ncc);
+                })
+                ->when($status, function ($query, $status) {
+                    return $query->where('p.TRANGTHAI', $status);
+                })
+                ->when($from, function ($query, $from) {
+                    return $query->whereDate('p.NGAYNHAP', '>=', $from);
+                })
+                ->when($to, function ($query, $to) {
+                    return $query->whereDate('p.NGAYNHAP', '<=', $to);
+                })
                 ->select(
                     'p.MAPN',
                     'p.NGAYNHAP',
@@ -321,31 +327,66 @@ class ReceiptController extends Controller
                     'u.name as NHANVIEN',
                     DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA), 0) as TONGTIEN')
                 )
-                ->groupBy('p.MAPN', 'p.NGAYNHAP', 'p.TRANGTHAI', 'n.TENNHACUNGCAP', 'u.name')
+                ->groupBy('p.MAPN', 'p.NGAYNHAP', 'p.TRANGTHAI', 'n.TENNHACUNGCAP', 'u.name', 'p.GHICHU') // Thêm p.GHICHU để tránh groupBy error nếu có trong index
                 ->orderBy('p.MAPN', 'asc');
 
-            $i = 0;
-            $query->chunk(1000, function ($rows) use (&$i, $out) {
+            // Debug: Log query SQL để kiểm tra
+            Log::info('Export CSV Query SQL: ' . $query->toSql());
+            Log::info('Export CSV Bindings: ' . json_encode($query->getBindings()));
+
+            // Lấy dữ liệu (sử dụng get() thay chunk để đơn giản và kiểm tra)
+            $rows = $query->get();
+
+            // Log số lượng rows
+            Log::info('Export CSV Rows Count: ' . $rows->count());
+
+            if ($rows->isEmpty()) {
+                // Nếu empty, vẫn xuất file với thông báo
+                $rows = collect([ (object) ['info' => 'Không có dữ liệu phù hợp với bộ lọc.'] ]);
+            }
+
+            $response = new StreamedResponse(function () use ($rows) {
+                echo "\xEF\xBB\xBF"; // UTF-8 BOM
+                $out = fopen('php://output', 'w');
+
+                // Header
+                fputcsv($out, ['STT', 'MÃ PN', 'Nhà cung cấp', 'Nhân viên', 'Ngày nhập', 'Trạng thái', 'Tổng tiền (đ)']);
+
+                $i = 0;
                 foreach ($rows as $r) {
                     $i++;
+                    if (isset($r->info)) {
+                        fputcsv($out, ['', '', '', '', '', $r->info, '']);
+                        break; // Chỉ 1 row thông báo
+                    }
                     fputcsv($out, [
                         $i,
-                        $r->MAPN,
-                        $r->TENNHACUNGCAP,
-                        $r->NHANVIEN,
-                        (string) \Carbon\Carbon::parse($r->NGAYNHAP)->format('d/m/Y H:i'),
-                        $r->TRANGTHAI,
-                        (float) $r->TONGTIEN,
+                        $r->MAPN ?? '',
+                        $r->TENNHACUNGCAP ?? '',
+                        $r->NHANVIEN ?? '',
+                        $r->NGAYNHAP ? \Carbon\Carbon::parse($r->NGAYNHAP)->format('d/m/Y H:i') : '',
+                        $r->TRANGTHAI ?? '',
+                        number_format((float) ($r->TONGTIEN ?? 0), 0, ',', '.') . ' ₫', // Format tiền trong CSV
                     ]);
                 }
+
+                fclose($out);
             });
 
-            fclose($out);
-        });
+            $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+            $response->headers->set('Content-Disposition', 'attachment; filename="' . $file . '"');
+            $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', '0');
 
-        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$file.'"');
+            return $response;
+        } catch (\Throwable $e) {
+            // Log exception chi tiết
+            Log::error('Export CSV Error: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
 
-        return $response;
+            // Redirect back với error cụ thể
+            return redirect()->route('staff.receipts.index', $request->only(['q', 'ncc', 'status', 'from', 'to']))
+                            ->with('error', 'Lỗi xuất file CSV: ' . $e->getMessage());
+        }
     }
 }

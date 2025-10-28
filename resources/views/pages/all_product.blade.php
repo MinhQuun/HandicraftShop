@@ -93,7 +93,7 @@
                 onclick="addToCart(this, '{{ $id }}')"
                 @if(!is_null($stock) && (int)$stock <= 0) disabled @endif
               >
-                Chọn Mua
+                <i class="fas fa-cart-plus"></i>Chọn Mua
               </button>
             </div>
           </div>
