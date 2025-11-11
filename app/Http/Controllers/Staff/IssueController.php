@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf; 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class IssueController extends Controller
@@ -44,7 +44,7 @@ class IssueController extends Controller
                 'k.HOTEN as KHACHHANG',
                 'k.MAKHACHHANG',
                 'u.name as NHANVIEN',
-                'p.TONGTIEN as TONGTIEN', // Sử dụng TONGTIEN đã lưu trong PHIEUXUAT
+                DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA), 0) as TONGTIEN'),
                 'km.MAKHUYENMAI',
                 'km.LOAIKHUYENMAI',
                 'km.GIAMGIA'
@@ -105,16 +105,16 @@ class IssueController extends Controller
             )
             ->get();
 
-        $subtotal = $details->sum(fn($d) => $d->THANHTIEN);
+        $subtotal       = $details->sum(fn($d) => $d->THANHTIEN);
         $discountAmount = $header->GIAMGIA > 0 ? $subtotal * ($header->GIAMGIA / 100) : 0;
-        $tongtien = $header->TONGTIEN; // Sử dụng TONGTIEN đã lưu trong PHIEUXUAT
+        $tongtien       = $subtotal - $discountAmount;
 
         return response()->json([
-            'header'   => $header,
-            'lines'    => $details,
-            'subtotal' => $subtotal,
+            'header'         => $header,
+            'lines'          => $details,
+            'subtotal'       => $subtotal,
             'discountAmount' => $discountAmount,
-            'TONGTIEN' => $tongtien,
+            'TONGTIEN'       => $tongtien,
         ]);
     }
 
@@ -205,7 +205,7 @@ class IssueController extends Controller
 
         // Tính tiền giảm nếu có khuyến mãi
         $discountAmount = $header->GIAMGIA > 0 ? $subtotal * ($header->GIAMGIA / 100) : 0;
-        $tongTien = $header->TONGTIEN; // Sử dụng TONGTIEN đã lưu trong PHIEUXUAT
+        $tongTien       = $subtotal - $discountAmount;
 
         $data = [
             'header' => $header,
@@ -234,11 +234,24 @@ class IssueController extends Controller
         $response = new StreamedResponse(function () use ($q, $customer, $status, $from, $to) {
             echo "\xEF\xBB\xBF"; // BOM for Excel
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['STT','MÃ PX','Khách hàng','Nhân viên','Ngày xuất','Khuyến mãi','Tổng trước KM (đ)','Tổng sau KM (đ)','Trạng thái']);
+
+            // Header CSV
+            fputcsv($out, [
+                'STT',
+                'MÃ PX',
+                'Khách hàng',
+                'Nhân viên',
+                'Ngày xuất',
+                'Khuyến mãi',
+                'Tổng trước KM (đ)',
+                'Tổng sau KM (đ)',
+                'Trạng thái',
+            ]);
 
             $query = DB::table('PHIEUXUAT as p')
                 ->join('KHACHHANG as k', 'k.MAKHACHHANG', '=', 'p.MAKHACHHANG')
                 ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
+                ->leftJoin('CT_PHIEUXUAT as ct', 'ct.MAPX', '=', 'p.MAPX')
                 ->leftJoin('KHUYENMAI as km', 'km.MAKHUYENMAI', '=', 'p.MAKHUYENMAI')
                 ->when($q, function ($query) use ($q) {
                     $like = "%{$q}%";
@@ -258,7 +271,16 @@ class IssueController extends Controller
                     'p.TRANGTHAI',
                     'k.HOTEN as KHACHHANG',
                     'u.name as NHANVIEN',
-                    'p.TONGTIEN',
+                    DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA), 0) as SUBTOTAL'),
+                    'km.LOAIKHUYENMAI',
+                    'km.GIAMGIA'
+                )
+                ->groupBy(
+                    'p.MAPX',
+                    'p.NGAYXUAT',
+                    'p.TRANGTHAI',
+                    'k.HOTEN',
+                    'u.name',
                     'km.LOAIKHUYENMAI',
                     'km.GIAMGIA'
                 )
@@ -268,10 +290,11 @@ class IssueController extends Controller
             $query->chunk(1000, function ($rows) use (&$i, $out) {
                 foreach ($rows as $r) {
                     $i++;
-                    $discount = $r->GIAMGIA ? (float)$r->GIAMGIA : 0;
-                    $totalAfter = (float) $r->TONGTIEN;
-                    $totalBefore = $totalAfter + ($discount > 0 ? $totalAfter * $discount / 100 : 0);
-                    $kmText = $r->LOAIKHUYENMAI ? ($r->LOAIKHUYENMAI . ' (' . $discount . '%)') : '';
+
+                    $totalBefore = (float) $r->SUBTOTAL;  // Tổng trước khuyến mãi
+                    $discount    = $r->GIAMGIA ? (float) $r->GIAMGIA : 0;
+                    $totalAfter  = $totalBefore - ($discount > 0 ? $totalBefore * $discount / 100 : 0);
+                    $kmText      = $r->LOAIKHUYENMAI ? ($r->LOAIKHUYENMAI . ' (' . $discount . '%)') : '';
 
                     fputcsv($out, [
                         $i,

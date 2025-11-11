@@ -12,12 +12,16 @@ use Throwable;
 class ChatbotController extends Controller
 {
     // Định nghĩa các "ý định" (intent) mà chatbot có thể hiểu
-    private const INTENT_PRICE   = 'GET_PRICE';
-    private const INTENT_STOCK   = 'GET_STOCK';
-    private const INTENT_CATEGORY = 'GET_CATEGORY_PRODUCTS';
-    private const INTENT_PROMO   = 'GET_PROMOTIONS';
-    private const INTENT_REVIEW  = 'GET_REVIEWS';
-    private const INTENT_GENERAL = 'GENERAL_AI'; // Ý định chung, sẽ dùng AI
+    private const INTENT_PRICE        = 'GET_PRICE';
+    private const INTENT_STOCK        = 'GET_STOCK';
+    private const INTENT_CATEGORY     = 'GET_CATEGORY_PRODUCTS';
+    private const INTENT_PROMO        = 'GET_PROMOTIONS';
+    private const INTENT_REVIEW       = 'GET_REVIEWS';
+    private const INTENT_PRICE_FILTER = 'GET_PRICE_FILTER';
+    private const INTENT_DESCRIPTION  = 'GET_DESCRIPTION';  // Mới: Mô tả sản phẩm
+    private const INTENT_SUGGESTIONS  = 'GET_SUGGESTIONS';  // Mới: Gợi ý sản phẩm tương tự
+    private const INTENT_SUPPLIER     = 'GET_SUPPLIER';     // Mới: Thông tin nhà cung cấp
+    private const INTENT_GENERAL      = 'GENERAL_AI';       // Ý định chung, sẽ dùng AI
 
     public function __invoke(Request $request): JsonResponse
     {
@@ -53,6 +57,18 @@ class ChatbotController extends Controller
             case self::INTENT_REVIEW:
                 $response = $this->handleReviewQuestion($keyword);
                 break;
+            case self::INTENT_PRICE_FILTER:
+                $response = $this->handlePriceFilterQuestion($message);
+                break;
+            case self::INTENT_DESCRIPTION:
+                $response = $this->handleDescriptionQuestion($keyword);
+                break;
+            case self::INTENT_SUGGESTIONS:
+                $response = $this->handleSuggestionsQuestion($keyword);
+                break;
+            case self::INTENT_SUPPLIER:
+                $response = $this->handleSupplierQuestion($keyword);
+                break;
         }
 
         // Nếu một "Fast Path" đã xử lý thành công, trả về ngay
@@ -85,7 +101,7 @@ class ChatbotController extends Controller
             return ($i + 1) . ". {$r->TENSANPHAM} — {$vnd}";
         })->implode("\n");
 
-        $intro = $keyword 
+        $intro = $keyword
             ? "Mình tìm thấy một số sản phẩm khớp với \"{$keyword}\":"
             : "Mình tìm thấy một số sản phẩm phù hợp:";
         $tail = "\n\nBạn có thể hỏi thêm về \"tồn kho\" hoặc \"đánh giá\" của sản phẩm này nhé.";
@@ -154,13 +170,41 @@ class ChatbotController extends Controller
 
         // 2. Hỏi về KM cho 1 sản phẩm cụ thể
         $product = $this->searchProducts($keyword, 1)->first();
-        if (!$product || (!$product->MAKHUYENMAI && !$product->KM_NHIEU)) {
+        if (!$product) {
+            return null; // Không tìm thấy, để AI xử lý
+        }
+
+        $promoIds = [];
+        if ($product->MAKHUYENMAI) {
+            $promoIds[] = $product->MAKHUYENMAI;
+        }
+
+        // Lấy từ bảng liên kết (nếu có nhiều KM)
+        $linkedPromos = DB::table('SANPHAM_KHUYENMAI')
+            ->where('MASANPHAM', $product->MASANPHAM)
+            ->pluck('MAKHUYENMAI')
+            ->toArray();
+
+        $promoIds = array_merge($promoIds, $linkedPromos);
+        $promoIds = array_unique($promoIds);
+
+        if (empty($promoIds)) {
             return response()->json(['reply' => "Sản phẩm \"{$product->TENSANPHAM}\" hiện không nằm trong chương trình khuyến mãi nào ạ."]);
         }
 
-        // (Code này giả định bạn có join để lấy tên KM, hoặc sẽ cần query thêm)
-        $reply = "Sản phẩm \"{$product->TENSANPHAM}\" đang được áp dụng ưu đãi. (Bạn cần query chi tiết KM từ MAKHUYENMAI)";
-        
+        // Lấy chi tiết KM
+        $promos = DB::table('KHUYENMAI')
+            ->whereIn('MAKHUYENMAI', $promoIds)
+            ->where('NGAYKETTHUC', '>', now())
+            ->get(['TENKHUYENMAI', 'GIAMGIA', 'LOAIKHUYENMAI']);
+
+        if ($promos->isEmpty()) {
+            return response()->json(['reply' => "Sản phẩm \"{$product->TENSANPHAM}\" hiện không có khuyến mãi đang hoạt động."]);
+        }
+
+        $lines = $promos->map(fn($p) => "- {$p->TENKHUYENMAI} (Giảm {$p->GIAMGIA}% - Loại: {$p->LOAIKHUYENMAI})")->implode("\n");
+        $reply = "Sản phẩm \"{$product->TENSANPHAM}\" đang được áp dụng các ưu đãi sau:\n" . $lines;
+
         return response()->json(['reply' => $reply]);
     }
 
@@ -186,15 +230,128 @@ class ChatbotController extends Controller
         $reviews = DB::table('DANHGIA')
             ->where('MASANPHAM', $product->MASANPHAM)
             ->orderBy('NGAYDANHGIA', 'desc')
-            ->limit(2)
+            ->limit(3)  // Tăng lên 3 để chi tiết hơn
             ->pluck('NHANXET');
-        
+
         $avg = number_format($stats->avg_rating, 1);
         $reply = "Sản phẩm \"{$product->TENSANPHAM}\" có {$stats->total} lượt đánh giá, với điểm trung bình là {$avg}/5 sao.";
-        
+
         if ($reviews->isNotEmpty()) {
             $reply .= "\nMột số đánh giá mới nhất:\n- " . $reviews->implode("\n- ");
         }
+
+        return response()->json(['reply' => $reply]);
+    }
+
+    /**
+     * Xử lý câu hỏi LỌC GIÁ (ví dụ: "dưới 100k")
+     */
+    private function handlePriceFilterQuestion(string $message): ?JsonResponse
+    {
+        [$operator, $price] = $this->parsePriceFromMessage($message);
+
+        // Nếu không bóc tách được giá hoặc toán tử, để AI lo
+        if ($operator === null || $price === null || $price === 0) {
+            return null;
+        }
+
+        $rows = DB::table('SANPHAM')
+            ->where('GIABAN', $operator, $price)
+            ->orderBy('GIABAN', $operator === '>=' ? 'asc' : 'desc') // Sắp xếp hợp lý
+            ->limit(5)
+            ->get(['TENSANPHAM', 'GIABAN']);
+
+        if ($rows->isEmpty()) {
+            $reply = "Dạ, mình không tìm thấy sản phẩm nào có giá " . $this->formatOperatorText($operator) . " " . number_format($price, 0, ',', '.') . " VND ạ.";
+            return response()->json(['reply' => $reply]);
+        }
+
+        $lines = $rows->map(function ($r, $i) {
+            $vnd = number_format((int) $r->GIABAN, 0, ',', '.') . ' VND';
+            return ($i + 1) . ". {$r->TENSANPHAM} — {$vnd}";
+        })->implode("\n");
+
+        $intro = "Dạ, đây là các sản phẩm có giá " . $this->formatOperatorText($operator) . " " . number_format($price, 0, ',', '.') . " VND mình tìm thấy:";
+        return response()->json(['reply' => $intro . "\n" . $lines]);
+    }
+
+    /**
+     * Xử lý câu hỏi về MÔ TẢ SẢN PHẨM (Mới)
+     */
+    private function handleDescriptionQuestion(string $keyword): ?JsonResponse
+    {
+        $product = $this->searchProducts($keyword, 1)->first();
+        if (!$product) {
+            return null;
+        }
+
+        $desc = Str::limit($product->MOTA, 300); // Giới hạn để ngắn gọn
+        $reply = "Dạ, mô tả chi tiết về sản phẩm \"{$product->TENSANPHAM}\":\n{$desc}";
+
+        // Thêm thông tin loại và danh mục để chi tiết hơn
+        $category = DB::table('LOAI as l')
+            ->join('DANHMUCSANPHAM as dm', 'l.MADANHMUC', '=', 'dm.MADANHMUC')
+            ->where('l.MALOAI', $product->MALOAI)
+            ->select('l.TENLOAI', 'dm.TENDANHMUC')
+            ->first();
+
+        if ($category) {
+            $reply .= "\n\nThuộc loại: {$category->TENLOAI} (Danh mục: {$category->TENDANHMUC})";
+        }
+
+        return response()->json(['reply' => $reply]);
+    }
+
+    /**
+     * Xử lý câu hỏi về GỢI Ý SẢN PHẨM (Mới: Gợi ý sản phẩm tương tự)
+     */
+    private function handleSuggestionsQuestion(string $keyword): ?JsonResponse
+    {
+        $product = $this->searchProducts($keyword, 1)->first();
+        if (!$product) {
+            return null;
+        }
+
+        // Gợi ý sản phẩm cùng loại hoặc danh mục
+        $suggestions = DB::table('SANPHAM')
+            ->where('MALOAI', $product->MALOAI)
+            ->where('MASANPHAM', '!=', $product->MASANPHAM)
+            ->limit(3)
+            ->get(['TENSANPHAM', 'GIABAN']);
+
+        if ($suggestions->isEmpty()) {
+            return response()->json(['reply' => "Dạ, hiện tại mình chưa tìm thấy sản phẩm tương tự với \"{$product->TENSANPHAM}\"."]);
+        }
+
+        $lines = $suggestions->map(function ($r, $i) {
+            $vnd = number_format((int) $r->GIABAN, 0, ',', '.') . ' VND';
+            return ($i + 1) . ". {$r->TENSANPHAM} — {$vnd}";
+        })->implode("\n");
+
+        $intro = "Dựa trên sản phẩm \"{$product->TENSANPHAM}\", mình gợi ý một số sản phẩm tương tự:";
+        return response()->json(['reply' => $intro . "\n" . $lines]);
+    }
+
+    /**
+     * Xử lý câu hỏi về NHÀ CUNG CẤP (Mới)
+     */
+    private function handleSupplierQuestion(string $keyword): ?JsonResponse
+    {
+        $product = $this->searchProducts($keyword, 1)->first();
+        if (!$product || !$product->MANHACUNGCAP) {
+            return null;
+        }
+
+        $supplier = DB::table('NHACUNGCAP')
+            ->where('MANHACUNGCAP', $product->MANHACUNGCAP)
+            ->first(['TENNHACUNGCAP', 'DTHOAI', 'DIACHI']);
+
+        if (!$supplier) {
+            return response()->json(['reply' => "Sản phẩm \"{$product->TENSANPHAM}\" chưa có thông tin nhà cung cấp."]);
+        }
+
+        $reply = "Sản phẩm \"{$product->TENSANPHAM}\" được cung cấp bởi: {$supplier->TENNHACUNGCAP}.\n";
+        $reply .= "Liên hệ: {$supplier->DTHOAI}\nĐịa chỉ: {$supplier->DIACHI}";
 
         return response()->json(['reply' => $reply]);
     }
@@ -206,7 +363,7 @@ class ChatbotController extends Controller
     private function callGeminiAI(string $message): JsonResponse
     {
         $apiKey = config('services.gemini.api_key');
-        $model  = config('services.gemini.model', 'gemini-2.0-flash'); // Hoặc 1.5
+        $model  = config('services.gemini.model', 'gemini-1.5-flash'); // Nâng cấp model nếu cần
         $base   = rtrim(config('services.gemini.endpoint', 'https://generativelanguage.googleapis.com/v1beta/models'), '/');
         if (empty($apiKey)) {
             return response()->json(['message' => 'Chưa cấu hình GEMINI_API_KEY.'], 503);
@@ -218,11 +375,12 @@ class ChatbotController extends Controller
         $context = $this->buildDynamicContext($message);
 
         // ===== BƯỚC 2: BỔ SUNG (AUGMENT) =====
-        $persona = "Bạn là trợ lý AI của HandicraftShop. Luôn trả lời bằng tiếng Việt, ngắn gọn, thân thiện. 
-                    Khi người dùng hỏi giá/tên sản phẩm/thông tin, ưu tiên trả lời theo DANH MỤC NỘI BỘ (bên dưới). 
+        $persona = "Bạn là trợ lý AI của HandicraftShop. Luôn trả lời bằng tiếng Việt, ngắn gọn, thân thiện.
+                    Khi người dùng hỏi giá/tên sản phẩm/thông tin, ưu tiên trả lời theo DANH MỤC NỘI BỘ (bên dưới).
                     Nếu không tìm thấy, hãy nói lịch sự là chưa có dữ liệu.
-                    Luôn định dạng tiền tệ theo VND (dùng dấu . cho hàng nghìn).";
-        
+                    Luôn định dạng tiền tệ theo VND (dùng dấu . cho hàng nghìn).
+                    Gợi ý thêm sản phẩm liên quan nếu phù hợp.";
+
         $fullContext = "DANH MỤC NỘI BỘ (dữ liệu tham khảo):\n" . $context;
 
         $payload = [
@@ -282,39 +440,65 @@ class ChatbotController extends Controller
     // =========================================================
 
     /**
-     * Nhận diện ý định của người dùng (bằng từ khóa)
+     * Nhận diện ý định của người dùng (cải tiến với nhiều keywords và regex)
      */
     private function detectIntent(string $message): string
     {
         $lower = Str::lower($message);
 
-        if (Str::contains($lower, ['còn hàng', 'còn không', 'tồn kho', 'so luong ton'])) {
+        // Cải tiến: Sử dụng regex để chính xác hơn
+        if (preg_match('/(còn hàng|còn không|tồn kho|số lượng|so luong ton|stock)/iu', $lower)) {
             return self::INTENT_STOCK;
         }
-        if (Str::contains($lower, ['giá', 'gia tien', 'bao nhiêu tiền', 'bao nhieu', 'price', 'cost'])) {
+
+        // Ưu tiên lọc giá
+        if (preg_match('/(dưới|trên|khoảng|từ|thấp hơn|cao hơn)\s+([0-9,.]+\s*(k|ngàn|nghìn|triệu))|([0-9,.]+\s*(k|ngàn|nghìn|triệu))\s*(trở\s*xuống|trở\s*lên)/iu', $lower)) {
+            return self::INTENT_PRICE_FILTER;
+        }
+
+        if (preg_match('/(giá|gia tien|bao nhiêu tiền|bao nhieu|price|cost)/iu', $lower)) {
             return self::INTENT_PRICE;
         }
-        if (Str::contains($lower, ['đánh giá', 'review', 'tốt không', 'chất lượng', 'co ben khong'])) {
+
+        if (preg_match('/(đánh giá|review|tốt không|chất lượng|co ben khong|nhận xét)/iu', $lower)) {
             return self::INTENT_REVIEW;
         }
-        if (Str::contains($lower, ['khuyến mãi', 'giam gia', 'sale', 'ưu đãi', 'khuyen mai'])) {
+
+        if (preg_match('/(khuyến mãi|giam gia|sale|ưu đãi|khuyen mai|promo)/iu', $lower)) {
             return self::INTENT_PROMO;
         }
-        if (Str::contains($lower, ['danh mục', 'loại nào', 'có bán', 'các loại', 'thuoc nhom'])) {
+
+        if (preg_match('/(danh mục|danh muc|loại|loai|nhóm|nhom|có bán|các loại|thuoc nhom)/iu', $lower)) {
             return self::INTENT_CATEGORY;
+        }
+
+        // Intent mới
+        if (preg_match('/(mô tả|chi tiết|thông tin|description|detail)/iu', $lower)) {
+            return self::INTENT_DESCRIPTION;
+        }
+
+        if (preg_match('/(gợi ý|tương tự|recommend|suggest|lien quan)/iu', $lower)) {
+            return self::INTENT_SUGGESTIONS;
+        }
+
+        if (preg_match('/(nhà cung cấp|nha cung cap|supplier|nguồn gốc|nguon goc)/iu', $lower)) {
+            return self::INTENT_SUPPLIER;
         }
 
         return self::INTENT_GENERAL;
     }
 
     /**
-     * Trích xuất từ khóa SẢN PHẨM (tên SP)
+     * Trích xuất từ khóa SẢN PHẨM (cải tiến để xử lý tiếng Việt tốt hơn)
      */
     private function extractProductKeyword(string $msg): ?string
     {
+        // Bỏ dấu để dễ match (optional, nếu cần)
+        $normalized = $this->removeAccents($msg);
+
         // Lấy cụm sau các từ khóa "sản phẩm", "túi", "thảm", "giá của", "tồn kho của"...
         $m = [];
-        if (preg_match('/(?:sản phẩm|san pham|túi|tui|thảm|tham|giá của|tồn kho của|đánh giá cho)\s+([A-Za-zÀ-ỹ0-9\s\-]+)/iu', $msg, $m)) {
+        if (preg_match('/(?:sản phẩm|san pham|túi|tui|thảm|tham|giá của|tồn kho của|đánh giá cho|mô tả của|gợi ý cho|nhà cung cấp của)\s+([A-Za-z0-9\s\-]+)/iu', $normalized, $m)) {
             return trim($m[1]);
         }
         return null;
@@ -343,23 +527,22 @@ class ChatbotController extends Controller
      */
     private function searchProducts(string $keyword, int $limit = 10)
     {
-        // Chuyển đổi keyword cho FTS (ví dụ: "túi cói" -> "+túi +cói*")
-        $ftsKeyword = Str::of($keyword)->squish()->explode(' ')
+        // Cải tiến: Bỏ dấu cho keyword để match tốt hơn
+        $normalizedKeyword = $this->removeAccents($keyword);
+
+        // Chuyển đổi keyword cho FTS (ví dụ: "túi cói" -> "+tui +coi*")
+        $ftsKeyword = Str::of($normalizedKeyword)->squish()->explode(' ')
             ->map(fn($word) => '+' . $word) // Bắt buộc phải có
             ->implode(' ');
-        
-        // Thêm * vào từ cuối cùng để tìm kiếm khớp 1 phần (ví dụ: "túi c" -> "+túi +c*")
+
+        // Thêm * vào từ cuối cùng để tìm kiếm khớp 1 phần (ví dụ: "túi c" -> "+tui +c*")
         if (strlen($ftsKeyword) > 2) {
             $ftsKeyword .= '*';
         }
 
         return DB::table('SANPHAM')
-            ->select(['MASANPHAM','TENSANPHAM','GIABAN', 'SOLUONGTON', 'MOTA', 'MAKHUYENMAI'])
-            // (Tùy chọn) Join để lấy thông tin KM M-M
-            // ->leftJoin('SANPHAM_KHUYENMAI as spkm', 'SANPHAM.MASANPHAM', '=', 'spkm.MASANPHAM')
-            // ->addSelect(DB::raw('GROUP_CONCAT(spkm.MAKHUYENMAI) as KM_NHIEU'))
+            ->select(['MASANPHAM','TENSANPHAM','GIABAN', 'SOLUONGTON', 'MOTA', 'MALOAI', 'MAKHUYENMAI', 'MANHACUNGCAP'])
             ->whereRaw('MATCH(TENSANPHAM, MOTA) AGAINST(? IN BOOLEAN MODE)', [$ftsKeyword])
-            // ->groupBy('SANPHAM.MASANPHAM') // Bỏ group nếu không join M-M
             ->limit($limit)
             ->get();
     }
@@ -386,14 +569,66 @@ class ChatbotController extends Controller
     {
         return DB::table('KHUYENMAI')
             ->where('NGAYKETTHUC', '>', now())
-            // ->where('NGAYBATDAU', '<=', now()) // (Tùy chọn nếu muốn KM bắt đầu trong tương lai)
             ->select('TENKHUYENMAI', 'GIAMGIA', 'LOAIKHUYENMAI')
             ->limit($limit)
             ->get();
     }
 
+    // ===== CÁC HÀM HELPER MỚI ĐƯỢC THÊM =====
+
     /**
-     * Xây dựng ngữ cảnh động (dynamic context) cho RAG
+     * Bóc tách giá và toán tử từ một tin nhắn
+     * @return array [?string $operator, ?int $price]
+     */
+    private function parsePriceFromMessage(string $message): array
+    {
+        $lower = Str::lower($message);
+        $price = 0;
+        $operator = null;
+
+        // 1. Trích xuất con số (100, 100k, 100.000)
+        if (preg_match('/([0-9,.]+)/', $lower, $matches)) {
+            $numberStr = str_replace(['.', ','], '', $matches[1]);
+            $price = (int) $numberStr;
+        } else {
+            return [null, null]; // Không tìm thấy số
+        }
+
+        // 2. Điều chỉnh giá trị (k, ngàn, triệu)
+        if (Str::contains($lower, ['k', 'ngàn', 'nghìn'])) {
+            $price *= 1000;
+        } elseif (Str::contains($lower, 'triệu')) {
+            $price *= 1000000;
+        }
+
+        // 3. Xác định toán tử
+        if (Str::contains($lower, ['dưới', 'nhỏ hơn', 'trở xuống', '<'])) {
+            $operator = '<=';
+        } elseif (Str::contains($lower, ['trên', 'lớn hơn', 'trở lên', '>'])) {
+            $operator = '>=';
+        } else {
+             $operator = '<='; // Mặc định nếu chỉ nói "100k" -> hiểu là "dưới 100k"
+        }
+
+        return [$operator, $price];
+    }
+
+    /**
+     * Chuyển toán tử thành text tiếng Việt
+     */
+    private function formatOperatorText(string $operator): string
+    {
+        return match ($operator) {
+            '<=' => 'dưới hoặc bằng',
+            '>=' => 'trên hoặc bằng',
+            '<' => 'dưới',
+            '>' => 'trên',
+            default => 'bằng',
+        };
+    }
+
+    /**
+     * Xây dựng ngữ cảnh động (dynamic context) cho RAG (Cải tiến: Thêm nhiều info hơn)
      */
     private function buildDynamicContext(string $message): string
     {
@@ -405,30 +640,72 @@ class ChatbotController extends Controller
             $contextLines[] = "Các danh mục sản phẩm của shop: " . $categories->implode(', ') . ".";
         }
 
-        // 2. Tìm các sản phẩm liên quan đến câu hỏi
-        $products = $this->searchProducts($message, 3); // Lấy 3 SP liên quan nhất
+        // 2. Lấy tất cả loại (chi tiết hơn)
+        $types = DB::table('LOAI')->pluck('TENLOAI');
+        if ($types->isNotEmpty()) {
+            $contextLines[] = "Các loại sản phẩm: " . $types->implode(', ') . ".";
+        }
+
+        // 3. Tìm các sản phẩm liên quan đến câu hỏi
+        $products = $this->searchProducts($message, 5); // Tăng lên 5 để chi tiết hơn
         if ($products->isNotEmpty()) {
             $contextLines[] = "\nThông tin các sản phẩm LIÊN QUAN đến câu hỏi:";
             foreach ($products as $p) {
                 $price = number_format((int) $p->GIABAN, 0, ',', '.') . ' VND';
                 $stock = $p->SOLUONGTON > 0 ? "Còn hàng ({$p->SOLUONGTON})" : "Hết hàng";
                 $desc = Str::limit($p->MOTA, 150); // Giới hạn mô tả
-                
+
                 $contextLines[] = "- Tên: {$p->TENSANPHAM}\n  Giá: {$price}\n  Tồn kho: {$stock}\n  Mô tả: {$desc}";
 
-                // (Tùy chọn) Lấy 1-2 review cho sản phẩm này
+                // Lấy 1-2 review cho sản phẩm này
                 $reviews = DB::table('DANHGIA')
                     ->where('MASANPHAM', $p->MASANPHAM)
                     ->orderBy('DIEMSO', 'desc')
-                    ->limit(1)->pluck('NHANXET');
+                    ->limit(2)->pluck('NHANXET');
                 if ($reviews->isNotEmpty()) {
-                    $contextLines[] = "  Đánh giá nổi bật: " . $reviews->first();
+                    $contextLines[] = "  Đánh giá nổi bật: " . $reviews->implode(' | ');
+                }
+
+                // Lấy KM nếu có
+                if ($p->MAKHUYENMAI) {
+                    $promo = DB::table('KHUYENMAI')->where('MAKHUYENMAI', $p->MAKHUYENMAI)->first(['TENKHUYENMAI', 'GIAMGIA']);
+                    if ($promo) {
+                        $contextLines[] = "  Khuyến mãi: {$promo->TENKHUYENMAI} (Giảm {$promo->GIAMGIA}%)";
+                    }
                 }
             }
         } else {
             $contextLines[] = "\nKhông tìm thấy sản phẩm nào khớp với \"{$message}\" trong cơ sở dữ liệu.";
         }
 
+        // 4. Thêm khuyến mãi đang hoạt động
+        $promos = $this->searchActivePromotions(3);
+        if ($promos->isNotEmpty()) {
+            $contextLines[] = "\nCác khuyến mãi đang hoạt động: " . $promos->map(fn($p) => "{$p->TENKHUYENMAI} (Giảm {$p->GIAMGIA}%)")->implode(', ') . ".";
+        }
+
         return implode("\n", $contextLines);
+    }
+
+    /**
+     * Helper: Bỏ dấu tiếng Việt để match keyword tốt hơn
+     */
+    private function removeAccents(string $str): string
+    {
+        $str = preg_replace('/(à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ắ|ắ|ặ|ẳ|ẵ)/', 'a', $str);
+        $str = preg_replace('/(è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ)/', 'e', $str);
+        $str = preg_replace('/(ì|í|ị|ỉ|ĩ)/', 'i', $str);
+        $str = preg_replace('/(ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ)/', 'o', $str);
+        $str = preg_replace('/(ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ)/', 'u', $str);
+        $str = preg_replace('/(ỳ|ý|ỵ|ỷ|ỹ)/', 'y', $str);
+        $str = preg_replace('/(đ)/', 'd', $str);
+        $str = preg_replace('/(À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ)/', 'A', $str);
+        $str = preg_replace('/(È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ)/', 'E', $str);
+        $str = preg_replace('/(Ì|Í|Ị|Ỉ|Ĩ)/', 'I', $str);
+        $str = preg_replace('/(Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ)/', 'O', $str);
+        $str = preg_replace('/(Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ)/', 'U', $str);
+        $str = preg_replace('/(Ỳ|Ý|Ỵ|Ỷ|Ỹ)/', 'Y', $str);
+        $str = preg_replace('/(Đ)/', 'D', $str);
+        return $str;
     }
 }
