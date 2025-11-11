@@ -21,20 +21,8 @@
       <h2 class="card-title"><i class="fa-regular fa-envelope"></i> Gửi tin nhắn</h2>
 
       {{-- Hiển thị thông báo thành công --}}
-      @if (session('success'))
-        <div class="alert success">
-          <i class="fa-regular fa-circle-check"></i>
-          {{ session('success') }}
-        </div>
-      @endif
 
       {{-- Hiển thị lỗi validate --}}
-      @if ($errors->any())
-        <div class="alert error">
-          <i class="fa-regular fa-circle-xmark"></i>
-          Vui lòng kiểm tra lại các trường bên dưới.
-        </div>
-      @endif
 
       <form method="post" action="{{ route('contact.submit') }}" class="contact-form" novalidate>
         @csrf

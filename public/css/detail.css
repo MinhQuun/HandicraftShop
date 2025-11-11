@@ -169,6 +169,18 @@
     box-shadow: 0 8px 18px rgba(41, 37, 36, 0.16);
 }
 
+.add-to-cart-btn.is-added {
+    border-color: var(--moss);
+    background: linear-gradient(135deg, #6a8f55, #4f6b3c);
+    box-shadow: 0 12px 26px rgba(76, 92, 60, 0.25);
+}
+
+.add-to-cart-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 /* nút Back (Trở lại danh sách) */
 .back-btn {
     display: inline-flex;

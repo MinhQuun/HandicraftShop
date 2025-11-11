@@ -17,6 +17,45 @@ function getDataset(key, fallback = "") {
     const v = el.dataset[key] ?? "";
     return v;
 }
+
+function notify(options = {}) {
+    const payload = {
+        type: options.type || "info",
+        title: options.title || "Thông báo",
+        message: options.message || "",
+        duration: options.duration || 4200,
+    };
+    if (window.showToast) {
+        window.showToast(payload);
+    } else if (payload.message) {
+        alert(payload.message);
+    }
+}
+
+const escapeAttr = window.CSS?.escape
+    ? window.CSS.escape
+    : (value) => String(value).replace(/["\\]/g, "\\$&");
+
+function fallbackMarkButtons(productId, added, defaultText, addedText) {
+    const selector = `[data-product-id="${escapeAttr(productId)}"]`;
+    document.querySelectorAll(selector).forEach((btn) => {
+        const baseText = defaultText || btn.dataset.defaultText || "Chọn mua";
+        const inCartText =
+            addedText || btn.dataset.addedText || "Đã trong giỏ hàng";
+        btn.classList.toggle("is-added", added);
+        btn.dataset.inCart = added ? "1" : "0";
+        btn.textContent = added ? inCartText : baseText;
+    });
+}
+
+function markCartButtons(productId, added, defaultText, addedText) {
+    const helper = window.cartButtonHelper;
+    if (helper?.mark) {
+        helper.mark(productId, added);
+        return;
+    }
+    fallbackMarkButtons(productId, added, defaultText, addedText);
+}
 function getStockMax() {
     const ds = getDataset("stock", "");
     if (ds !== "" && !Number.isNaN(Number(ds))) return Number(ds);
@@ -153,17 +192,22 @@ async function addToCart() {
 
     const url = cartAddUrl();
     if (!url) {
-        alert("Thiếu cấu hình cartAddUrl.");
+        notify({ type: "error", message: "Thiếu cấu hình cartAddUrl." });
         return;
     }
 
-    // Mã SP lấy từ view form (an toàn: dùng dataset trên form review nếu có)
-    // Nếu không có form review, suy luận từ URL cuối (chuẩn route /sp/{MASP})
     let masp = wrapEl()?.querySelector("#create-review-form")?.dataset?.masp;
     if (!masp) {
         const parts = window.location.pathname.split("/").filter(Boolean);
         masp = parts[parts.length - 1] || "";
     }
+
+    const defaultText =
+        btn?.dataset.defaultText || btn?.textContent?.trim() || "Chọn mua";
+    const addedText = btn?.dataset.addedText || "Đã trong giỏ hàng";
+    const helper = window.cartButtonHelper;
+    const previouslyAdded =
+        helper?.isInCart?.(masp) || btn?.dataset.inCart === "1";
 
     try {
         addBusy = true;
@@ -198,7 +242,14 @@ async function addToCart() {
             throw new Error(msg);
         }
 
-        alert(data.message || "Đã thêm vào giỏ!");
+        markCartButtons(masp, true, defaultText, addedText);
+
+        notify({
+            type: "success",
+            title: "Đã thêm vào giỏ hàng",
+            message: data.message || "Sản phẩm đã có trong giỏ hàng của bạn.",
+        });
+
         if (typeof data.cart_count !== "undefined") {
             const badge = document.getElementById("cart-count");
             if (badge) badge.textContent = data.cart_count;
@@ -206,13 +257,22 @@ async function addToCart() {
         if (data.redirect) window.location.href = data.redirect;
     } catch (err) {
         console.error(err);
-        alert(err?.message || "Thêm vào giỏ thất bại. Vui lòng thử lại.");
+        notify({
+            type: "error",
+            title: "Thêm vào giỏ thất bại",
+            message: err?.message || "Vui lòng thử lại sau ít phút.",
+        });
+        if (!previouslyAdded) {
+            markCartButtons(masp, false, defaultText, addedText);
+        }
     } finally {
         addBusy = false;
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = btn.dataset._text || "Chọn mua";
             btn.removeAttribute("aria-busy");
+            const inCart =
+                helper?.isInCart?.(masp) || btn.dataset.inCart === "1";
+            btn.innerHTML = inCart ? addedText : defaultText;
         }
     }
 }
@@ -230,7 +290,7 @@ async function submitReview() {
     const masp = form.dataset.masp || "";
     const url = reviewCreateUrl();
     if (!url) {
-        alert("Thiếu cấu hình reviewCreateUrl.");
+        notify({ type: "error", message: "Thiếu cấu hình reviewCreateUrl." });
         return;
     }
 
@@ -250,13 +310,21 @@ async function submitReview() {
         } catch {}
         if (!res.ok) throw new Error(data.message || `Lỗi ${res.status}`);
 
-        alert(data.message || "Đã gửi đánh giá.");
+        notify({
+            type: "success",
+            title: "Đã gửi đánh giá",
+            message: data.message || "Cảm ơn bạn đã chia sẻ cảm nhận!",
+        });
         const href =
             window.location.pathname + window.location.search + "#reviews";
         window.location.replace(href);
         window.location.reload();
     } catch (e) {
-        alert(e?.message || "Gửi đánh giá thất bại.");
+        notify({
+            type: "error",
+            title: "Không thể gửi đánh giá",
+            message: e?.message || "Vui lòng thử lại sau ít phút.",
+        });
     }
 }
 /* ================ STAR RATING  ================ */
@@ -273,7 +341,7 @@ async function submitReview() {
             // tô đầy <= điểm, để rỗng > điểm
             el.classList.toggle("fas", s <= n); // filled
             el.classList.toggle("far", s > n); // outline
-            el.classList.toggle('active', s <= n);
+            el.classList.toggle("active", s <= n);
         });
     }
 

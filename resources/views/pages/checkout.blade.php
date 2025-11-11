@@ -19,20 +19,6 @@
 
         <h2 class="checkout-title">THÔNG TIN ĐẶT HÀNG</h2>
 
-        @if (session('error'))
-            <div class="alert warn"><i class="fas fa-exclamation-triangle"></i> <strong>Lỗi:</strong> {{ session('error') }}</div>
-        @endif
-        @if ($errors->any())
-            <div class="alert warn">
-                <i class="fas fa-exclamation-triangle"></i> <strong>Vui lòng kiểm tra:</strong>
-                <ul>
-                    @foreach ($errors->all() as $err)
-                        <li>{{ $err }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
         <div class="row g-4">
             <div class="col-lg-6">
                 <div class="checkout-summary card">

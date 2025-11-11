@@ -20,7 +20,7 @@ class CartController extends Controller
         session(['cart' => $cart]);
     }
 
-    /** 
+    /**
      * Lấy tổng số sản phẩm khác nhau trong giỏ (dùng cho icon cart)
      * -> Mỗi sản phẩm chỉ +1 lần dù SOLUONG bao nhiêu
      */
@@ -149,20 +149,26 @@ class CartController extends Controller
     public function remove(Request $r, string $id)
     {
         $cart = $this->getCart();
+        $removedName = null;
 
         if (isset($cart[$id])) {
+            $removedName = $cart[$id]['TENSANPHAM'] ?? null;
             unset($cart[$id]);
             $this->putCart($cart);
         }
 
-        return back();
+        $message = $removedName
+            ? 'Đã xóa ' . $removedName . ' khỏi giỏ hàng!'
+            : 'Đã xóa sản phẩm khỏi giỏ hàng!';
+
+        return back()->with('info', $message);
     }
 
     /** Trang checkout (mock) */
     public function checkout()
     {
         if (empty($this->getCart())) {
-            return redirect()->route('cart')->with('message', 'Giỏ hàng trống.');
+            return redirect()->route('cart')->with('warning', 'Giỏ hàng trống.');
         }
 
         return view('pages.checkout');

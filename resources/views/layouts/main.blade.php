@@ -21,8 +21,13 @@
 
   <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
   <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/toast.css') }}">
   <link rel="stylesheet" href="{{ asset('css/chatbot.css') }}">
   @stack('styles')
+
+  <script>
+    window.initialCartItems = @json(array_map('strval', array_keys(session('cart', []))));
+  </script>
 
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -45,6 +50,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 
+  <script src="{{ asset('js/cart-buttons.js') }}" defer></script>
   <script src="{{ asset('js/script.js') }}" defer></script>
   <script src="{{ asset('js/auth.js') }}" defer></script>
   <script src="{{ asset('js/flash.js') }}" defer></script>

@@ -112,7 +112,7 @@ class OrderController extends Controller
     public function create()
     {
         $cart = $this->getCart();
-        if (empty($cart)) return redirect()->route('cart')->with('message', 'Giỏ hàng trống.');
+        if (empty($cart)) return redirect()->route('cart')->with('warning', 'Giỏ hàng trống.');
 
         // Tạm thời dùng GIABAN gốc, CHƯA áp KM theo sản phẩm (sẽ làm sau)
         $items = collect($cart)->map(function ($item, $id) {
@@ -131,7 +131,7 @@ class OrderController extends Controller
             return $p && $p->SOLUONGTON >= (int)$item['SOLUONG'];
         });
         $this->putCart($items->toArray());
-        if ($items->isEmpty()) return redirect()->route('cart')->with('message', 'Giỏ hàng trống sau khi kiểm tra tồn kho.');
+        if ($items->isEmpty()) return redirect()->route('cart')->with('warning', 'Giỏ hàng trống sau khi kiểm tra tồn kho.');
 
         $totalQty = $items->sum('SOLUONG');
         $voucher  = session('voucher'); // mảng chuẩn hoá
@@ -217,7 +217,7 @@ class OrderController extends Controller
         ]);
 
         $cart = $this->getCart();
-        if (empty($cart)) return redirect()->route('cart')->with('message', 'Giỏ hàng trống.');
+        if (empty($cart)) return redirect()->route('cart')->with('warning', 'Giỏ hàng trống.');
 
         DB::beginTransaction();
         try {

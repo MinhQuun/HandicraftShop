@@ -18,13 +18,6 @@
 
     <h2 class="cart-title">THÔNG TIN GIỎ HÀNG</h2>
 
-    {{-- Thông báo --}}
-    @if (session('message'))
-      <div class="alert warn">
-        <strong>Thông báo:</strong>&nbsp;{{ session('message') }}
-      </div>
-    @endif
-
     {{-- Bảng giỏ hàng --}}
     <table class="cart-table">
       <thead class="cart-thead">
