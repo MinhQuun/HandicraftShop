@@ -67,6 +67,9 @@ Route::get('/lien-he',  [ContactController::class, 'show'])->name('contact.form'
 Route::post('/lien-he', [ContactController::class, 'submit'])->name('contact.submit');
 
 // Chatbot AI hỗ trợ khách hàng (rate limit)
+Route::get('/chatbot/history', [ChatbotController::class, 'history'])
+    ->name('chatbot.history')
+    ->middleware('throttle:60,1');
 Route::post('/chatbot/query', ChatbotController::class)
     ->name('chatbot.send')
     ->middleware('throttle:20,1');

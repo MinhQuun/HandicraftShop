@@ -10,14 +10,31 @@
         const messages = widget.querySelector("[data-hc-chatbot-messages]");
         const status = widget.querySelector("[data-hc-chatbot-status]");
         const submitBtn = widget.querySelector("[data-hc-chatbot-submit]");
-        const endpoint = widget.getAttribute("data-hc-chatbot-endpoint");
         const scrollBtn = widget.querySelector(
             "[data-hc-chatbot-scroll-bottom]"
         );
+        const endpoint = widget.getAttribute("data-hc-chatbot-endpoint");
+        const historyEndpoint = widget.getAttribute("data-hc-chatbot-history");
         const csrfMeta = document.querySelector('meta[name="csrf-token"]');
         const csrfToken = csrfMeta ? csrfMeta.getAttribute("content") : "";
 
-        if (!endpoint) return;
+        if (!endpoint || !form || !input || !submitBtn || !messages) {
+            return;
+        }
+
+        const STORAGE_SESSION_KEY = "hc_chatbot_session";
+        const STORAGE_HISTORY_KEY = "hc_chatbot_history_cache";
+        const HISTORY_LIMIT = 50;
+        const HISTORY_TTL_MS = 1000 * 60 * 60 * 12;
+
+        const initialMessagesTemplate = messages.innerHTML;
+        let defaultMessage = messages.querySelector(
+            "[data-hc-chatbot-default]"
+        );
+        let sessionToken = localStorage.getItem(STORAGE_SESSION_KEY) || "";
+        let historyState = [];
+        let isSubmitting = false;
+        let isLoadingHistory = false;
 
         const atBottom = () =>
             Math.abs(
@@ -33,16 +50,85 @@
             });
         };
 
+        const restoreDefaultMessage = () => {
+            messages.innerHTML = initialMessagesTemplate;
+            defaultMessage = messages.querySelector(
+                "[data-hc-chatbot-default]"
+            );
+        };
+
         const updateScrollButton = () => {
             if (!scrollBtn) return;
-            if (atBottom()) scrollBtn.classList.remove("is-visible");
-            else scrollBtn.classList.add("is-visible");
+            if (atBottom()) {
+                scrollBtn.classList.remove("is-visible");
+            } else {
+                scrollBtn.classList.add("is-visible");
+            }
         };
+
         messages.addEventListener("scroll", updateScrollButton);
         scrollBtn?.addEventListener("click", () => scrollToBottom(true));
 
-        const appendMessage = (text, author) => {
+        const setStatus = (text) => {
+            if (status) {
+                status.textContent = typeof text === "string" ? text : "";
+            }
+        };
+
+        const saveSessionToken = (token, expiresAt) => {
+            if (!token) return;
+            sessionToken = token;
+            localStorage.setItem(STORAGE_SESSION_KEY, token);
+            if (expiresAt) {
+                widget.setAttribute("data-hc-chatbot-expires", expiresAt);
+            }
+        };
+
+        const persistHistoryCache = (expiresAtOverride) => {
+            if (!historyState.length) {
+                localStorage.removeItem(STORAGE_HISTORY_KEY);
+                return;
+            }
+            const expiresAt =
+                expiresAtOverride ||
+                widget.getAttribute("data-hc-chatbot-expires") ||
+                new Date(Date.now() + HISTORY_TTL_MS).toISOString();
+            try {
+                localStorage.setItem(
+                    STORAGE_HISTORY_KEY,
+                    JSON.stringify({
+                        expiresAt,
+                        messages: historyState.slice(-HISTORY_LIMIT),
+                    })
+                );
+            } catch (error) {
+                console.error("Chatbot cache save error", error);
+            }
+        };
+
+        const pushHistoryRecord = (entry, { persist = true } = {}) => {
+            historyState.push(entry);
+            if (historyState.length > HISTORY_LIMIT) {
+                historyState = historyState.slice(-HISTORY_LIMIT);
+            }
+            if (persist) {
+                persistHistoryCache();
+            }
+        };
+
+        const appendMessage = (
+            text,
+            author,
+            createdAt = null,
+            options = {}
+        ) => {
             if (!text) return;
+
+            if (defaultMessage) {
+                defaultMessage.remove();
+                defaultMessage = null;
+            }
+
             const wrapper = document.createElement("div");
             wrapper.classList.add(
                 "hc-chatbot-message",
@@ -61,18 +147,132 @@
             const bubble = document.createElement("div");
             bubble.classList.add("hc-chatbot-bubble");
             bubble.textContent = text;
+            if (createdAt) {
+                const date = new Date(createdAt);
+                if (!isNaN(date)) {
+                    bubble.setAttribute("data-time", date.toISOString());
+                    bubble.setAttribute("title", date.toLocaleString("vi-VN"));
+                }
+            }
             wrapper.appendChild(bubble);
 
             const wasAtBottom = atBottom();
             messages.appendChild(wrapper);
             if (wasAtBottom) scrollToBottom(true);
             updateScrollButton();
+
+            if (options.persist !== false) {
+                pushHistoryRecord({
+                    role: author === "assistant" ? "assistant" : "user",
+                    message: text,
+                    created_at: createdAt || new Date().toISOString(),
+                });
+            }
         };
 
-        const setStatus = (text) => {
-            if (status)
-                status.textContent = typeof text === "string" ? text : "";
+        const renderHistory = (entries) => {
+            if (!entries || !entries.length) {
+                restoreDefaultMessage();
+                updateScrollButton();
+                return;
+            }
+            messages.innerHTML = "";
+            defaultMessage = null;
+            entries.forEach((entry) => {
+                appendMessage(entry.message, entry.role, entry.created_at, {
+                    persist: false,
+                });
+            });
+            updateScrollButton();
         };
+
+        const hydrateHistoryFromCache = () => {
+            try {
+                const raw = JSON.parse(
+                    localStorage.getItem(STORAGE_HISTORY_KEY) || "{}"
+                );
+                if (!Array.isArray(raw.messages) || !raw.messages.length) {
+                    return;
+                }
+                const exp = raw.expiresAt ? Date.parse(raw.expiresAt) : 0;
+                if (exp && exp < Date.now()) {
+                    localStorage.removeItem(STORAGE_HISTORY_KEY);
+                    return;
+                }
+                historyState = raw.messages.slice(-HISTORY_LIMIT);
+                if (raw.expiresAt) {
+                    widget.setAttribute(
+                        "data-hc-chatbot-expires",
+                        raw.expiresAt
+                    );
+                }
+                renderHistory(historyState);
+            } catch (error) {
+                console.error("Chatbot cache error", error);
+            }
+        };
+
+        const syncHistoryFromServer = async () => {
+            if (!historyEndpoint || isLoadingHistory) return;
+            isLoadingHistory = true;
+            try {
+                if (!historyState.length) {
+                    setStatus("Đang tải lịch sử...");
+                }
+                const url = new URL(historyEndpoint, window.location.origin);
+                if (sessionToken) {
+                    url.searchParams.set("session_token", sessionToken);
+                }
+                const res = await fetch(url.toString(), {
+                    headers: { Accept: "application/json" },
+                });
+                if (!res.ok) throw new Error("History request failed");
+                const data = await res.json();
+                if (data.session_token) {
+                    saveSessionToken(data.session_token, data.expires_at);
+                } else if (data.expires_at) {
+                    widget.setAttribute(
+                        "data-hc-chatbot-expires",
+                        data.expires_at
+                    );
+                }
+
+                if (Array.isArray(data.history) && data.history.length) {
+                    historyState = data.history
+                        .filter(
+                            (item) =>
+                                typeof item?.message === "string" &&
+                                item.message.trim() !== ""
+                        )
+                        .map((item) => ({
+                            role:
+                                item.role === "assistant"
+                                    ? "assistant"
+                                    : "user",
+                            message: item.message,
+                            created_at: item.created_at || null,
+                        }))
+                        .slice(-HISTORY_LIMIT);
+                    persistHistoryCache(data.expires_at);
+                    renderHistory(historyState);
+                } else if (!historyState.length) {
+                    historyState = [];
+                    localStorage.removeItem(STORAGE_HISTORY_KEY);
+                    restoreDefaultMessage();
+                }
+                setStatus("");
+            } catch (error) {
+                console.error("Chatbot history error", error);
+                setStatus("");
+            } finally {
+                isLoadingHistory = false;
+            }
+        };
+
+        hydrateHistoryFromCache();
+        if (historyEndpoint) {
+            syncHistoryFromServer();
+        }
 
         const openWidget = () => {
             widget.classList.add("is-open");
@@ -93,9 +293,6 @@
             toggleBtn?.focus();
         });
 
-        let isSubmitting = false;
-        if (!form || !input || !submitBtn) return;
-
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
             if (isSubmitting) return;
@@ -114,6 +311,11 @@
             setStatus("Đang soạn câu trả lời...");
             isSubmitting = true;
 
+            const payload = { message };
+            if (sessionToken) {
+                payload.session_token = sessionToken;
+            }
+
             try {
                 const response = await fetch(endpoint, {
                     method: "POST",
@@ -122,7 +324,7 @@
                         Accept: "application/json",
                         "X-CSRF-TOKEN": csrfToken,
                     },
-                    body: JSON.stringify({ message }),
+                    body: JSON.stringify(payload),
                 });
 
                 const data = await response.json().catch(() => ({}));
@@ -134,20 +336,32 @@
                     return;
                 }
 
+                if (data.session_token) {
+                    saveSessionToken(data.session_token, data.expires_at);
+                } else if (data.expires_at) {
+                    widget.setAttribute(
+                        "data-hc-chatbot-expires",
+                        data.expires_at
+                    );
+                }
+
                 const reply = data?.reply || "";
                 if (!reply) {
                     setStatus(
-                        "Máy chủ AI chưa có phản hồi phù hợp. Vui lòng thử lại."
+                        "Máy chủ AI chưa có câu trả lời phù hợp. Vui lòng thử lại."
                     );
                     return;
                 }
 
                 appendMessage(reply, "assistant");
+                if (data.expires_at) {
+                    persistHistoryCache(data.expires_at);
+                }
                 setStatus("");
             } catch (error) {
                 console.error("Chatbot error", error);
                 setStatus(
-                    "Không thể kết nối tới trợ lý AI. Vui lòng kiểm tra kết nối internet."
+                    "Không thể kết nối tới trợ lý AI. Vui lòng kiểm tra mạng."
                 );
             } finally {
                 input.disabled = false;

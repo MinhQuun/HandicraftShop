@@ -34,12 +34,12 @@ function showToast(message, type = "success", duration = 4200, title) {
             : "Thông báo");
 
     card.innerHTML = `
-      <div class="toast-icon">${iconMap[type] || iconMap.info}</div>
-      <div class="toast-content">
-        <strong class="toast-title">${heading}</strong>
-        <div class="toast-message">${message}</div>
-      </div>
-      <button class="toast-close" aria-label="Đóng">&times;</button>
+        <div class="toast-icon">${iconMap[type] || iconMap.info}</div>
+        <div class="toast-content">
+            <strong class="toast-title">${heading}</strong>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" aria-label="Đóng">&times;</button>
     `;
 
     stack.appendChild(card);
@@ -61,6 +61,177 @@ function showToast(message, type = "success", duration = 4200, title) {
     // Hiệu ứng xuất hiện
     card.style.animation = "toast-fade-in .22s ease-out both";
 }
+
+// ===================== Client-side validations =====================
+const emailRegex =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const nameRegex = /^[\p{L}\s'.-]{2,}$/u;
+
+const getErrorAnchor = (input) => input.closest(".auth-input-wrap") || input;
+
+const setFieldError = (input, message) => {
+    if (!input) return;
+    const anchor = getErrorAnchor(input);
+    let error = anchor.nextElementSibling;
+    while (
+        error &&
+        !(
+            error.classList?.contains("auth-error") &&
+            error.dataset.client === "true"
+        )
+    ) {
+        error = error.nextElementSibling;
+    }
+    if (!error) {
+        error = document.createElement("div");
+        error.className = "auth-error";
+        error.dataset.client = "true";
+        let reference = anchor;
+        let sibling = anchor.nextElementSibling;
+        while (sibling && sibling.classList?.contains("auth-error")) {
+            reference = sibling;
+            sibling = sibling.nextElementSibling;
+        }
+        reference.parentElement?.insertBefore(error, reference.nextSibling);
+    }
+    error.textContent = message;
+    input.classList.add("is-invalid");
+};
+
+const clearFieldError = (input) => {
+    if (!input) return;
+    input.classList.remove("is-invalid");
+    const anchor = getErrorAnchor(input);
+    let error = anchor.nextElementSibling;
+    while (error) {
+        if (
+            error.classList?.contains("auth-error") &&
+            error.dataset.client === "true"
+        ) {
+            error.remove();
+            break;
+        }
+        if (error.classList?.contains("auth-input-wrap")) break;
+        error = error.nextElementSibling;
+    }
+};
+
+const AUTH_VALIDATORS = {
+    login(form) {
+        let valid = true;
+        const emailInput = form.querySelector('input[name="email"]');
+        const passwordInput = form.querySelector('input[name="password"]');
+
+        if (emailInput) {
+            clearFieldError(emailInput);
+            const value = emailInput.value.trim();
+            if (!value || !emailRegex.test(value)) {
+                setFieldError(emailInput, "Vui lòng nhập email hợp lệ.");
+                valid = false;
+            }
+        }
+
+        if (passwordInput) {
+            clearFieldError(passwordInput);
+            if (passwordInput.value.trim().length < 6) {
+                setFieldError(
+                    passwordInput,
+                    "Mật khẩu phải có ít nhất 6 ký tự."
+                );
+                valid = false;
+            }
+        }
+
+        if (!valid) {
+            showToast("Vui lòng kiểm tra lại thông tin đăng nhập.", "warn");
+        }
+        return valid;
+    },
+    register(form) {
+        let valid = true;
+        const nameInput = form.querySelector('input[name="name"]');
+        const emailInput = form.querySelector('input[name="email"]');
+        const phoneInput = form.querySelector('input[name="phone"]');
+        const passwordInput = form.querySelector('input[name="password"]');
+        const confirmInput = form.querySelector(
+            'input[name="password_confirmation"]'
+        );
+
+        if (nameInput) {
+            clearFieldError(nameInput);
+            const value = nameInput.value.trim();
+            if (!value || !nameRegex.test(value)) {
+                setFieldError(
+                    nameInput,
+                    "Họ và tên phải từ 2 ký tự và không chứa ký tự đặc biệt."
+                );
+                valid = false;
+            }
+        }
+
+        if (emailInput) {
+            clearFieldError(emailInput);
+            const value = emailInput.value.trim();
+            if (!value || !emailRegex.test(value)) {
+                setFieldError(emailInput, "Email không hợp lệ.");
+                valid = false;
+            }
+        }
+
+        if (phoneInput) {
+            clearFieldError(phoneInput);
+            if (!/^0\d{9}$/.test(phoneInput.value.trim())) {
+                setFieldError(
+                    phoneInput,
+                    "Số điện thoại phải gồm 10 số và bắt đầu bằng 0."
+                );
+                valid = false;
+            }
+        }
+
+        if (passwordInput) {
+            clearFieldError(passwordInput);
+            if (!strongPasswordRegex.test(passwordInput.value.trim())) {
+                setFieldError(
+                    passwordInput,
+                    "Mật khẩu cần tối thiểu 8 ký tự gồm chữ hoa, chữ thường và số."
+                );
+                valid = false;
+            }
+        }
+
+        if (confirmInput) {
+            clearFieldError(confirmInput);
+            if (confirmInput.value !== passwordInput?.value) {
+                setFieldError(confirmInput, "Xác nhận mật khẩu không khớp.");
+                valid = false;
+            }
+        }
+
+        if (!valid) {
+            showToast("Vui lòng kiểm tra lại thông tin đăng ký.", "warn");
+        }
+        return valid;
+    },
+};
+
+document.addEventListener("submit", (event) => {
+    const form = event.target.closest("[data-auth-form]");
+    if (!form) return;
+    const type = form.getAttribute("data-auth-form");
+    const validator = AUTH_VALIDATORS[type];
+    if (typeof validator === "function" && !validator(form)) {
+        event.preventDefault();
+    }
+});
+
+document.addEventListener("input", (event) => {
+    const target = event.target.closest(".auth-input");
+    if (target) {
+        clearFieldError(target);
+    }
+});
 
 // ===================== Toggle đăng nhập / đăng ký =====================
 (() => {
@@ -228,6 +399,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const resetForm = qs("#resetPasswordForm");
     const otpEmailInput = qs("#otpEmail");
     const resetEmailInput = qs("#resetEmail");
+    const resetTokenInput = qs("#resetToken");
 
     const backToLogin = qs("#backToLogin");
     const backToEmail = qs("#backToEmail");
@@ -268,6 +440,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 verifyOtpForm.classList.add("d-none");
                 resetForm.classList.remove("d-none");
                 resetEmailInput.value = formData.get("email");
+                if (resetTokenInput) {
+                    resetTokenInput.value = formData.get("token");
+                }
                 showToast("OTP hợp lệ, nhập mật khẩu mới!", "success");
             });
         });
@@ -295,6 +470,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 container.classList.remove("forgot-password-mode");
                 resetForm.reset();
                 forgotForm.reset();
+                if (resetTokenInput) {
+                    resetTokenInput.value = "";
+                }
             });
         });
     }
@@ -303,10 +481,16 @@ document.addEventListener("DOMContentLoaded", function () {
     backToLogin?.addEventListener("click", () => {
         container.classList.remove("forgot-password-mode");
         forgotForm?.reset();
+        if (resetTokenInput) {
+            resetTokenInput.value = "";
+        }
     });
     backToEmail?.addEventListener("click", () => {
         verifyOtpForm?.classList.add("d-none");
         forgotForm?.classList.remove("d-none");
+        if (resetTokenInput) {
+            resetTokenInput.value = "";
+        }
     });
     backToOtp?.addEventListener("click", () => {
         resetForm?.classList.add("d-none");
@@ -318,5 +502,8 @@ document.addEventListener("DOMContentLoaded", function () {
         forgotForm?.classList.remove("d-none");
         verifyOtpForm?.classList.add("d-none");
         resetForm?.classList.add("d-none");
+        if (resetTokenInput) {
+            resetTokenInput.value = "";
+        }
     });
 });

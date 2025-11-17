@@ -45,11 +45,6 @@
                     <button class="btn btn-outline-primary">Lọc</button>
                     <a class="btn btn-outline-secondary" href="{{ route('admin.users.index') }}">Xoá lọc</a>
                 </div>
-                {{-- <div class="col-lg-2 text-lg-end">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreate">
-                        <i class="bi bi-plus-circle me-1"></i> Thêm mới
-                    </button>
-                </div> --}}
             </form>
         </div>
     </div>

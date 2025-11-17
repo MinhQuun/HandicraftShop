@@ -10,7 +10,7 @@ USE QL_MYNGHE;
 -- =========================================================
 -- DANHMUCSANPHAM
 -- =========================================================
-CREATE TABLE DANHMUCSANPHAM 
+CREATE TABLE DANHMUCSANPHAM
 (
     MADANHMUC INT NOT NULL AUTO_INCREMENT,
     TENDANHMUC VARCHAR(100) NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE DANHMUCSANPHAM
 -- =========================================================
 -- LOAI
 -- =========================================================
-CREATE TABLE LOAI 
+CREATE TABLE LOAI
 (
     MALOAI VARCHAR(10) NOT NULL,
     TENLOAI VARCHAR(50) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE LOAI
 -- =========================================================
 -- KHUYENMAI
 -- =========================================================
-CREATE TABLE KHUYENMAI 
+CREATE TABLE KHUYENMAI
 (
     MAKHUYENMAI   VARCHAR(10)  NOT NULL,
     LOAIKHUYENMAI VARCHAR(50),             -- 'Giảm %' | 'Giảm fixed' | 'Flash Sale' | ...
@@ -58,7 +58,7 @@ CREATE TABLE KHUYENMAI
 -- =========================================================
 -- NHACUNGCAP
 -- =========================================================
-CREATE TABLE NHACUNGCAP 
+CREATE TABLE NHACUNGCAP
 (
     MANHACUNGCAP INT NOT NULL AUTO_INCREMENT,
     TENNHACUNGCAP VARCHAR(100) NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE NHACUNGCAP
 -- =========================================================
 -- USERS / QUYEN
 -- =========================================================
-CREATE TABLE users 
+CREATE TABLE users
 (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
@@ -93,14 +93,14 @@ CREATE TABLE password_resets (
     PRIMARY KEY (email)
 ) ENGINE=InnoDB;
 
-CREATE TABLE QUYEN 
+CREATE TABLE QUYEN
 (
     MAQUYEN VARCHAR(10) NOT NULL,
     TENQUYEN VARCHAR(50) NOT NULL,
     PRIMARY KEY (MAQUYEN)
 ) ENGINE=InnoDB;
 
-CREATE TABLE QUYEN_NGUOIDUNG 
+CREATE TABLE QUYEN_NGUOIDUNG
 (
     user_id BIGINT UNSIGNED NOT NULL,
     MAQUYEN VARCHAR(10) NOT NULL,
@@ -145,7 +145,7 @@ CREATE TABLE HINHTHUCTT (
 -- =========================================================
 -- SẢN PHẨM
 -- =========================================================
-CREATE TABLE SANPHAM 
+CREATE TABLE SANPHAM
 (
     MASANPHAM    VARCHAR(10) NOT NULL,
     TENSANPHAM   VARCHAR(255) NOT NULL,
@@ -170,7 +170,7 @@ ALTER TABLE SANPHAM ADD FULLTEXT(TENSANPHAM, MOTA);
 -- =========================================================
 -- Liên kết SP - KM (cho phép 1 SP có nhiều KM)
 -- =========================================================
-CREATE TABLE SANPHAM_KHUYENMAI 
+CREATE TABLE SANPHAM_KHUYENMAI
 (
     MASANPHAM   VARCHAR(10) NOT NULL,
     MAKHUYENMAI VARCHAR(10) NOT NULL,
@@ -184,7 +184,7 @@ CREATE TABLE SANPHAM_KHUYENMAI
 -- =========================================================
 -- Đánh giá
 -- =========================================================
-CREATE TABLE DANHGIA 
+CREATE TABLE DANHGIA
 (
     MADANHGIA    INT NOT NULL AUTO_INCREMENT,
     MAKHACHHANG  INT NOT NULL,
@@ -223,7 +223,7 @@ CREATE TABLE LIENHE (
 -- =========================================================
 -- ĐƠN HÀNG & CHI TIẾT
 -- =========================================================
-CREATE TABLE DONHANG 
+CREATE TABLE DONHANG
 (
     MADONHANG      INT NOT NULL AUTO_INCREMENT,
     MAKHACHHANG    INT NOT NULL,
@@ -250,7 +250,7 @@ ALTER TABLE DONHANG
         FOREIGN KEY (MAKHUYENMAI) REFERENCES KHUYENMAI(MAKHUYENMAI)
         ON DELETE SET NULL;
 
-CREATE TABLE CHITIETDONHANG 
+CREATE TABLE CHITIETDONHANG
 (
     MADONHANG  INT NOT NULL,
     MASANPHAM  VARCHAR(10) NOT NULL,
@@ -330,66 +330,96 @@ CREATE TABLE CT_PHIEUXUAT (
 -- BẢNG HỆ THỐNG CHO LARAVEL
 -- =========================================================
 
+-- =========================================================
+-- CHATBOT CONVERSATIONS
+-- =========================================================
+CREATE TABLE CHATBOT_SESSIONS (
+    ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    SESSION_TOKEN VARCHAR(100) NOT NULL,
+    USER_ID BIGINT UNSIGNED NULL,
+    EXPIRES_AT DATETIME NOT NULL,
+    CREATED_AT TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    UPDATED_AT TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (ID),
+    UNIQUE KEY UK_CHATBOT_SESSION_TOKEN (SESSION_TOKEN),
+    KEY IX_CHATBOT_SESSION_USER (USER_ID),
+    CONSTRAINT FK_CHATBOT_SESSION_USER FOREIGN KEY (USER_ID) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE CHATBOT_MESSAGES (
+    ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    SESSION_ID BIGINT UNSIGNED NOT NULL,
+    ROLE ENUM('user','assistant','system') NOT NULL DEFAULT 'user',
+    MESSAGE TEXT NOT NULL,
+    METADATA JSON NULL,
+    CREATED_AT TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    EXPIRES_AT DATETIME NOT NULL,
+    PRIMARY KEY (ID),
+    KEY IX_CHATBOT_MSG_SESSION (SESSION_ID),
+    KEY IX_CHATBOT_MSG_EXPIRES (EXPIRES_AT),
+    CONSTRAINT FK_CHATBOT_MESSAGES_SESSION FOREIGN KEY (SESSION_ID) REFERENCES CHATBOT_SESSIONS(ID) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Cache store (Laravel database cache)
 CREATE TABLE cache (
-  `key` varchar(255) NOT NULL,
-  `value` mediumtext NOT NULL,
-  `expiration` int NOT NULL,
-  PRIMARY KEY (`key`)
+    `key` varchar(255) NOT NULL,
+    `value` mediumtext NOT NULL,
+    `expiration` int NOT NULL,
+    PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Sessions (nếu dùng SESSION_DRIVER=database)
 CREATE TABLE sessions (
-  `id` varchar(255) NOT NULL,
-  `user_id` bigint unsigned NULL,
-  `ip_address` varchar(45) NULL,
-  `user_agent` text NULL,
-  `payload` longtext NOT NULL,
-  `last_activity` int NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `sessions_user_id_index` (`user_id`),
-  KEY `sessions_last_activity_index` (`last_activity`)
+    `id` varchar(255) NOT NULL,
+    `user_id` bigint unsigned NULL,
+    `ip_address` varchar(45) NULL,
+    `user_agent` text NULL,
+    `payload` longtext NOT NULL,
+    `last_activity` int NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `sessions_user_id_index` (`user_id`),
+    KEY `sessions_last_activity_index` (`last_activity`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Queue: jobs (nếu QUEUE_CONNECTION=database)
 CREATE TABLE jobs (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `queue` varchar(255) NOT NULL,
-  `payload` longtext NOT NULL,
-  `attempts` tinyint unsigned NOT NULL,
-  `reserved_at` int unsigned DEFAULT NULL,
-  `available_at` int unsigned NOT NULL,
-  `created_at` int unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `jobs_queue_index` (`queue`)
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `queue` varchar(255) NOT NULL,
+    `payload` longtext NOT NULL,
+    `attempts` tinyint unsigned NOT NULL,
+    `reserved_at` int unsigned DEFAULT NULL,
+    `available_at` int unsigned NOT NULL,
+    `created_at` int unsigned NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `jobs_queue_index` (`queue`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Queue: failed_jobs (ghi nhận job lỗi)
 CREATE TABLE failed_jobs (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `uuid` varchar(255) DEFAULT NULL,
-  `connection` text NOT NULL,
-  `queue` text NOT NULL,
-  `payload` longtext NOT NULL,
-  `exception` longtext NOT NULL,
-  `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+    `uuid` varchar(255) DEFAULT NULL,
+    `connection` text NOT NULL,
+    `queue` text NOT NULL,
+    `payload` longtext NOT NULL,
+    `exception` longtext NOT NULL,
+    `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Queue: job_batches (nếu bạn dùng Bus batching)
 CREATE TABLE job_batches (
-  `id` varchar(255) NOT NULL,
-  `name` varchar(255) DEFAULT NULL,
-  `total_jobs` int NOT NULL,
-  `pending_jobs` int NOT NULL,
-  `failed_jobs` int NOT NULL,
-  `failed_job_ids` longtext,
-  `options` mediumtext,
-  `cancelled_at` int DEFAULT NULL,
-  `created_at` int NOT NULL,
-  `finished_at` int DEFAULT NULL,
-  PRIMARY KEY (`id`)
+    `id` varchar(255) NOT NULL,
+    `name` varchar(255) DEFAULT NULL,
+    `total_jobs` int NOT NULL,
+    `pending_jobs` int NOT NULL,
+    `failed_jobs` int NOT NULL,
+    `failed_job_ids` longtext,
+    `options` mediumtext,
+    `cancelled_at` int DEFAULT NULL,
+    `created_at` int NOT NULL,
+    `finished_at` int DEFAULT NULL,
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================

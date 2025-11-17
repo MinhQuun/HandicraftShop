@@ -1,4 +1,7 @@
-<div class="hc-chatbot" data-hc-chatbot data-hc-chatbot-endpoint="{{ route('chatbot.send') }}">
+<div class="hc-chatbot"
+     data-hc-chatbot
+     data-hc-chatbot-endpoint="{{ route('chatbot.send') }}"
+     data-hc-chatbot-history="{{ route('chatbot.history') }}">
     <button type="button" class="hc-chatbot-toggle btn shadow" data-hc-chatbot-toggle>
         <i class="bi bi-robot me-2"></i>
         <span>Hỗ trợ AI</span>
@@ -17,7 +20,7 @@
 
         <div class="hc-chatbot-body card-body d-flex flex-column position-relative">
             <div class="hc-chatbot-messages flex-grow-1" data-hc-chatbot-messages>
-                <div class="hc-chatbot-message hc-chatbot-message--assistant">
+                <div class="hc-chatbot-message hc-chatbot-message--assistant" data-hc-chatbot-default>
                     <div class="hc-chatbot-avatar">
                         <i class="bi bi-robot"></i>
                     </div>

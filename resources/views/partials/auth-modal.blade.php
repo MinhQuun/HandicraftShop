@@ -7,7 +7,7 @@
 
           <!-- Sign Up Form -->
           <div class="auth-form-container sign-up-container">
-            <form class="auth-form" action="{{ route('users.store') }}" method="post">
+            <form class="auth-form" action="{{ route('users.store') }}" method="post" novalidate data-auth-form="register">
               @csrf
               <input type="hidden" name="redirect" value="{{ request('redirect', url()->full()) }}">
               <h1 class="auth-title">Đăng Ký</h1>
@@ -46,7 +46,7 @@
 
           <!-- Sign In Form -->
           <div class="auth-form-container sign-in-container">
-            <form class="auth-form" action="{{ route('users.login') }}" method="post">
+            <form class="auth-form" action="{{ route('users.login') }}" method="post" novalidate data-auth-form="login">
               @csrf
               <input type="hidden" name="redirect" value="{{ request('redirect', url()->full()) }}">
               <h1 class="auth-title">Đăng Nhập</h1>
@@ -98,6 +98,7 @@
             <form class="auth-form d-none" id="resetPasswordForm" action="{{ route('password.update') }}" method="post">
               @csrf
               <input type="hidden" name="email" id="resetEmail" value="">
+              <input type="hidden" name="token" id="resetToken" value="">
               <h1 class="auth-title">Đặt Lại Mật Khẩu</h1>
               <span class="auth-subtitle">Nhập mật khẩu mới</span>
 

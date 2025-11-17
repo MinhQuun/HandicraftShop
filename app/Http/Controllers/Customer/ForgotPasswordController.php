@@ -70,7 +70,8 @@ class ForgotPasswordController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'OTP hợp lệ, bạn có thể đặt mật khẩu mới'
+            'message' => 'OTP hợp lệ, bạn có thể đặt mật khẩu mới',
+            'token' => $request->token,
         ]);
     }
 

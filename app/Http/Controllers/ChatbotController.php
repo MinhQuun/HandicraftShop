@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -21,12 +24,44 @@ class ChatbotController extends Controller
     private const INTENT_DESCRIPTION  = 'GET_DESCRIPTION';  // Mới: Mô tả sản phẩm
     private const INTENT_SUGGESTIONS  = 'GET_SUGGESTIONS';  // Mới: Gợi ý sản phẩm tương tự
     private const INTENT_SUPPLIER     = 'GET_SUPPLIER';     // Mới: Thông tin nhà cung cấp
-    private const INTENT_GENERAL      = 'GENERAL_AI';       // Ý định chung, sẽ dùng AI
+    private const INTENT_POLICY       = 'GET_POLICY';       // Chính sách giao/đổi/trả
+    private const INTENT_GENERAL      = 'GENERAL_AI';       // Ý định chung, sử dụng AI
+
+    private const HISTORY_TTL_MINUTES = 720; // 12h lưu lịch sử
+    private const MAX_HISTORY_FOR_AI  = 8;
+    private const MAX_HISTORY_RETURN  = 40;
+    private const POLICY_RESPONSES    = [
+        'shipping' => [
+            'keywords' => ['giao hàng','giao hang','ship','vận chuyển','van chuyen','delivery','shipping'],
+            'answer'   => "• HandicraftShop giao hàng toàn quốc: nội thành TP.HCM 24h, tỉnh thành khác 2-4 ngày.\n"
+                        . "• Đơn trên 500.000đ được miễn phí giao tiêu chuẩn; đơn nhỏ hơn áp dụng phí theo hãng vận chuyển.\n"
+                        . "• Có thể chọn giao nhanh, tiêu chuẩn hoặc nhận tại showroom (miễn phí).",
+        ],
+        'payment' => [
+            'keywords' => ['thanh toán','payment','pay','chuyển khoản','chuyen khoan','momo','cod','vnpay'],
+            'answer'   => "• Hỗ trợ COD, chuyển khoản ngân hàng, ví MoMo và VNPay.\n"
+                        . "• Đơn trên 5.000.000đ cần đặt cọc 50%. Sau thanh toán gửi hóa đơn điện tử ngay.\n"
+                        . "• Thông tin thanh toán hiển thị rõ ở bước Checkout để bạn duyệt trước khi xác nhận.",
+        ],
+        'return' => [
+            'keywords' => ['đổi trả','doi tra','hoàn trả','hoan tra','bảo hành','bao hanh','return','refund','warranty'],
+            'answer'   => "• Đổi trả trong 7 ngày nếu sản phẩm lỗi do nhà sản xuất hoặc hư hỏng khi vận chuyển.\n"
+                        . "• Quy trình: chụp ảnh tình trạng, gửi mã đơn + số điện thoại để được hướng dẫn đổi/hoàn tiền.\n"
+                        . "• Đồ gỗ, sơn mài bảo hành nước sơn 6 tháng; đồ gốm nghệ nhân bảo hành 3 tháng.",
+        ],
+        'care' => [
+            'keywords' => ['bảo quản','bao quan','chăm sóc','cham soc','vệ sinh','ve sinh','care','giữ màu','giu mau'],
+            'answer'   => "• Đồ gỗ: lau khăn ẩm mềm, hạn chế nắng gắt và tránh hóa chất mạnh.\n"
+                        . "• Gốm sứ: rửa tay bằng nước ấm, không dùng máy rửa với chi tiết vàng kim.\n"
+                        . "• Mây tre: để nơi khô ráo, có thể thoa dầu khoáng mỏng mỗi 6 tháng để giữ màu.",
+        ],
+    ];
 
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'message' => ['required', 'string', 'max:500'],
+            'message'       => ['required', 'string', 'max:500'],
+            'session_token' => ['nullable', 'string', 'max:100'],
         ]);
 
         $message = Str::of($validated['message'])->trim()->toString();
@@ -34,52 +69,93 @@ class ChatbotController extends Controller
             return response()->json(['message' => 'Nội dung câu hỏi không được để trống.'], 422);
         }
 
+        $session = $this->resolveChatSession(data_get($validated, 'session_token'));
+        $history = $this->getStoredHistory($session->id, self::MAX_HISTORY_FOR_AI);
+
         // ====== 1. PHÂN LOẠI Ý ĐỊNH (INTENT DETECTION) ======
-        $intent = $this->detectIntent($message);
+        $intent  = $this->detectIntent($message);
         $keyword = $this->extractProductKeyword($message) ?: $message;
-        $response = null;
+        $reply   = null;
 
         // ====== 2. XỬ LÝ "FAST PATH" (TRẢ LỜI TỪ DB) ======
-        // Dựa trên ý định, gọi hàm xử lý tương ứng
         switch ($intent) {
             case self::INTENT_PRICE:
-                $response = $this->handlePriceQuestion($keyword);
+                $reply = $this->handlePriceQuestion($keyword);
                 break;
             case self::INTENT_STOCK:
-                $response = $this->handleStockQuestion($keyword);
+                $reply = $this->handleStockQuestion($keyword);
                 break;
             case self::INTENT_CATEGORY:
-                $response = $this->handleCategoryQuestion($message); // Dùng cả câu để tìm tên DM
+                $reply = $this->handleCategoryQuestion($message);
                 break;
             case self::INTENT_PROMO:
-                $response = $this->handlePromoQuestion($keyword);
+                $reply = $this->handlePromoQuestion($keyword);
                 break;
             case self::INTENT_REVIEW:
-                $response = $this->handleReviewQuestion($keyword);
+                $reply = $this->handleReviewQuestion($keyword);
                 break;
             case self::INTENT_PRICE_FILTER:
-                $response = $this->handlePriceFilterQuestion($message);
+                $reply = $this->handlePriceFilterQuestion($message);
                 break;
             case self::INTENT_DESCRIPTION:
-                $response = $this->handleDescriptionQuestion($keyword);
+                $reply = $this->handleDescriptionQuestion($keyword);
                 break;
             case self::INTENT_SUGGESTIONS:
-                $response = $this->handleSuggestionsQuestion($keyword);
+                $reply = $this->handleSuggestionsQuestion($keyword);
                 break;
             case self::INTENT_SUPPLIER:
-                $response = $this->handleSupplierQuestion($keyword);
+                $reply = $this->handleSupplierQuestion($keyword);
                 break;
-        }
-
-        // Nếu một "Fast Path" đã xử lý thành công, trả về ngay
-        if ($response) {
-            return $response;
+            case self::INTENT_POLICY:
+                $reply = $this->handlePolicyQuestion($message);
+                break;
         }
 
         // ====== 3. GỌI GEMINI (RAG) VỚI NGỮ CẢNH ĐỘNG ======
-        // Nếu không có intent cụ thể, hoặc intent cần AI, thì gọi Gemini
-        return $this->callGeminiAI($message);
+        if ($reply === null) {
+            $reply = $this->callGeminiAI($message, $history);
+        }
+
+        $this->storeChatMessage($session->id, 'user', $message);
+        $this->storeChatMessage($session->id, 'assistant', $reply);
+        $this->cleanupExpiredMessages($session->id);
+
+        return response()->json([
+            'reply'         => $reply,
+            'session_token' => $session->token,
+            'expires_at'    => $session->expires_at->toIso8601String(),
+        ]);
     }
+
+    public function history(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'session_token' => ['nullable', 'string', 'max:100'],
+            'token'         => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $token = $validated['session_token']
+            ?? $validated['token']
+            ?? $request->query('token');
+
+        $session = $this->resolveChatSession($token);
+        $history = $this->getStoredHistory($session->id, self::MAX_HISTORY_RETURN)
+            ->map(function ($row) {
+                $created = $row->CREATED_AT ? Carbon::parse($row->CREATED_AT)->toIso8601String() : null;
+                return [
+                    'role'       => $row->ROLE,
+                    'message'    => $row->MESSAGE,
+                    'created_at' => $created,
+                ];
+            })->all();
+
+        return response()->json([
+            'session_token' => $session->token,
+            'expires_at'    => $session->expires_at->toIso8601String(),
+            'history'       => $history,
+        ]);
+    }
+
 
     // =========================================================
     // HÀM XỬ LÝ CÁC "INTENT" (FAST PATH)
@@ -88,7 +164,7 @@ class ChatbotController extends Controller
     /**
      * Xử lý câu hỏi về GIÁ
      */
-    private function handlePriceQuestion(string $keyword): ?JsonResponse
+    private function handlePriceQuestion(string $keyword): ?string
     {
         $rows = $this->searchProducts($keyword, 5); // Tìm 5 SP liên quan
 
@@ -106,13 +182,13 @@ class ChatbotController extends Controller
             : "Mình tìm thấy một số sản phẩm phù hợp:";
         $tail = "\n\nBạn có thể hỏi thêm về \"tồn kho\" hoặc \"đánh giá\" của sản phẩm này nhé.";
 
-        return response()->json(['reply' => $intro . "\n" . $lines . $tail]);
+        return $intro . "\n" . $lines . $tail;
     }
 
     /**
      * Xử lý câu hỏi về TỒN KHO
      */
-    private function handleStockQuestion(string $keyword): ?JsonResponse
+    private function handleStockQuestion(string $keyword): ?string
     {
         $rows = $this->searchProducts($keyword, 5);
 
@@ -127,13 +203,13 @@ class ChatbotController extends Controller
         })->implode("\n");
 
         $intro = "Tình trạng tồn kho cho \"{$keyword}\" như sau:";
-        return response()->json(['reply' => $intro . "\n" . $lines]);
+        return $intro . "\n" . $lines;
     }
 
     /**
      * Xử lý câu hỏi về DANH MỤC
      */
-    private function handleCategoryQuestion(string $message): ?JsonResponse
+    private function handleCategoryQuestion(string $message): ?string
     {
         // Cố gắng tìm tên danh mục/loại trong câu
         $categoryName = $this->extractCategoryKeyword($message);
@@ -144,28 +220,30 @@ class ChatbotController extends Controller
         $rows = $this->searchProductsByCategory($categoryName, 5);
 
         if ($rows->isEmpty()) {
-            return response()->json(['reply' => "Mình có tìm danh mục \"{$categoryName}\" nhưng chưa thấy sản phẩm nào phù hợp."]);
+            return "Mình có tìm danh mục " . $categoryName . " nhưng chưa thấy sản phẩm nào phù hợp.";
         }
 
         $lines = $rows->map(fn($r, $i) => ($i + 1) . ". {$r->TENSANPHAM}")->implode("\n");
-        $intro = "Dạ, đây là các sản phẩm thuộc nhóm \"{$categoryName}\" mình tìm thấy:";
+        $intro = "Đây là các sản phẩm thuộc nhóm " . $categoryName . " mình tìm thấy:";
 
-        return response()->json(['reply' => $intro . "\n" . $lines]);
+        return $intro . "\n" . $lines;
     }
 
     /**
      * Xử lý câu hỏi về KHUYẾN MÃI
      */
-    private function handlePromoQuestion(string $keyword): ?JsonResponse
+    private function handlePromoQuestion(string $keyword): ?string
     {
         // 1. Hỏi về KM chung ("có sale gì không?")
         if (Str::contains(Str::lower($keyword), ['chung', 'tất cả', $keyword])) {
             $promos = $this->searchActivePromotions();
             if ($promos->isEmpty()) {
-                return response()->json(['reply' => 'Dạ, hiện tại shop chưa có chương trình khuyến mãi nào.']);
+                return 'Dạ, hiện tại shop chưa có chương trình khuyến mãi nào.';
             }
-            $lines = $promos->map(fn($r, $i) => ($i + 1) . ". {$r->TENKHUYENMAI} (Giảm {$r->GIAMGIA}%)")->implode("\n");
-            return response()->json(['reply' => "Shop đang có các ưu đãi sau:\n" . $lines]);
+            $lines = $promos->map(fn($r, $i) => ($i + 1) . ". {$r->TENKHUYENMAI} (Giảm {$r->GIAMGIA}%)")->implode("
+");
+            return "Shop đang có các ưu đãi sau:
+" . $lines;
         }
 
         // 2. Hỏi về KM cho 1 sản phẩm cụ thể
@@ -179,39 +257,35 @@ class ChatbotController extends Controller
             $promoIds[] = $product->MAKHUYENMAI;
         }
 
-        // Lấy từ bảng liên kết (nếu có nhiều KM)
         $linkedPromos = DB::table('SANPHAM_KHUYENMAI')
             ->where('MASANPHAM', $product->MASANPHAM)
             ->pluck('MAKHUYENMAI')
             ->toArray();
 
-        $promoIds = array_merge($promoIds, $linkedPromos);
-        $promoIds = array_unique($promoIds);
+        $promoIds = array_unique(array_merge($promoIds, $linkedPromos));
 
         if (empty($promoIds)) {
-            return response()->json(['reply' => "Sản phẩm \"{$product->TENSANPHAM}\" hiện không nằm trong chương trình khuyến mãi nào ạ."]);
+            return "Sản phẩm " . $product->TENSANPHAM . " hiện không nằm trong chương trình khuyến mãi nào ạ.";
         }
 
-        // Lấy chi tiết KM
         $promos = DB::table('KHUYENMAI')
             ->whereIn('MAKHUYENMAI', $promoIds)
             ->where('NGAYKETTHUC', '>', now())
             ->get(['TENKHUYENMAI', 'GIAMGIA', 'LOAIKHUYENMAI']);
 
         if ($promos->isEmpty()) {
-            return response()->json(['reply' => "Sản phẩm \"{$product->TENSANPHAM}\" hiện không có khuyến mãi đang hoạt động."]);
+            return "Sản phẩm " . $product->TENSANPHAM . " hiện không có khuyến mãi đang hoạt động.";
         }
 
-        $lines = $promos->map(fn($p) => "- {$p->TENKHUYENMAI} (Giảm {$p->GIAMGIA}% - Loại: {$p->LOAIKHUYENMAI})")->implode("\n");
-        $reply = "Sản phẩm \"{$product->TENSANPHAM}\" đang được áp dụng các ưu đãi sau:\n" . $lines;
-
-        return response()->json(['reply' => $reply]);
+        $lines = $promos->map(fn($p) => "- {$p->TENKHUYENMAI} (Giảm {$p->GIAMGIA}% - Loại: {$p->LOAIKHUYENMAI})")->implode("
+        ");
+        return "Sản phẩm " . $product->TENSANPHAM . " đang được áp dụng các ưu đãi sau:\n" . $lines;
     }
 
     /**
      * Xử lý câu hỏi về ĐÁNH GIÁ
      */
-    private function handleReviewQuestion(string $keyword): ?JsonResponse
+    private function handleReviewQuestion(string $keyword): ?string
     {
         $product = $this->searchProducts($keyword, 1)->first();
         if (!$product) {
@@ -224,71 +298,79 @@ class ChatbotController extends Controller
             ->first();
 
         if ($stats->total == 0) {
-            return response()->json(['reply' => "Sản phẩm \"{$product->TENSANPHAM}\" hiện chưa có đánh giá nào."]);
+            return "Sản phẩm " . $product->TENSANPHAM . " hiện chưa có đánh giá nào.";
         }
 
         $reviews = DB::table('DANHGIA')
             ->where('MASANPHAM', $product->MASANPHAM)
             ->orderBy('NGAYDANHGIA', 'desc')
-            ->limit(3)  // Tăng lên 3 để chi tiết hơn
+            ->limit(3)
             ->pluck('NHANXET');
 
         $avg = number_format($stats->avg_rating, 1);
-        $reply = "Sản phẩm \"{$product->TENSANPHAM}\" có {$stats->total} lượt đánh giá, với điểm trung bình là {$avg}/5 sao.";
+        $reply = "Sản phẩm " . $product->TENSANPHAM . " có {$stats->total} lượt đánh giá, với điểm trung bình là {$avg}/5 sao.";
 
         if ($reviews->isNotEmpty()) {
-            $reply .= "\nMột số đánh giá mới nhất:\n- " . $reviews->implode("\n- ");
+            $reply .= "
+Một số đánh giá mới nhất:
+- " . $reviews->implode("
+- ");
         }
 
-        return response()->json(['reply' => $reply]);
+        return $reply;
     }
 
     /**
      * Xử lý câu hỏi LỌC GIÁ (ví dụ: "dưới 100k")
      */
-    private function handlePriceFilterQuestion(string $message): ?JsonResponse
+    /**
+     * Xử lý câu hỏi LỌC GIÁ (ví dụ: "dưới 100k")
+     */
+    private function handlePriceFilterQuestion(string $message): ?string
     {
         [$operator, $price] = $this->parsePriceFromMessage($message);
 
-        // Nếu không bóc tách được giá hoặc toán tử, để AI lo
         if ($operator === null || $price === null || $price === 0) {
             return null;
         }
 
         $rows = DB::table('SANPHAM')
             ->where('GIABAN', $operator, $price)
-            ->orderBy('GIABAN', $operator === '>=' ? 'asc' : 'desc') // Sắp xếp hợp lý
+            ->orderBy('GIABAN', $operator === '>=' ? 'asc' : 'desc')
             ->limit(5)
             ->get(['TENSANPHAM', 'GIABAN']);
 
         if ($rows->isEmpty()) {
-            $reply = "Dạ, mình không tìm thấy sản phẩm nào có giá " . $this->formatOperatorText($operator) . " " . number_format($price, 0, ',', '.') . " VND ạ.";
-            return response()->json(['reply' => $reply]);
+            return "Dạ, mình không tìm thấy sản phẩm nào có giá " . $this->formatOperatorText($operator) . " " . number_format($price, 0, ',', '.') . " VND ạ.";
         }
 
         $lines = $rows->map(function ($r, $i) {
             $vnd = number_format((int) $r->GIABAN, 0, ',', '.') . ' VND';
             return ($i + 1) . ". {$r->TENSANPHAM} — {$vnd}";
-        })->implode("\n");
+        })->implode("
+");
 
         $intro = "Dạ, đây là các sản phẩm có giá " . $this->formatOperatorText($operator) . " " . number_format($price, 0, ',', '.') . " VND mình tìm thấy:";
-        return response()->json(['reply' => $intro . "\n" . $lines]);
+        return $intro . "
+" . $lines;
     }
 
     /**
      * Xử lý câu hỏi về MÔ TẢ SẢN PHẨM (Mới)
      */
-    private function handleDescriptionQuestion(string $keyword): ?JsonResponse
+    /**
+     * Xử lý câu hỏi về MÔ TẢ SẢN PHẨM (Mới)
+     */
+    private function handleDescriptionQuestion(string $keyword): ?string
     {
         $product = $this->searchProducts($keyword, 1)->first();
         if (!$product) {
             return null;
         }
 
-        $desc = Str::limit($product->MOTA, 300); // Giới hạn để ngắn gọn
-        $reply = "Dạ, mô tả chi tiết về sản phẩm \"{$product->TENSANPHAM}\":\n{$desc}";
+        $desc = Str::limit($product->MOTA, 300);
+        $reply = "Dạ, mô tả chi tiết về sản phẩm " . $product->TENSANPHAM . ":\n{$desc}";
 
-        // Thêm thông tin loại và danh mục để chi tiết hơn
         $category = DB::table('LOAI as l')
             ->join('DANHMUCSANPHAM as dm', 'l.MADANHMUC', '=', 'dm.MADANHMUC')
             ->where('l.MALOAI', $product->MALOAI)
@@ -296,23 +378,27 @@ class ChatbotController extends Controller
             ->first();
 
         if ($category) {
-            $reply .= "\n\nThuộc loại: {$category->TENLOAI} (Danh mục: {$category->TENDANHMUC})";
+            $reply .= "
+
+Thuộc loại: {$category->TENLOAI} (Danh mục: {$category->TENDANHMUC})";
         }
 
-        return response()->json(['reply' => $reply]);
+        return $reply;
     }
 
     /**
      * Xử lý câu hỏi về GỢI Ý SẢN PHẨM (Mới: Gợi ý sản phẩm tương tự)
      */
-    private function handleSuggestionsQuestion(string $keyword): ?JsonResponse
+    /**
+     * Xử lý câu hỏi về GỢI Ý SẢN PHẨM (Mới: Gợi ý sản phẩm tương tự)
+     */
+    private function handleSuggestionsQuestion(string $keyword): ?string
     {
         $product = $this->searchProducts($keyword, 1)->first();
         if (!$product) {
             return null;
         }
 
-        // Gợi ý sản phẩm cùng loại hoặc danh mục
         $suggestions = DB::table('SANPHAM')
             ->where('MALOAI', $product->MALOAI)
             ->where('MASANPHAM', '!=', $product->MASANPHAM)
@@ -320,22 +406,24 @@ class ChatbotController extends Controller
             ->get(['TENSANPHAM', 'GIABAN']);
 
         if ($suggestions->isEmpty()) {
-            return response()->json(['reply' => "Dạ, hiện tại mình chưa tìm thấy sản phẩm tương tự với \"{$product->TENSANPHAM}\"."]);
+            return "Dạ, hiện tại mình chưa tìm thấy sản phẩm tương tự với " . $product->TENSANPHAM . ".";
         }
 
         $lines = $suggestions->map(function ($r, $i) {
             $vnd = number_format((int) $r->GIABAN, 0, ',', '.') . ' VND';
             return ($i + 1) . ". {$r->TENSANPHAM} — {$vnd}";
-        })->implode("\n");
+        })->implode("
+");
 
-        $intro = "Dựa trên sản phẩm \"{$product->TENSANPHAM}\", mình gợi ý một số sản phẩm tương tự:";
-        return response()->json(['reply' => $intro . "\n" . $lines]);
+        $intro = "Dựa trên sản phẩm " . $product->TENSANPHAM . ", mình gợi ý một số sản phẩm tương tự:";
+        return $intro . "
+" . $lines;
     }
 
     /**
      * Xử lý câu hỏi về NHÀ CUNG CẤP (Mới)
      */
-    private function handleSupplierQuestion(string $keyword): ?JsonResponse
+    private function handleSupplierQuestion(string $keyword): ?string
     {
         $product = $this->searchProducts($keyword, 1)->first();
         if (!$product || !$product->MANHACUNGCAP) {
@@ -347,58 +435,88 @@ class ChatbotController extends Controller
             ->first(['TENNHACUNGCAP', 'DTHOAI', 'DIACHI']);
 
         if (!$supplier) {
-            return response()->json(['reply' => "Sản phẩm \"{$product->TENSANPHAM}\" chưa có thông tin nhà cung cấp."]);
+            return "Sản phẩm " . $product->TENSANPHAM . " chưa có thông tin nhà cung cấp.";
         }
 
-        $reply = "Sản phẩm \"{$product->TENSANPHAM}\" được cung cấp bởi: {$supplier->TENNHACUNGCAP}.\n";
-        $reply .= "Liên hệ: {$supplier->DTHOAI}\nĐịa chỉ: {$supplier->DIACHI}";
+        $reply = "Sản phẩm " . $product->TENSANPHAM . " được cung cấp bởi: {$supplier->TENNHACUNGCAP}.\n";
+        $reply .= "Liên hệ: {$supplier->DTHOAI}
+Địa chỉ: {$supplier->DIACHI}";
 
-        return response()->json(['reply' => $reply]);
+        return $reply;
+    }
+
+    /**
+     * Xử lý câu hỏi về chính sách giao hàng/thanh toán/bảo hành
+     */
+    private function handlePolicyQuestion(string $message): ?string
+    {
+        $lower = Str::lower($message);
+        foreach (self::POLICY_RESPONSES as $topic => $data) {
+            foreach ($data['keywords'] as $keyword) {
+                if (Str::contains($lower, $keyword)) {
+                    return $data['answer'];
+                }
+            }
+        }
+
+        return "HandicraftShop hỗ trợ giao hàng toàn quốc, nhiều phương thức thanh toán và đổi trả trong 7 ngày cho sản phẩm lỗi. Bạn có thể hỏi cụ thể về giao hàng, thanh toán, đổi trả hoặc bảo quản để mình tư vấn kỹ hơn nhé.";
     }
 
     // =========================================================
     // HÀM GỌI AI (GEMINI) VỚI NGỮ CẢNH ĐỘNG (RAG)
     // =========================================================
+    // =========================================================
+    // HÀM GỌI AI (GEMINI) VỚI NGỮ CẢNH ĐỘNG (RAG)
+    // =========================================================
 
-    private function callGeminiAI(string $message): JsonResponse
+    private function callGeminiAI(string $message, $historyRecords = []): string
     {
         $apiKey = config('services.gemini.api_key');
-        $model  = config('services.gemini.model', 'gemini-1.5-flash'); // Nâng cấp model nếu cần
+        $model  = config('services.gemini.model', 'gemini-1.5-flash');
         $base   = rtrim(config('services.gemini.endpoint', 'https://generativelanguage.googleapis.com/v1beta/models'), '/');
         if (empty($apiKey)) {
-            return response()->json(['message' => 'Chưa cấu hình GEMINI_API_KEY.'], 503);
+            throw new HttpResponseException(response()->json(['message' => 'Chưa cấu hình GEMINI_API_KEY.'], 503));
         }
         $endpoint = "{$base}/{$model}:generateContent?key=" . urlencode($apiKey);
 
-        // ===== BƯỚC 1: TRUY XUẤT (RETRIEVAL) =====
-        // Lấy thông tin ngữ cảnh động từ DB dựa trên tin nhắn
         $context = $this->buildDynamicContext($message);
+        $persona = "Bạn là trợ lý AI của HandicraftShop. Luôn trả lời tiếng Việt, thân thiện, súc tích.
+                    Khi người dùng hỏi giá/tồn kho/thông tin sản phẩm, ưu tiên dữ liệu nội bộ bên dưới.
+                    Nếu không tìm thấy thì giải thích lịch sự và gợi ý bước tiếp theo.";
 
-        // ===== BƯỚC 2: BỔ SUNG (AUGMENT) =====
-        $persona = "Bạn là trợ lý AI của HandicraftShop. Luôn trả lời bằng tiếng Việt, ngắn gọn, thân thiện.
-                    Khi người dùng hỏi giá/tên sản phẩm/thông tin, ưu tiên trả lời theo DANH MỤC NỘI BỘ (bên dưới).
-                    Nếu không tìm thấy, hãy nói lịch sự là chưa có dữ liệu.
-                    Luôn định dạng tiền tệ theo VND (dùng dấu . cho hàng nghìn).
-                    Gợi ý thêm sản phẩm liên quan nếu phù hợp.";
-
-        $fullContext = "DANH MỤC NỘI BỘ (dữ liệu tham khảo):\n" . $context;
+        $historyParts = [];
+        foreach ($historyRecords as $record) {
+            $role = data_get($record, 'ROLE');
+            $text = trim((string) data_get($record, 'MESSAGE', ''));
+            if ($text === '' || !in_array($role, ['user', 'assistant'], true)) {
+                continue;
+            }
+            $historyParts[] = [
+                'role'  => $role === 'assistant' ? 'model' : 'user',
+                'parts' => [['text' => $text]],
+            ];
+        }
 
         $payload = [
-            'contents' => [
-                // Xây dựng lịch sử chat cho AI
-                ['role' => 'user', 'parts' => [[ 'text' => $persona ]]],
-                ['role' => 'model', 'parts' => [[ 'text' => "Dạ, vâng. Tôi là trợ lý của HandicraftShop. Tôi đã sẵn sàng." ]]],
-                ['role' => 'user', 'parts' => [[ 'text' => $fullContext ]]],
-                ['role' => 'model', 'parts' => [[ 'text' => "Tôi đã nhận được thông tin ngữ cảnh nội bộ." ]]],
-                ['role' => 'user', 'parts' => [[ 'text' => $message ]]], // Câu hỏi cuối cùng của người dùng
-            ],
+            'contents' => array_merge(
+                [
+                    ['role' => 'user',  'parts' => [['text' => $persona]]],
+                    ['role' => 'model', 'parts' => [['text' => 'Đã hiểu vai trò trợ lý HandicraftShop.']]],
+                    ['role' => 'user',  'parts' => [['text' => "DANH MỤC NỘI BỘ (dữ liệu tham khảo):
+{$context}"]]],
+                    ['role' => 'model', 'parts' => [['text' => 'Đã nhận thông tin nền.']]],
+                ],
+                $historyParts,
+                [
+                    ['role' => 'user', 'parts' => [['text' => $message]]],
+                ]
+            ),
             'generationConfig' => [
-                'temperature' => 0.4,
+                'temperature'     => 0.4,
                 'maxOutputTokens' => 512,
             ],
         ];
 
-        // ===== BƯỚC 3: TẠO SINH (GENERATE) =====
         try {
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
@@ -406,16 +524,20 @@ class ChatbotController extends Controller
             ])->timeout(30)->post($endpoint, $payload);
         } catch (Throwable $e) {
             report($e);
-            return response()->json(['message' => 'Không thể kết nối tới Gemini.'], 504);
+            throw new HttpResponseException(response()->json(['message' => 'Không thể kết nối tới Gemini.'], 504));
         }
 
         if ($response->failed()) {
             $body = $response->json();
             $status = $response->status();
             $errMsg = data_get($body, 'error.message') ?: 'Trợ lý AI đang bận. Vui lòng thử lại sau.';
-            if (in_array($status, [401, 403])) $errMsg = 'Gemini API key không hợp lệ hoặc không đủ quyền.';
-            if ($status === 429) $errMsg = 'Gemini vượt hạn mức/quá tải. Vui lòng thử lại ít phút.';
-            return response()->json(['message' => $errMsg], $status ?: 500);
+            if (in_array($status, [401, 403])) {
+                $errMsg = 'Gemini API key không hợp lệ hoặc không đủ quyền.';
+            }
+            if ($status === 429) {
+                $errMsg = 'Gemini vượt hạn mức. Vui lòng thử lại ít phút.';
+            }
+            throw new HttpResponseException(response()->json(['message' => $errMsg], $status ?: 500));
         }
 
         $json  = $response->json();
@@ -424,18 +546,123 @@ class ChatbotController extends Controller
         if (is_array($parts)) {
             foreach ($parts as $p) {
                 $t = data_get($p, 'text', '');
-                if (is_string($t)) $reply .= $t;
+                if (is_string($t)) {
+                    $reply .= $t;
+                }
             }
         }
         if (!is_string($reply) || trim($reply) === '') {
-            return response()->json(['message' => 'Máy chủ AI không trả về nội dung hợp lệ.'], 502);
+            throw new HttpResponseException(response()->json(['message' => 'Máy chủ AI không trả về nội dung hợp lệ.'], 502));
         }
 
-        return response()->json(['reply' => trim($reply)]);
+        return trim($reply);
     }
 
-
     // =========================================================
+    // HÀM TRỢ GIÚP (HELPERS)
+    // =========================================================
+
+    private function resolveChatSession(?string $token): object
+    {
+        $this->purgeExpiredSessions();
+
+        $now       = Carbon::now();
+        $expiresAt = $now->copy()->addMinutes(self::HISTORY_TTL_MINUTES);
+        $userId    = Auth::id();
+
+        $session = null;
+        if ($token) {
+            $session = DB::table('CHATBOT_SESSIONS')
+                ->where('SESSION_TOKEN', $token)
+                ->first();
+            if ($session && Carbon::parse($session->EXPIRES_AT)->lte($now)) {
+                $session = null;
+            }
+        }
+
+        if ($session) {
+            DB::table('CHATBOT_SESSIONS')
+                ->where('ID', $session->ID)
+                ->update([
+                    'USER_ID'    => $userId,
+                    'EXPIRES_AT' => $expiresAt,
+                    'UPDATED_AT' => $now,
+                ]);
+
+            return (object) [
+                'id'         => (int) $session->ID,
+                'token'      => $session->SESSION_TOKEN,
+                'expires_at' => $expiresAt,
+            ];
+        }
+
+        $token = $token && Str::length($token) >= 20 ? $token : (string) Str::uuid();
+        $id = DB::table('CHATBOT_SESSIONS')->insertGetId([
+            'SESSION_TOKEN' => $token,
+            'USER_ID'       => $userId,
+            'EXPIRES_AT'    => $expiresAt,
+            'CREATED_AT'    => $now,
+            'UPDATED_AT'    => $now,
+        ]);
+
+        return (object) [
+            'id'         => $id,
+            'token'      => $token,
+            'expires_at' => $expiresAt,
+        ];
+    }
+
+    private function getStoredHistory(int $sessionId, int $limit = 10)
+    {
+        if ($sessionId <= 0) {
+            return collect();
+        }
+
+        return DB::table('CHATBOT_MESSAGES')
+            ->where('SESSION_ID', $sessionId)
+            ->where('EXPIRES_AT', '>', Carbon::now())
+            ->orderBy('ID')
+            ->limit($limit)
+            ->get(['ID', 'ROLE', 'MESSAGE', 'CREATED_AT']);
+    }
+
+    private function storeChatMessage(int $sessionId, string $role, string $message, array $metadata = []): void
+    {
+        $text = trim($message);
+        if ($sessionId <= 0 || $text === '') {
+            return;
+        }
+
+        DB::table('CHATBOT_MESSAGES')->insert([
+            'SESSION_ID' => $sessionId,
+            'ROLE'       => in_array($role, ['assistant', 'user', 'system'], true) ? $role : 'user',
+            'MESSAGE'    => Str::limit($text, 2000, '...'),
+            'METADATA'   => empty($metadata) ? null : json_encode($metadata, JSON_UNESCAPED_UNICODE),
+            'CREATED_AT' => Carbon::now(),
+            'EXPIRES_AT' => Carbon::now()->addMinutes(self::HISTORY_TTL_MINUTES),
+        ]);
+    }
+
+    private function cleanupExpiredMessages(int $sessionId): void
+    {
+        DB::table('CHATBOT_MESSAGES')
+            ->where('SESSION_ID', $sessionId)
+            ->where('EXPIRES_AT', '<=', Carbon::now())
+            ->delete();
+    }
+
+    private function purgeExpiredSessions(): void
+    {
+        $threshold = Carbon::now()->subMinutes(self::HISTORY_TTL_MINUTES);
+        $ids = DB::table('CHATBOT_SESSIONS')
+            ->where('EXPIRES_AT', '<=', $threshold)
+            ->limit(50)
+            ->pluck('ID');
+
+        if ($ids->isNotEmpty()) {
+            DB::table('CHATBOT_SESSIONS')->whereIn('ID', $ids)->delete();
+        }
+    }
     // HÀM TRỢ GIÚP (HELPERS)
     // =========================================================
 
@@ -485,6 +712,10 @@ class ChatbotController extends Controller
             return self::INTENT_SUPPLIER;
         }
 
+        if (preg_match('/(giao hàng|ship|vận chuyển|thanh toán|payment|chuyển khoản|cod|momo|vnpay|đổi trả|hoàn trả|bảo hành|return|refund|warranty|bảo quản|chăm sóc|vệ sinh|care)/iu', $lower)) {
+            return self::INTENT_POLICY;
+        }
+        
         return self::INTENT_GENERAL;
     }
 
