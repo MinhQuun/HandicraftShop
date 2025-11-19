@@ -70,7 +70,7 @@
                         </li>
                         @if($discount > 0)
                             <li class="discount-line">
-                                <span>Giảm giá 
+                                <span>Giảm giá
                                     @if(!empty($order->MAKHUYENMAI))
                                         <span class="voucher-badge" title="Mã đã áp">
                                             <i class="fas fa-tag"></i> {{ $order->MAKHUYENMAI }}
@@ -157,10 +157,6 @@
                 <i class="fas fa-home"></i>&nbsp;Về Trang Chủ
             </a>
         </div>
-
-        {{-- Thông tin nội bộ (ẩn khỏi mắt khách) nếu bạn muốn giữ mã đơn để CSKH tra cứu nhanh:
-        <div style="display:none">OrderRef: #{{ $order->MADONHANG }}</div>
-        --}}
     </section>
 </main>
 @endsection

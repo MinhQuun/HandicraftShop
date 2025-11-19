@@ -14,9 +14,11 @@
 
     {{-- CSS riêng cho nhân viên --}}
     <link rel="stylesheet" href="{{ asset('css/staff.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/toast.css') }}">
     @stack('styles')
 </head>
 <body class="staff-body">
+    @include('partials.flash')
     {{-- TOPBAR --}}
     <nav class="staff-topbar navbar navbar-expand-lg">
         <div class="container-fluid">
@@ -203,6 +205,7 @@
         });
     </script>
     <script src="{{ asset('js/staff.js') }}"></script>
+    <script src="{{ asset('js/flash.js') }}" defer></script>
     @stack('scripts')
 </body>
 </html>

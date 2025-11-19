@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    <script src="https://kit.fontawesome.com/cdbcf8b89b.js" crossorigin="anonymous"></script>
 
     {{-- Bootstrap --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -14,9 +14,11 @@
 
     {{-- CSS riêng --}}
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/toast.css') }}">
     @stack('styles')
 </head>
 <body class="admin-body">
+    @include('partials.flash')
 
     {{-- TOPBAR --}}
     <nav class="admin-topbar navbar navbar-expand-lg">
@@ -84,6 +86,7 @@
         document.getElementById('adminSidebar')?.classList.toggle('open');
         });
     </script>
+    <script src="{{ asset('js/flash.js') }}" defer></script>
     @stack('scripts')
 </body>
 </html>

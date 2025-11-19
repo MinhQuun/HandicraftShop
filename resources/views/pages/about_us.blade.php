@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Về chúng tôi | Handicraft Shop')
+@section('title', 'Về chúng tôi')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/about.css') }}">

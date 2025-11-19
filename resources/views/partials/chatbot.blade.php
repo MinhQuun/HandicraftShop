@@ -1,7 +1,7 @@
 <div class="hc-chatbot"
-     data-hc-chatbot
-     data-hc-chatbot-endpoint="{{ route('chatbot.send') }}"
-     data-hc-chatbot-history="{{ route('chatbot.history') }}">
+    data-hc-chatbot
+    data-hc-chatbot-endpoint="{{ route('chatbot.send') }}"
+    data-hc-chatbot-history="{{ route('chatbot.history') }}">
     <button type="button" class="hc-chatbot-toggle btn shadow" data-hc-chatbot-toggle>
         <i class="bi bi-robot me-2"></i>
         <span>Hỗ trợ AI</span>

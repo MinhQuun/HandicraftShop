@@ -121,8 +121,9 @@ document.addEventListener("click", (e) => {
     }
 
     // Add to cart
-    if (t.closest('[data-action="add-to-cart"]')) {
-        addToCart();
+    const addBtn = t.closest('[data-action="add-to-cart"]');
+    if (addBtn) {
+        addToCart(addBtn);
         return;
     }
 
@@ -183,12 +184,26 @@ async function postJson(url, payload) {
 
 /* =================== Cart =================== */
 let addBusy = false;
-async function addToCart() {
+async function addToCart(triggerBtn = null, overrideProductId = "") {
     if (addBusy) return;
-    const btn = document.getElementById("btnAddToCart");
-    const qty = readQty();
-    const stock = getStockMax();
-    if (qty < 1 || stock === 0) return;
+    const btn = triggerBtn || document.getElementById("btnAddToCart");
+    const isMainButton = !triggerBtn || btn?.id === "btnAddToCart";
+
+    const qty = isMainButton
+        ? readQty()
+        : clamp(Number(triggerBtn?.dataset.qty || 1), 1, 9999);
+
+    const stock = (() => {
+        if (isMainButton) return getStockMax();
+        if (!triggerBtn) return null;
+        const raw = triggerBtn.dataset.stock;
+        if (typeof raw === "undefined" || raw === "") return null;
+        const parsed = Number(raw);
+        return Number.isNaN(parsed) ? null : parsed;
+    })();
+
+    if (qty < 1) return;
+    if ((isMainButton && stock === 0) || (stock !== null && stock <= 0)) return;
 
     const url = cartAddUrl();
     if (!url) {
@@ -196,7 +211,10 @@ async function addToCart() {
         return;
     }
 
-    let masp = wrapEl()?.querySelector("#create-review-form")?.dataset?.masp;
+    let masp =
+        overrideProductId ||
+        triggerBtn?.dataset.productId ||
+        wrapEl()?.querySelector("#create-review-form")?.dataset?.masp;
     if (!masp) {
         const parts = window.location.pathname.split("/").filter(Boolean);
         masp = parts[parts.length - 1] || "";

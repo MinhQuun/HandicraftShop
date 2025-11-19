@@ -1,144 +1,141 @@
 @php
-  // Lấy menu DanhMuc -> Loai bằng Eloquent
-  $menus = \App\Models\DanhMuc::orderBy('TENDANHMUC')
+    // Lấy menu DanhMuc -> Loai bằng Eloquent
+    $menus = \App\Models\DanhMuc::orderBy('TENDANHMUC')
             ->with(['loais' => fn($q) => $q->orderBy('TENLOAI')])
             ->get();
 
-  // Đếm số sản phẩm khác nhau trong giỏ (mỗi sản phẩm chỉ +1)
-  $cartCount = session('cart') ? count(session('cart')) : 0;
+    // Đếm số sản phẩm khác nhau trong giỏ (mỗi sản phẩm chỉ +1)
+    $cartCount = session('cart') ? count(session('cart')) : 0;
 @endphp
 
 <header class="header">
-  <div class="nav">
-    <ul>
-      {{-- Logo --}}
-      <li>
-        <a href="{{ route('home') }}" class="d-flex align-items-center mb-2 mb-lg-0 text-decoration-none">
-          <img src="{{ asset('assets/images/LOGO/Logo.jpg') }}"
-               alt="Handicraft Shop Logo"
-               width="50"
-               height="auto"
-               class="bi me-2" />
-        </a>
-      </li>
+    <div class="nav">
+        <ul>
+            {{-- Logo --}}
+            <li>
+                <a href="{{ route('home') }}" class="d-flex align-items-center mb-2 mb-lg-0 text-decoration-none">
+                <img src="{{ asset('assets/images/LOGO/Logo.jpg') }}"
+                    alt="Handicraft Shop Logo"
+                    width="50"
+                    height="auto"
+                    class="bi me-2" />
+                </a>
+            </li>
 
-      <li><a href="{{ route('home') }}">Trang chủ</a></li>
+            <li><a href="{{ route('home') }}">Trang chủ</a></li>
 
-      {{-- Dropdown Sản phẩm (menu 2 tầng) --}}
-      <li>
-        <ul class="mega-menu">
-          <li class="dropdown-root" style="width: 100px;">
-            <a href="#">Sản phẩm <i class="fa-solid fa-angle-down"></i></a>
+            {{-- Dropdown Sản phẩm (menu 2 tầng) --}}
+            <li>
+                <ul class="mega-menu">
+                    <li class="dropdown-root" style="width: 100px;">
+                        <a href="#">Sản phẩm <i class="fa-solid fa-angle-down"></i></a>
 
-            <ul class="mega-sub">
-              {{-- Tất cả sản phẩm --}}
-              <li><a href="{{ route('all_product') }}">Tất cả sản phẩm</a></li>
-              {{-- Sản phẩm khuyến mãi --}}
-              <li><a href="{{ route('sp.promotions') }}">Sản phẩm khuyến mãi</a></li>
+                        <ul class="mega-sub">
+                            <li><a href="{{ route('all_product') }}">Tất cả sản phẩm</a></li>
+                            <li><a href="{{ route('sp.promotions') }}">Sản phẩm khuyến mãi</a></li>
 
-              {{-- Danh mục cấp 1 --}}
-              @foreach ($menus as $dm)
-                @php
-                  $madm  = (int) $dm->MADANHMUC;
-                  $tendm = $dm->TENDANHMUC;
-                  $loais = $dm->loais ?? collect();
-                @endphp
+                            {{-- Danh mục cấp 1 --}}
+                            @foreach ($menus as $dm)
+                                @php
+                                $madm  = (int) $dm->MADANHMUC;
+                                $tendm = $dm->TENDANHMUC;
+                                $loais = $dm->loais ?? collect();
+                                @endphp
 
-                <li class="has-children">
-                  <a href="{{ route('category', ['dm' => $madm]) }}">
-                    {{ $tendm }}
-                    @if ($loais->isNotEmpty())
-                      <i class="fa-solid fa-angle-right"></i>
-                    @endif
-                  </a>
+                                <li class="has-children">
+                                <a href="{{ route('category', ['dm' => $madm]) }}">
+                                    {{ $tendm }}
+                                    @if ($loais->isNotEmpty())
+                                    <i class="fa-solid fa-angle-right"></i>
+                                    @endif
+                                </a>
 
-                  {{-- Loại cấp 2 --}}
-                  @if ($loais->isNotEmpty())
-                    <ul class="mega-sub">
-                      @foreach ($loais as $loai)
-                        <li>
-                          <a href="{{ route('sp.byType', $loai->MALOAI) }}">
-                            {{ $loai->TENLOAI }}
-                          </a>
-                        </li>
-                      @endforeach
-                    </ul>
-                  @endif
+                                {{-- Loại cấp 2 --}}
+                                @if ($loais->isNotEmpty())
+                                    <ul class="mega-sub">
+                                    @foreach ($loais as $loai)
+                                        <li>
+                                        <a href="{{ route('sp.byType', $loai->MALOAI) }}">
+                                            {{ $loai->TENLOAI }}
+                                        </a>
+                                        </li>
+                                    @endforeach
+                                    </ul>
+                                @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+
+            {{-- Ô tìm kiếm --}}
+            <form action="{{ route('sp.search') }}" method="get" style="display:inline;">
+                <input type="text" name="q" placeholder="Tìm kiếm..."
+                    style="width:250px;height:30px;border-radius:10px;padding-left:10px"
+                    value="{{ request('q') }}">
+            </form>
+
+            {{-- Các link tĩnh --}}
+            <li><a href="{{ route('services') }}">Dịch vụ</a></li>
+            <li><a href="{{ route('contact') }}">Liên hệ</a></li>
+            <li><a href="{{ route('about') }}">Về chúng tôi</a></li>
+
+            {{-- Auth --}}
+            @guest
+                <li>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
+                    Đăng nhập / Đăng ký
+                </a>
                 </li>
-              @endforeach
-            </ul>
-          </li>
+            @endguest
+
+            @auth
+                <li class="auth-dropdown has-children">
+                    <a href="#">
+                        <i class="fa-solid fa-user me-1"></i>
+                        {{ auth()->user()->name }}
+                        <i class="fa-solid fa-angle-down"></i>
+                    </a>
+
+                    <ul class="mega-sub">
+                        <li>
+                            <a href="{{ route('profile.show') }}">
+                                Thông tin cá nhân
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('customer.orders.index') }}">Đơn hàng của tôi</a>
+                        </li>
+                        <li>
+                            <a href="{{ route('customer.orders.history') }}">
+                                Lịch sử mua hàng
+                            </a>
+                        </li>
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="auth-logout-btn">Đăng xuất</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            @endauth
+
+                    {{-- Giỏ hàng --}}
+            <li>
+                @auth
+                <a href="{{ route('cart') }}">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="cart-count">{{ $cartCount }}</span>
+                </a>
+                @else
+                <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="cart-count">{{ $cartCount }}</span>
+                </a>
+                @endauth
+            </li>
         </ul>
-      </li>
-
-      {{-- Ô tìm kiếm --}}
-      <form action="{{ route('sp.search') }}" method="get" style="display:inline;">
-        <input type="text" name="q" placeholder="Tìm kiếm..."
-              style="width:250px;height:30px;border-radius:10px;padding-left:10px"
-              value="{{ request('q') }}">
-      </form>
-
-      {{-- Các link tĩnh --}}
-      <li><a href="{{ route('services') }}">Dịch vụ</a></li>
-      <li><a href="{{ route('contact') }}">Liên hệ</a></li>
-      <li><a href="{{ route('about') }}">Về chúng tôi</a></li>
-
-      {{-- Auth --}}
-      @guest
-        <li>
-          <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
-              Đăng nhập / Đăng ký
-          </a>
-        </li>
-      @endguest
-
-      @auth
-        <li class="auth-dropdown has-children">
-          <a href="#">
-            <i class="fa-solid fa-user me-1"></i>
-            {{ auth()->user()->name }}
-            <i class="fa-solid fa-angle-down"></i>
-          </a>
-
-          <ul class="mega-sub">
-            <li>
-              <a href="{{ route('profile.show') }}">
-                Thông tin cá nhân
-              </a>
-            </li>
-            <li>
-              <a href="{{ route('customer.orders.index') }}">Đơn hàng của tôi</a>
-            </li>  
-            <li>
-              <a href="{{ route('customer.orders.history') }}">
-                Lịch sử mua hàng
-              </a>
-            </li>                      
-            <li>
-              <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="auth-logout-btn">Đăng xuất</button>
-              </form>
-            </li>
-          </ul>
-        </li>
-      @endauth
-
-            {{-- Giỏ hàng --}}
-      <li>
-        @auth
-          <a href="{{ route('cart') }}">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span id="cart-count">{{ $cartCount }}</span>
-          </a>
-        @else
-          <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span id="cart-count">{{ $cartCount }}</span>
-          </a>
-        @endauth
-      </li>
-
-    </ul>
-  </div>
+    </div>
 </header>

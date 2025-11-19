@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'Chi Tiết Sản Phẩm | Handicraft Shop')
+@section('title', 'Chi Tiết Sản Phẩm')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/detail.css') }}">
@@ -310,7 +310,11 @@
                                             data-default-text="Chọn mua"
                                             data-added-text="Đã trong giỏ hàng"
                                             data-in-cart="{{ $isInCartRelated ? '1' : '0' }}"
-                                            onclick="addToCart(this, '{{ $relatedId }}')"
+                                            data-action="add-to-cart"
+                                            data-qty="1"
+                                            @if (!is_null($stockCount))
+                                                data-stock="{{ $stockCount }}"
+                                            @endif
                                             @if (!is_null($stockCount) && $stockCount <= 0) disabled @endif
                                         >
                                             {{ $isInCartRelated ? 'Đã trong giỏ hàng' : 'Chọn mua' }}

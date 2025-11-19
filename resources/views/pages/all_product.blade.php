@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'All Products')
+@section('title', 'Tất cả sản phẩm')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/index.css') }}">
