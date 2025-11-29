@@ -75,6 +75,33 @@
             }
         };
 
+        const buildDateObject = (value) => {
+            if (!value) return new Date();
+            const date = new Date(value);
+            return isNaN(date) ? null : date;
+        };
+
+        const formatTimeText = (date) => {
+            if (!date) return "";
+            try {
+                return date.toLocaleTimeString("vi-VN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                });
+            } catch (error) {
+                return "";
+            }
+        };
+
+        const formatDateTitle = (date) => {
+            if (!date) return "";
+            try {
+                return date.toLocaleString("vi-VN");
+            } catch (error) {
+                return date.toISOString();
+            }
+        };
+
         const saveSessionToken = (token, expiresAt) => {
             if (!token) return;
             sessionToken = token;
@@ -144,16 +171,30 @@
                 wrapper.appendChild(avatar);
             }
 
+            const messageDate = buildDateObject(createdAt);
             const bubble = document.createElement("div");
             bubble.classList.add("hc-chatbot-bubble");
-            bubble.textContent = text;
-            if (createdAt) {
-                const date = new Date(createdAt);
-                if (!isNaN(date)) {
-                    bubble.setAttribute("data-time", date.toISOString());
-                    bubble.setAttribute("title", date.toLocaleString("vi-VN"));
+
+            const bubbleText = document.createElement("div");
+            bubbleText.classList.add("hc-chatbot-text");
+            bubbleText.textContent = text;
+            bubble.appendChild(bubbleText);
+
+            if (messageDate) {
+                const timeText = formatTimeText(messageDate);
+                const titleText = formatDateTitle(messageDate);
+                bubble.setAttribute("data-time", messageDate.toISOString());
+                if (titleText) {
+                    bubble.setAttribute("title", titleText);
+                }
+                if (timeText) {
+                    const meta = document.createElement("div");
+                    meta.classList.add("hc-chatbot-meta");
+                    meta.textContent = timeText;
+                    bubble.appendChild(meta);
                 }
             }
+
             wrapper.appendChild(bubble);
 
             const wasAtBottom = atBottom();
@@ -165,7 +206,9 @@
                 pushHistoryRecord({
                     role: author === "assistant" ? "assistant" : "user",
                     message: text,
-                    created_at: createdAt || new Date().toISOString(),
+                    created_at: messageDate
+                        ? messageDate.toISOString()
+                        : new Date().toISOString(),
                 });
             }
         };

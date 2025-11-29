@@ -25,7 +25,10 @@
                         <i class="bi bi-robot"></i>
                     </div>
                     <div class="hc-chatbot-bubble">
-                        Xin chào! Tôi là trợ lý AI của HandicraftShop. Tôi có thể gợi ý sản phẩm, tư vấn quà tặng hoặc hướng dẫn bảo quản. Bạn cần hỗ trợ gì không?
+                        <div class="hc-chatbot-text">
+                            Xin chào! Tôi là trợ lý AI của HandicraftShop. Tôi có thể gợi ý sản phẩm, tư vấn quà tặng hoặc hướng dẫn bảo quản. Bạn cần hỗ trợ gì không?
+                        </div>
+                        <div class="hc-chatbot-meta">Luôn sẵn sàng hỗ trợ</div>
                     </div>
                 </div>
             </div>
