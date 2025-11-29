@@ -216,6 +216,31 @@ const AUTH_VALIDATORS = {
     },
 };
 
+const DEFAULT_AUTH_LOADING_TEXT = "Đang xử lý...";
+
+function setAuthFormLoading(form, isLoading = true) {
+    if (!form) return;
+    const btn = form.querySelector('button[type="submit"]');
+    if (!btn) return;
+
+    if (isLoading) {
+        if (form.dataset.submitting === "true") return;
+        form.dataset.submitting = "true";
+        btn.dataset.originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
+        const loadingText = btn.dataset.loadingText || DEFAULT_AUTH_LOADING_TEXT;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${loadingText}`;
+    } else {
+        form.dataset.submitting = "false";
+        btn.disabled = false;
+        btn.removeAttribute("aria-busy");
+        if (btn.dataset.originalText) {
+            btn.innerHTML = btn.dataset.originalText;
+        }
+    }
+}
+
 document.addEventListener("submit", (event) => {
     const form = event.target.closest("[data-auth-form]");
     if (!form) return;
@@ -223,7 +248,9 @@ document.addEventListener("submit", (event) => {
     const validator = AUTH_VALIDATORS[type];
     if (typeof validator === "function" && !validator(form)) {
         event.preventDefault();
+        return;
     }
+    setAuthFormLoading(form, true);
 });
 
 document.addEventListener("input", (event) => {
