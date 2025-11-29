@@ -102,9 +102,23 @@
             {{-- Qty + nút mua --}}
             <div class="detail-actions mt-2">
                 <div class="qty-box">
-                <button class="btn-qty" type="button" data-action="qty-dec" title="Giảm 1">−</button>
-                <span id="qtyNumber" class="qty-number">1</span>
-                <button class="btn-qty" type="button" data-action="qty-inc" title="Tăng 1">+</button>
+                <label class="qty-label" for="quantityInput">Số lượng</label>
+                <div class="qty-input-wrap">
+                    <button class="btn-qty" type="button" data-action="qty-dec" title="Giảm 1">-</button>
+                    <input
+                    id="quantityInput"
+                    type="number"
+                    inputmode="numeric"
+                    pattern="\\d*"
+                    min="1"
+                    max="{{ (int) $p->SOLUONGTON ?: 9999 }}"
+                    step="1"
+                    value="1"
+                    class="qty-input"
+                    aria-label="Chọn số lượng"
+                    />
+                    <button class="btn-qty" type="button" data-action="qty-inc" title="Tăng 1">+</button>
+                </div>
                 </div>
 
                 <button
@@ -246,10 +260,10 @@
 
         <!-- Sản phẩm liên quan -->
         @if (!empty($related) && count($related))
-            <div class="row mt-5">
+            <div class="row mt-5 align-items-stretch">
                 <div class="col-md-12">
                     <h3 class="section-title">SẢN PHẨM LIÊN QUAN</h3>
-                    <div class="row g-4 mt-2">
+                    <div class="row g-4 mt-2 align-items-stretch">
                         @foreach ($related as $item)
                             @php
                                 $relatedId       = $item->MASANPHAM ?? $item->id ?? '';
@@ -280,7 +294,7 @@
                                 }
                             @endphp
 
-                            <div class="col-lg-3 col-md-4 col-sm-6 d-flex">
+                            <div class="col-lg-3 col-md-4 col-sm-6 d-flex align-items-stretch">
                                 <article class="product-card product-card--compact">
                                     @if ($hasSale)
                                         <div class="sale-ribbon">-{{ max(0, min(100, round(100 * ($origR - $saleR) / max($origR, 1)))) }}%</div>

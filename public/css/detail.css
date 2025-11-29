@@ -301,18 +301,33 @@
 .qty-box {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    gap: 12px;
+}
+.qty-label {
+    font-weight: 800;
+    color: var(--text);
+    margin: 0;
+    min-width: 86px;
+}
+.qty-input-wrap {
+    display: inline-flex;
+    align-items: center;
+    background: #fffdf8;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: 0 8px 18px rgba(120, 92, 58, 0.08);
+    padding: 4px;
+    gap: 4px;
 }
 .btn-qty {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border: 1px solid #e8dccd;
-    background: #fffdf8;
+    background: #fff;
     color: #5c5245;
     transition: 0.18s;
     cursor: pointer;
@@ -331,15 +346,18 @@
 .btn-qty:focus-visible {
     outline: 3px solid rgba(106, 143, 85, 0.25);
 }
-.qty-number {
-    min-width: 32px;
+.qty-input {
+    width: 96px;
+    border: none;
+    background: transparent;
+    text-align: center;
     font-weight: 800;
     color: var(--text);
-    padding: 0.25rem 0.5rem;
-    border-radius: 999px;
-    background: #fff7ee;
-    border: 1px solid #ecd8c2;
-    text-align: center;
+    padding: 0 6px;
+    outline: none;
+}
+.qty-input:focus {
+    border: none;
 }
 
 /* --- Buttons (giữ để tái sử dụng) --- */

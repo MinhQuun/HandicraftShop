@@ -60,7 +60,7 @@ function getStockMax() {
     const ds = getDataset("stock", "");
     if (ds !== "" && !Number.isNaN(Number(ds))) return Number(ds);
 
-    const qtyInput = document.getElementById("quantity");
+    const qtyInput = document.getElementById("quantityInput");
     const maxAttr = qtyInput ? Number(qtyInput.getAttribute("max")) : NaN;
     if (!Number.isNaN(maxAttr)) return maxAttr;
 
@@ -81,12 +81,7 @@ function reviewCreateUrl() {
 
 /* =================== Qty read/write =================== */
 function readQty() {
-    const span = document.getElementById("qtyNumber");
-    if (span) {
-        const v = parseInt(span.textContent || "1", 10);
-        return Number.isNaN(v) ? 1 : v;
-    }
-    const input = document.getElementById("quantity");
+    const input = document.getElementById("quantityInput");
     if (input) {
         const max = Number(input.getAttribute("max")) || getStockMax();
         return clamp(input.value, 1, max);
@@ -97,12 +92,7 @@ function writeQty(val) {
     const max = getStockMax();
     val = clamp(val, 1, max);
 
-    const span = document.getElementById("qtyNumber");
-    if (span) {
-        span.textContent = String(val);
-        return;
-    }
-    const input = document.getElementById("quantity");
+    const input = document.getElementById("quantityInput");
     if (input) input.value = String(val);
 }
 
@@ -386,3 +376,15 @@ async function submitReview() {
         applyStars(scoreInput.value);
     });
 })();
+
+// Clamp manual quantity typing
+document.addEventListener("input", (e) => {
+    const input = e.target.closest("#quantityInput");
+    if (!input) return;
+    input.value = clamp(input.value, 1, getStockMax());
+});
+document.addEventListener("blur", (e) => {
+    const input = e.target.closest("#quantityInput");
+    if (!input) return;
+    input.value = clamp(input.value, 1, getStockMax());
+}, true);
