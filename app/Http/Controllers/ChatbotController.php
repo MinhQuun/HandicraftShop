@@ -56,9 +56,12 @@ class ChatbotController extends Controller
                         . "• Mây tre: để nơi khô ráo, có thể thoa dầu khoáng mỏng mỗi 6 tháng để giữ màu.",
         ],
     ];
+    private array $suggestedProducts = [];
 
     public function __invoke(Request $request): JsonResponse
     {
+        $this->suggestedProducts = [];
+
         $validated = $request->validate([
             'message'       => ['required', 'string', 'max:500'],
             'session_token' => ['nullable', 'string', 'max:100'],
@@ -117,13 +120,15 @@ class ChatbotController extends Controller
         }
 
         $this->storeChatMessage($session->id, 'user', $message);
-        $this->storeChatMessage($session->id, 'assistant', $reply);
+        $meta = empty($this->suggestedProducts) ? [] : ['products' => $this->suggestedProducts];
+        $this->storeChatMessage($session->id, 'assistant', $reply, $meta);
         $this->cleanupExpiredMessages($session->id);
 
         return response()->json([
             'reply'         => $reply,
             'session_token' => $session->token,
             'expires_at'    => $session->expires_at->toIso8601String(),
+            'products'      => $this->suggestedProducts,
         ]);
     }
 
@@ -142,10 +147,12 @@ class ChatbotController extends Controller
         $history = $this->getStoredHistory($session->id, self::MAX_HISTORY_RETURN)
             ->map(function ($row) {
                 $created = $row->CREATED_AT ? Carbon::parse($row->CREATED_AT)->toIso8601String() : null;
+                $metadata = json_decode((string) ($row->METADATA ?? ''), true) ?: [];
                 return [
                     'role'       => $row->ROLE,
                     'message'    => $row->MESSAGE,
                     'created_at' => $created,
+                    'products'   => data_get($metadata, 'products', []),
                 ];
             })->all();
 
@@ -176,6 +183,8 @@ class ChatbotController extends Controller
             $vnd = number_format((int) $r->GIABAN, 0, ',', '.') . ' VND';
             return ($i + 1) . ". {$r->TENSANPHAM} — {$vnd}";
         })->implode("\n");
+
+        $this->rememberProducts($rows);
 
         $intro = $keyword
             ? "Mình tìm thấy một số sản phẩm khớp với \"{$keyword}\":"
@@ -326,6 +335,7 @@ Một số đánh giá mới nhất:
     /**
      * Xử lý câu hỏi LỌC GIÁ (ví dụ: "dưới 100k")
      */
+
     private function handlePriceFilterQuestion(string $message): ?string
     {
         [$operator, $price] = $this->parsePriceFromMessage($message);
@@ -338,25 +348,27 @@ Một số đánh giá mới nhất:
             ->where('GIABAN', $operator, $price)
             ->orderBy('GIABAN', $operator === '>=' ? 'asc' : 'desc')
             ->limit(5)
-            ->get(['TENSANPHAM', 'GIABAN']);
+            ->get(['MASANPHAM', 'TENSANPHAM', 'GIABAN']);
 
         if ($rows->isEmpty()) {
-            return "Dạ, mình không tìm thấy sản phẩm nào có giá " . $this->formatOperatorText($operator) . " " . number_format($price, 0, ',', '.') . " VND ạ.";
+            return "Mình không tìm thấy sản phẩm nào có giá " . $this->formatOperatorText($operator) . " " . number_format($price, 0, ',', '.') . " VND.";
         }
+
+        $this->rememberProducts($rows);
 
         $lines = $rows->map(function ($r, $i) {
             $vnd = number_format((int) $r->GIABAN, 0, ',', '.') . ' VND';
-            return ($i + 1) . ". {$r->TENSANPHAM} — {$vnd}";
+            return ($i + 1) . ". {$r->TENSANPHAM} - {$vnd}";
         })->implode("
 ");
 
-        $intro = "Dạ, đây là các sản phẩm có giá " . $this->formatOperatorText($operator) . " " . number_format($price, 0, ',', '.') . " VND mình tìm thấy:";
+        $intro = "Đây là các sản phẩm có giá " . $this->formatOperatorText($operator) . " " . number_format($price, 0, ',', '.') . " VND:";
         return $intro . "
 " . $lines;
     }
 
     /**
-     * Xử lý câu hỏi về MÔ TẢ SẢN PHẨM (Mới)
+     * X Xử lý câu hỏi về MÔ TẢ SẢN PHẨM (Mới)
      */
     /**
      * Xử lý câu hỏi về MÔ TẢ SẢN PHẨM (Mới)
@@ -620,7 +632,20 @@ Thuộc loại: {$category->TENLOAI} (Danh mục: {$category->TENDANHMUC})";
             ->where('EXPIRES_AT', '>', Carbon::now())
             ->orderBy('ID')
             ->limit($limit)
-            ->get(['ID', 'ROLE', 'MESSAGE', 'CREATED_AT']);
+            ->get(['ID', 'ROLE', 'MESSAGE', 'CREATED_AT', 'METADATA']);
+    }
+
+    private function rememberProducts($rows): void
+    {
+        $this->suggestedProducts = collect($rows)
+            ->filter(fn($r) => isset($r->MASANPHAM))
+            ->map(fn($r) => [
+                'id'    => (string) $r->MASANPHAM,
+                'name'  => (string) $r->TENSANPHAM,
+                'price' => isset($r->GIABAN) ? (int) $r->GIABAN : null,
+            ])
+            ->values()
+            ->toArray();
     }
 
     private function storeChatMessage(int $sessionId, string $role, string $message, array $metadata = []): void
@@ -712,7 +737,7 @@ Thuộc loại: {$category->TENLOAI} (Danh mục: {$category->TENDANHMUC})";
         if (preg_match('/(giao hàng|ship|vận chuyển|thanh toán|payment|chuyển khoản|cod|momo|vnpay|đổi trả|hoàn trả|bảo hành|return|refund|warranty|bảo quản|chăm sóc|vệ sinh|care)/iu', $lower)) {
             return self::INTENT_POLICY;
         }
-        
+
         return self::INTENT_GENERAL;
     }
 

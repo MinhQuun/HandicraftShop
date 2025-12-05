@@ -102,6 +102,49 @@
             }
         };
 
+        const formatCurrency = (value) => {
+            const n = Number(value);
+            if (Number.isNaN(n)) return "";
+            return n.toLocaleString("vi-VN") + " VND";
+        };
+
+        const buildProductUrl = (id) => {
+            const safeId = encodeURIComponent(String(id || "").trim());
+            return new URL(
+                `/san-pham/${safeId}`,
+                window.location.origin
+            ).toString();
+        };
+
+        const renderProductsList = (products = []) => {
+            const list = document.createElement("ul");
+            list.classList.add("hc-chatbot-products");
+
+            products.forEach((p) => {
+                if (!p || !p.id || !p.name) return;
+                const item = document.createElement("li");
+
+                const link = document.createElement("a");
+                link.href = buildProductUrl(p.id);
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = p.name;
+
+                item.appendChild(link);
+
+                if (p.price) {
+                    const price = document.createElement("span");
+                    price.classList.add("hc-chatbot-product-price");
+                    price.textContent = formatCurrency(p.price);
+                    item.appendChild(price);
+                }
+
+                list.appendChild(item);
+            });
+
+            return list;
+        };
+
         const saveSessionToken = (token, expiresAt) => {
             if (!token) return;
             sessionToken = token;
@@ -134,7 +177,13 @@
         };
 
         const pushHistoryRecord = (entry, { persist = true } = {}) => {
-            historyState.push(entry);
+            const normalized = {
+                role: entry.role,
+                message: entry.message,
+                created_at: entry.created_at,
+                products: Array.isArray(entry.products) ? entry.products : [],
+            };
+            historyState.push(normalized);
             if (historyState.length > HISTORY_LIMIT) {
                 historyState = historyState.slice(-HISTORY_LIMIT);
             }
@@ -155,6 +204,11 @@
                 defaultMessage.remove();
                 defaultMessage = null;
             }
+
+            const products =
+                Array.isArray(options.products) && options.products.length
+                    ? options.products
+                    : [];
 
             const wrapper = document.createElement("div");
             wrapper.classList.add(
@@ -179,6 +233,10 @@
             bubbleText.classList.add("hc-chatbot-text");
             bubbleText.textContent = text;
             bubble.appendChild(bubbleText);
+
+            if (products.length) {
+                bubble.appendChild(renderProductsList(products));
+            }
 
             if (messageDate) {
                 const timeText = formatTimeText(messageDate);
@@ -209,6 +267,7 @@
                     created_at: messageDate
                         ? messageDate.toISOString()
                         : new Date().toISOString(),
+                    products,
                 });
             }
         };
@@ -224,6 +283,7 @@
             entries.forEach((entry) => {
                 appendMessage(entry.message, entry.role, entry.created_at, {
                     persist: false,
+                    products: entry.products || [],
                 });
             });
             updateScrollButton();
@@ -294,6 +354,9 @@
                                     : "user",
                             message: item.message,
                             created_at: item.created_at || null,
+                            products: Array.isArray(item.products)
+                                ? item.products
+                                : [],
                         }))
                         .slice(-HISTORY_LIMIT);
                     persistHistoryCache(data.expires_at);
@@ -396,7 +459,11 @@
                     return;
                 }
 
-                appendMessage(reply, "assistant");
+                const products = Array.isArray(data.products)
+                    ? data.products
+                    : [];
+
+                appendMessage(reply, "assistant", null, { products });
                 if (data.expires_at) {
                     persistHistoryCache(data.expires_at);
                 }

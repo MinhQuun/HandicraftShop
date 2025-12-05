@@ -36,7 +36,11 @@
     padding: 12px 18px;
     border-radius: 14px;
     color: #ffffff;
-    background: linear-gradient(135deg, var(--hc-primary-2), var(--hc-primary-1));
+    background: linear-gradient(
+        135deg,
+        var(--hc-primary-2),
+        var(--hc-primary-1)
+    );
     box-shadow: 0 10px 30px rgba(68, 52, 32, 0.18);
     transition: transform 0.25s var(--hc-ease), box-shadow 0.25s var(--hc-ease),
         filter 0.2s var(--hc-ease);
@@ -72,7 +76,11 @@
 }
 
 .hc-chatbot .hc-chatbot-header {
-    background: linear-gradient(135deg, var(--hc-primary-1), var(--hc-accent-1));
+    background: linear-gradient(
+        135deg,
+        var(--hc-primary-1),
+        var(--hc-accent-1)
+    );
     color: #fff;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     padding: 12px 16px;
@@ -219,6 +227,26 @@
 .hc-chatbot .hc-chatbot-text {
     color: inherit;
     letter-spacing: 0.15px;
+}
+.hc-chatbot .hc-chatbot-products {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: inherit;
+    list-style: disc;
+}
+.hc-chatbot .hc-chatbot-products li {
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+.hc-chatbot .hc-chatbot-products a {
+    color: var(--hc-primary-1);
+    font-weight: 600;
+    text-decoration: underline;
+}
+.hc-chatbot .hc-chatbot-products .hc-chatbot-product-price {
+    margin-left: 8px;
+    color: #6b5f52;
+    font-size: 0.9rem;
 }
 .hc-chatbot .hc-chatbot-meta {
     margin-top: 10px;
