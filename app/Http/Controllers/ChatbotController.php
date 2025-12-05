@@ -575,9 +575,6 @@ Thuộc loại: {$category->TENLOAI} (Danh mục: {$category->TENDANHMUC})";
             $session = DB::table('CHATBOT_SESSIONS')
                 ->where('SESSION_TOKEN', $token)
                 ->first();
-            if ($session && Carbon::parse($session->EXPIRES_AT)->lte($now)) {
-                $session = null;
-            }
         }
 
         if ($session) {
