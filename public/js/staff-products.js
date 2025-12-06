@@ -1,4 +1,55 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const setErr = (input, message) => {
+        if (!input) return;
+        input.classList.toggle("is-invalid", !!message);
+        let fb = input.nextElementSibling;
+        if (!fb || !fb.classList.contains("invalid-feedback")) {
+            fb = document.createElement("div");
+            fb.className = "invalid-feedback";
+            input.insertAdjacentElement("afterend", fb);
+        }
+        fb.textContent = message || "";
+    };
+
+    function validateProductForm(form) {
+        let ok = true;
+        const name = form.querySelector('input[name="TENSANPHAM"]');
+        const price = form.querySelector('input[name="GIABAN"]');
+        const stock = form.querySelector('input[name="SOLUONGTON"]');
+        const cat = form.querySelector('select[name="MALOAI"]');
+        const sup = form.querySelector('select[name="MANHACUNGCAP"]');
+
+        if (name) {
+            const v = name.value.trim();
+            const msg = v.length < 2 ? "Tên tối thiểu 2 ký tự." : "";
+            setErr(name, msg);
+            if (msg) ok = false;
+        }
+        if (price) {
+            const n = Number(price.value);
+            const msg = isNaN(n) || n <= 0 ? "Giá bán phải > 0." : "";
+            setErr(price, msg);
+            if (msg) ok = false;
+        }
+        if (stock) {
+            const n = Number(stock.value);
+            const msg = isNaN(n) || n < 0 ? "Tồn kho không âm." : "";
+            setErr(stock, msg);
+            if (msg) ok = false;
+        }
+        if (cat) {
+            const msg = !cat.value ? "Chọn loại." : "";
+            setErr(cat, msg);
+            if (msg) ok = false;
+        }
+        if (sup) {
+            const msg = !sup.value ? "Chọn nhà cung cấp." : "";
+            setErr(sup, msg);
+            if (msg) ok = false;
+        }
+        return ok;
+    }
+
     // Đảm bảo dropdown filter đóng & không đè lên modal
     function blurFilterSelects() {
         document
@@ -24,6 +75,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (nameInput) nameInput.focus({ preventScroll: true });
         });
     }
+
+    // Validate create/edit form submit
+    modalCreate?.querySelector("form")?.addEventListener("submit", (e) => {
+        if (!validateProductForm(e.target)) e.preventDefault();
+    });
+    modalEdit?.querySelector("form")?.addEventListener("submit", (e) => {
+        if (!validateProductForm(e.target)) e.preventDefault();
+    });
 
     // ===== Modal Edit: đổ dữ liệu + set action =====
     const editModal = document.getElementById("modalEdit");

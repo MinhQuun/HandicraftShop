@@ -1,4 +1,45 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const phoneRegex = /^0\d{9}$/;
+
+    const setErr = (input, message) => {
+        if (!input) return;
+        input.classList.toggle("is-invalid", !!message);
+        let fb = input.nextElementSibling;
+        if (!fb || !fb.classList.contains("invalid-feedback")) {
+            fb = document.createElement("div");
+            fb.className = "invalid-feedback";
+            input.insertAdjacentElement("afterend", fb);
+        }
+        fb.textContent = message || "";
+    };
+
+    function validateSupplierForm(form) {
+        const name = form.querySelector('input[name="TENNHACUNGCAP"]');
+        const phone = form.querySelector('input[name="DTHOAI"]');
+        const addr = form.querySelector('textarea[name="DIACHI"]');
+        let ok = true;
+
+        if (name) {
+            const v = name.value.trim();
+            const msg = v.length < 2 ? "Tên tối thiểu 2 ký tự." : "";
+            setErr(name, msg);
+            if (msg) ok = false;
+        }
+        if (phone) {
+            const v = phone.value.trim();
+            const msg = v && !phoneRegex.test(v) ? "Số điện thoại 10 số, bắt đầu bằng 0." : "";
+            setErr(phone, msg);
+            if (msg) ok = false;
+        }
+        if (addr) {
+            const v = addr.value.trim();
+            const msg = v.length < 5 ? "Vui lòng nhập địa chỉ chi tiết (≥5 ký tự)." : "";
+            setErr(addr, msg);
+            if (msg) ok = false;
+        }
+        return ok;
+    }
+
     // ================= Modal Edit: đổ dữ liệu + set action =================
     const editModal = document.getElementById("modalEdit");
     if (editModal) {
@@ -29,7 +70,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             form.action = actionTpl.replace(":id", id);
         });
+
+        editModal.querySelector("form")?.addEventListener("submit", (e) => {
+            if (!validateSupplierForm(e.target)) e.preventDefault();
+        });
     }
+
+    // Validate create form
+    document
+        .querySelector('#modalCreate form')
+        ?.addEventListener("submit", (e) => {
+            if (!validateSupplierForm(e.target)) e.preventDefault();
+        });
 
     // ================= SweetAlert2 Confirm Delete =================
     document.querySelectorAll("form.form-delete").forEach((f) => {

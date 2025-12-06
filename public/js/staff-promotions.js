@@ -1,5 +1,83 @@
 document.addEventListener("DOMContentLoaded", () => {
     const hasSwal = typeof Swal !== "undefined";
+    const setErr = (input, message) => {
+        if (!input) return;
+        input.classList.toggle("is-invalid", !!message);
+        let fb = input.nextElementSibling;
+        if (!fb || !fb.classList.contains("invalid-feedback")) {
+            fb = document.createElement("div");
+            fb.className = "invalid-feedback";
+            input.insertAdjacentElement("afterend", fb);
+        }
+        fb.textContent = message || "";
+    };
+
+    function validatePromotionForm(form) {
+        let ok = true;
+        const scope = form.querySelector('select[name="PHAMVI"]');
+        const type = form.querySelector('select[name="LOAIKHUYENMAI"]');
+        const code = form.querySelector('input[name="MAKHUYENMAI"]');
+        const name = form.querySelector('input[name="TENKHUYENMAI"]');
+        const discount = form.querySelector('input[name="GIAMGIA"]');
+        const start = form.querySelector('input[name="NGAYBATDAU"]');
+        const end = form.querySelector('input[name="NGAYKETTHUC"]');
+        const min = form.querySelector('input[name="min_order_total"]');
+        const max = form.querySelector('input[name="max_discount"]');
+
+        if (code) {
+            const v = code.value.trim();
+            const msg = v.length < 3 ? "Mã tối thiểu 3 ký tự." : "";
+            setErr(code, msg);
+            if (msg) ok = false;
+        }
+        if (name) {
+            const v = name.value.trim();
+            const msg = v.length < 3 ? "Tên tối thiểu 3 ký tự." : "";
+            setErr(name, msg);
+            if (msg) ok = false;
+        }
+        if (scope) {
+            const msg = scope.value ? "" : "Chọn phạm vi.";
+            setErr(scope, msg);
+            if (msg) ok = false;
+        }
+        if (type) {
+            const msg = type.value ? "" : "Chọn loại.";
+            setErr(type, msg);
+            if (msg) ok = false;
+        }
+        if (discount) {
+            const n = Number(discount.value);
+            let msg = isNaN(n) || n <= 0 ? "Mức giảm phải > 0." : "";
+            const typeVal = type?.value || "";
+            if (!msg && typeVal === "Giảm %") {
+                if (n > 100) msg = "Giảm % tối đa 100.";
+            }
+            setErr(discount, msg);
+            if (msg) ok = false;
+        }
+        if (start && end && start.value && end.value) {
+            const s = new Date(start.value);
+            const e = new Date(end.value);
+            const msg = s > e ? "Ngày kết thúc phải sau ngày bắt đầu." : "";
+            setErr(end, msg);
+            if (msg) ok = false;
+        }
+        if (min) {
+            const n = Number(min.value || 0);
+            const msg = n < 0 ? "Không nhỏ hơn 0." : "";
+            setErr(min, msg);
+            if (msg) ok = false;
+        }
+        if (max) {
+            const n = Number(max.value || 0);
+            const msg = n < 0 ? "Không nhỏ hơn 0." : "";
+            setErr(max, msg);
+            if (msg) ok = false;
+        }
+
+        return ok;
+    }
 
     // ===== Helper =====
     const showGroup = (els, show) => {
@@ -142,6 +220,12 @@ document.addEventListener("DOMContentLoaded", () => {
         typeFilter?.addEventListener("change", filterProducts);
         supplierFilter?.addEventListener("change", filterProducts);
         filterProducts(); // chạy 1 lần đầu
+
+        modalCreate
+            .querySelector("form")
+            ?.addEventListener("submit", (e) => {
+                if (!validatePromotionForm(e.target)) e.preventDefault();
+            });
     }
 
     // ===== Edit Modal =====
@@ -218,6 +302,12 @@ document.addEventListener("DOMContentLoaded", () => {
         eScope?.addEventListener("change", (e) =>
             toggleByScope(editModal, e.target.value)
         );
+
+        editModal
+            .querySelector("form")
+            ?.addEventListener("submit", (e) => {
+                if (!validatePromotionForm(e.target)) e.preventDefault();
+            });
     }
 
     // ===== Confirm Delete =====

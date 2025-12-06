@@ -65,7 +65,7 @@ function showToast(message, type = "success", duration = 4200, title) {
 // ===================== Client-side validations =====================
 const emailRegex =
     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const strongPasswordRegex = /^.{6,}$/;
 const nameRegex = /^[\p{L}\s'.-]{2,}$/u;
 
 const getErrorAnchor = (input) => input.closest(".auth-input-wrap") || input;
@@ -195,7 +195,7 @@ const AUTH_VALIDATORS = {
             if (!strongPasswordRegex.test(passwordInput.value.trim())) {
                 setFieldError(
                     passwordInput,
-                    "Mật khẩu cần tối thiểu 8 ký tự gồm chữ hoa, chữ thường và số."
+                    "Mật khẩu cần tối thiểu 6 ký tự."
                 );
                 valid = false;
             }
@@ -253,12 +253,85 @@ document.addEventListener("submit", (event) => {
     setAuthFormLoading(form, true);
 });
 
+// ===================== Live field validation =====================
+function validateFieldRealtime(form, type, input) {
+    if (!form || !input) return;
+    const name = input.getAttribute("name");
+    const v = input.value || "";
+
+    const run = (msg) => {
+        if (msg) {
+            setFieldError(input, msg);
+        } else {
+            clearFieldError(input);
+        }
+    };
+
+    if (type === "login") {
+        if (name === "email") {
+            if (!v.trim()) return run("Vui lòng nhập email.");
+            return run(emailRegex.test(v.trim()) ? "" : "Email không hợp lệ.");
+        }
+        if (name === "password") {
+            if (!v.trim()) return run("Vui lòng nhập mật khẩu.");
+            return run(v.trim().length < 6 ? "Mật khẩu tối thiểu 6 ký tự." : "");
+        }
+    }
+
+    if (type === "register") {
+        if (name === "name") {
+            if (!v.trim()) return run("Vui lòng nhập họ tên.");
+            return run(nameRegex.test(v.trim()) ? "" : "Họ tên tối thiểu 2 ký tự, không chứa ký tự lạ.");
+        }
+        if (name === "email") {
+            if (!v.trim()) return run("Vui lòng nhập email.");
+            return run(emailRegex.test(v.trim()) ? "" : "Email không hợp lệ.");
+        }
+        if (name === "phone") {
+            if (!v.trim()) return run("Vui lòng nhập số điện thoại.");
+            return run(/^0\d{9}$/.test(v.trim()) ? "" : "Số điện thoại 10 số và bắt đầu bằng 0.");
+        }
+        if (name === "password") {
+            if (!v.trim()) return run("Vui lòng nhập mật khẩu.");
+                return run(
+                    strongPasswordRegex.test(v.trim())
+                        ? ""
+                        : "Mật khẩu tối thiểu 6 ký tự."
+                );
+        }
+        if (name === "password_confirmation") {
+            const pwd = form.querySelector('input[name="password"]')?.value || "";
+            if (!v.trim()) return run("Vui lòng nhập lại mật khẩu.");
+            return run(v === pwd ? "" : "Mật khẩu không khớp.");
+        }
+    }
+}
+
 document.addEventListener("input", (event) => {
-    const target = event.target.closest(".auth-input");
-    if (target) {
-        clearFieldError(target);
+    const input = event.target.closest(".auth-input");
+    if (!input) return;
+    const form = input.closest("[data-auth-form]");
+    if (!form) {
+        clearFieldError(input);
+        return;
+    }
+    const type = form.getAttribute("data-auth-form");
+    validateFieldRealtime(form, type, input);
+    if (type === "register" && input.getAttribute("name") === "password") {
+        const confirm = form.querySelector('input[name="password_confirmation"]');
+        if (confirm && confirm.value) {
+            validateFieldRealtime(form, type, confirm);
+        }
     }
 });
+
+document.addEventListener("blur", (event) => {
+    const input = event.target.closest(".auth-input");
+    if (!input) return;
+    const form = input.closest("[data-auth-form]");
+    if (!form) return;
+    validateFieldRealtime(form, form.getAttribute("data-auth-form"), input);
+}, true);
 
 // ===================== Toggle đăng nhập / đăng ký =====================
 (() => {
