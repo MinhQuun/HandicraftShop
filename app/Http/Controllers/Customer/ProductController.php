@@ -41,16 +41,17 @@ class ProductController extends Controller
     private function applyPriceAndSort(Request $r, Builder $query): Builder
     {
         [$min, $max, $sort] = $this->priceParams($r);
+        $priceExpr = SanPham::effectivePriceExpression();
 
-        if (!is_null($min)) $query->where('GIABAN', '>=', $min);
-        if (!is_null($max)) $query->where('GIABAN', '<=', $max);
+        if (!is_null($min)) $query->whereRaw("{$priceExpr} >= ?", [$min]);
+        if (!is_null($max)) $query->whereRaw("{$priceExpr} <= ?", [$max]);
 
         switch ($sort) {
-            case 'price_asc':  $query->orderBy('GIABAN', 'asc');  break;
-            case 'price_desc': $query->orderBy('GIABAN', 'desc'); break;
+            case 'price_asc':  $query->orderByRaw("{$priceExpr} asc");  break;
+            case 'price_desc': $query->orderByRaw("{$priceExpr} desc"); break;
             default:           $query->orderBy('MASANPHAM', 'desc');
         }
-        return $query;
+        return $query->withPricing()->with('activePromotions');
     }
 
     /** Tất cả sản phẩm  **/
@@ -115,7 +116,7 @@ class ProductController extends Controller
     /** Chi tiết sản phẩm (nếu cần) */
     public function detail(string $id)
     {
-        $p = \App\Models\SanPham::with(['nhaCungCap', 'loai'])
+        $p = \App\Models\SanPham::with(['nhaCungCap', 'loai', 'activePromotions'])
             ->where('MASANPHAM', $id)
             ->firstOrFail();
 

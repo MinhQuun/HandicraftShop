@@ -19,6 +19,8 @@
 
 /* ===== Left: Image ===== */
 .product-image {
+    position: relative;
+    overflow: hidden;
     background: var(--ivory);
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -35,6 +37,24 @@
 .product-image:hover .img-fluid {
     transform: scale(1.02);
 }
+
+.sale-sticker {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: linear-gradient(140deg, #b4671f, #8f4d12);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 14px;
+    box-shadow: 0 14px 32px rgba(142, 92, 47, 0.35);
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    transform: rotate(-3deg);
+    z-index: 2;
+}
+.sale-sticker__percent { font-weight: 900; font-size: 1.05rem; line-height: 1; }
+.sale-sticker__label { font-weight: 700; font-size: 0.78rem; letter-spacing: 0.3px; opacity: 0.95; }
 
 @media (max-width: 576px) {
     .product-image .img-fluid {
@@ -60,6 +80,45 @@
     font-weight: 800;
     color: var(--moss);
     margin-bottom: 10px;
+}
+.price-stack { margin: 8px 0 12px; }
+.product-price--sale { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.product-price__old {
+    text-decoration: line-through;
+    color: #a17a44;
+    font-weight: 700;
+}
+.product-price__new {
+    color: var(--moss);
+    font-weight: 900;
+    font-size: 1.65rem;
+}
+.product-price__badge {
+    padding: 5px 10px;
+    border-radius: 12px;
+    background: rgba(106, 143, 85, 0.12);
+    color: var(--moss);
+    font-weight: 800;
+    border: 1px solid rgba(106, 143, 85, 0.25);
+}
+.product-price__note {
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.1px;
+}
+.promo-banner {
+    background: linear-gradient(120deg, rgba(200, 169, 126, 0.18), rgba(106, 143, 85, 0.1));
+    border: 1px dashed rgba(140, 109, 59, 0.35);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin: 8px 0 12px;
+}
+.promo-banner__title { font-weight: 800; color: var(--wood); }
+.promo-banner__meta { color: var(--muted); font-weight: 700; font-size: 0.95rem; }
+.promo-pill {
+    background: rgba(200, 169, 126, 0.16);
+    color: var(--wood);
+    border: 1px solid rgba(140, 109, 59, 0.35);
 }
 
 /* ===== Unified detail rows: Loại / NCC / Mô tả / Số lượng =====

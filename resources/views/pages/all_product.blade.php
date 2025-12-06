@@ -56,62 +56,7 @@
 
         <div class="row">
         @forelse ($sp as $item)
-            @php
-            $id             = $item->MASANPHAM ?? $item->id ?? '';
-            $name           = $item->TENSANPHAM ?? $item->name ?? '';
-            $img            = trim((string)($item->HINHANH ?? $item->image ?? ''));
-            $isInCart       = in_array((string) $id, $cartItemIds, true);
-            $price          = $item->GIABAN ?? $item->price ?? 0;
-            $stock          = $item->SOLUONGTON ?? $item->stock ?? null;
-            $stockCount     = is_null($stock) ? null : (int) $stock;
-            $formattedPrice = number_format((float)$price, 0, ',', '.');
-            $imgUrl         = $img !== ''
-                ? asset('assets/images/' . urlencode($img))
-                : asset('HinhAnh/LOGO/Logo.jpg');
-
-            if ($stockCount === null) {
-                $availabilityLabel = 'Liên hệ để biết hàng';
-                $availabilityClass = 'is-muted';
-            } elseif ($stockCount <= 0) {
-                $availabilityLabel = 'Hết hàng';
-                $availabilityClass = 'is-out';
-            } elseif ($stockCount <= 5) {
-                $availabilityLabel = 'Còn ' . $stockCount . ' sản phẩm';
-                $availabilityClass = 'is-low';
-            } else {
-                $availabilityLabel = 'Sẵn sàng';
-                $availabilityClass = 'is-available';
-            }
-            @endphp
-
-            <div class="col-lg-3 col-md-4 col-sm-6 d-flex align-items-stretch mt-4 mb-4">
-                <article class="product-card">
-                    <a href="{{ route('sp.detail', $id) }}" class="product-card__link" aria-label="Xem chi tiết {{ $name }}">
-                        <div class="product-card__media">
-                            <img src="{{ $imgUrl }}" class="product-card__image" alt="{{ $name }}">
-                        </div>
-                        <div class="product-card__info">
-                            <h3 class="product-card__title">{{ $name }}</h3>
-                            <p class="product-card__price">{{ $formattedPrice }} VNĐ</p>
-                            <p class="product-card__availability {{ $availabilityClass }}">{{ $availabilityLabel }}</p>
-                        </div>
-                    </a>
-                    <div class="product-card__footer">
-                        <button
-                            type="button"
-                            class="btn product-card__add-btn {{ $isInCart ? 'is-added' : '' }}"
-                            data-product-id="{{ $id }}"
-                            data-default-text="Chọn mua"
-                            data-added-text="Đã trong giỏ hàng"
-                            data-in-cart="{{ $isInCart ? '1' : '0' }}"
-                            onclick="addToCart(this, '{{ $id }}')"
-                            @if (!is_null($stockCount) && $stockCount <= 0) disabled @endif
-                        >
-                            {{ $isInCart ? 'Đã trong giỏ hàng' : 'Chọn mua' }}
-                        </button>
-                    </div>
-                </article>
-            </div>
+            @include('partials.product-card', ['item' => $item, 'cartItemIds' => $cartItemIds])
         @empty
             <div class="col-12">
                 <p class="text-center text-muted">Không có sản phẩm.</p>

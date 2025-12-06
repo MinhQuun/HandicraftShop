@@ -1,4 +1,4 @@
-@extends('layouts.main')
+﻿@extends('layouts.main')
 
 @section('title', 'Chi Tiết Sản Phẩm')
 
@@ -13,8 +13,13 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         @php
-            $cartItemIds = array_map('strval', array_keys(session('cart', [])));
+            $cartItemIds    = array_map('strval', array_keys(session('cart', [])));
             $isDetailInCart = in_array((string) ($p->MASANPHAM ?? ''), $cartItemIds, true);
+            $orig           = (float) ($p->GIABAN ?? 0);
+            $sale           = (float) ($p->gia_sau_km ?? $orig);
+            $hasSale        = $sale < $orig;
+            $percent        = $orig > 0 ? max(0, round(100 * max(0, $orig - $sale) / $orig)) : 0;
+            $promo          = $p->activePromotions->first();
         @endphp
 
         <div
@@ -27,124 +32,136 @@
         >
         <div class="row">
             <!-- Hình ảnh sản phẩm -->
-            <div class="col-md-5 product-image">
-            <img src="{{ asset('assets/images/' . $p->HINHANH) }}"
-                    alt="{{ $p->TENSANPHAM }}"
-                    class="img-fluid" />
+            <div class="col-md-5 product-image position-relative">
+                @if($hasSale)
+                    <div class="sale-sticker">
+                        <span class="sale-sticker__percent">-{{ $percent }}%</span>
+                        <small class="sale-sticker__label">Khuyến mãi</small>
+                    </div>
+                @endif
+                <img src="{{ asset('assets/images/' . $p->HINHANH) }}"
+                        alt="{{ $p->TENSANPHAM }}"
+                        class="img-fluid" />
             </div>
 
             <!-- Thông tin sản phẩm -->
             <div class="col-md-7 product-info">
-            <div class="d-flex align-items-start justify-content-between gap-2">
-                <h2 class="product-title mb-0">{{ $p->TENSANPHAM }}</h2>
+                <div class="d-flex align-items-start justify-content-between gap-2">
+                    <h2 class="product-title mb-0">{{ $p->TENSANPHAM }}</h2>
 
-                @if((int) $p->SOLUONGTON <= 0)
-                <span class="badge text-bg-secondary" style="height:fit-content">Hết hàng</span>
-                @endif
-            </div>
+                    <div class="d-flex align-items-center gap-2">
+                        @if($promo)
+                            <span class="badge promo-pill">Ưu tiên {{ $promo->UUTIEN ?? 1 }}</span>
+                        @endif
 
-            @php
-                $orig = (float)($p->GIABAN ?? 0);
-                $sale = (float)($p->gia_sau_km ?? $orig);
-                $hasSale = $sale < $orig;
-            @endphp
-            @if($hasSale)
-                <p class="product-price">
-                <span style="text-decoration: line-through; color:#a17a44; font-weight:600; margin-right:8px;">
-                    {{ number_format($orig, 0, ',', '.') }} VNĐ
-                </span>
-                <span style="color:#6a8f55; font-weight:800;">
-                    {{ number_format($sale, 0, ',', '.') }} VNĐ
-                </span>
-                </p>
-            @else
-                <p class="product-price">{{ number_format($orig, 0, ',', '.') }} VNĐ</p>
-            @endif
-
-            {{-- Loại & Nhà cung cấp --}}
-            <div class="product-meta">
-                @php
-                $tenLoai = optional($p->loai)->TENLOAI;
-                $tenNCC  = optional($p->nhaCungCap)->TENNHACUNGCAP;
-                $sdtNCC  = optional($p->nhaCungCap)->SODIENTHOAI;
-                @endphp
-
-                @if(!empty($tenLoai))
-                <div class="meta-item">
-                    <span class="meta-label">Loại:</span>
-                    <span class="meta-value">{{ $tenLoai }}</span>
+                        @if((int) $p->SOLUONGTON <= 0)
+                        <span class="badge text-bg-secondary" style="height:fit-content">Hết hàng</span>
+                        @endif
+                    </div>
                 </div>
-                @endif
 
-                @if(!empty($tenNCC))
-                <div class="meta-item">
-                    <span class="meta-label">Nhà cung cấp:</span>
-                    <span class="meta-value">
-                    {{ $tenNCC }}
-                    @if(!empty($sdtNCC))
-                        <span class="meta-note">— {{ $sdtNCC }}</span>
+                <div class="price-stack">
+                    @if($hasSale)
+                        <div class="product-price product-price--sale">
+                            <span class="product-price__old">{{ number_format($orig, 0, ',', '.') }} VNĐ</span>
+                            <span class="product-price__new">{{ number_format($sale, 0, ',', '.') }} VNĐ</span>
+                            <span class="product-price__badge">-{{ $percent }}%</span>
+                        </div>
+                        <div class="product-price__note">
+                            Tiết kiệm {{ number_format(max(0, $orig - $sale), 0, ',', '.') }}đ
+                            @if($promo)
+                                · Ưu đãi: {{ $promo->TENKHUYENMAI }} (đến {{ optional($promo->NGAYKETTHUC)->format('d/m/Y') }})
+                            @endif
+                        </div>
+                    @else
+                        <p class="product-price">{{ number_format($orig, 0, ',', '.') }} VNĐ</p>
                     @endif
-                    </span>
                 </div>
+
+                {{-- Loại & Nhà cung cấp --}}
+                <div class="product-meta">
+                    @php
+                    $tenLoai = optional($p->loai)->TENLOAI;
+                    $tenNCC  = optional($p->nhaCungCap)->TENNHACUNGCAP;
+                    $sdtNCC  = optional($p->nhaCungCap)->SODIENTHOAI;
+                    @endphp
+
+                    @if(!empty($tenLoai))
+                    <div class="meta-item">
+                        <span class="meta-label">Loại:</span>
+                        <span class="meta-value">{{ $tenLoai }}</span>
+                    </div>
+                    @endif
+
+                    @if(!empty($tenNCC))
+                    <div class="meta-item">
+                        <span class="meta-label">Nhà cung cấp:</span>
+                        <span class="meta-value">
+                        {{ $tenNCC }}
+                        @if(!empty($sdtNCC))
+                            <span class="meta-note">– {{ $sdtNCC }}</span>
+                        @endif
+                        </span>
+                    </div>
+                    @endif
+                </div>
+
+                @if(!empty($p->MOTA))
+                    <p class="product-description">
+                    <strong>Mô tả:</strong> {!! nl2br(e($p->MOTA)) !!}
+                    </p>
                 @endif
-            </div>
 
-            @if(!empty($p->MOTA))
                 <p class="product-description">
-                <strong>Mô tả:</strong> {!! nl2br(e($p->MOTA)) !!}
+                    <strong>Số lượng còn:</strong> {{ (int) $p->SOLUONGTON }}
                 </p>
-            @endif
 
-            <p class="product-description">
-                <strong>Số lượng còn:</strong> {{ (int) $p->SOLUONGTON }}
-            </p>
+                {{-- Qty + nút mua --}}
+                <div class="detail-actions mt-2">
+                    <div class="qty-box">
+                    <label class="qty-label" for="quantityInput">Số lượng</label>
+                    <div class="qty-input-wrap">
+                        <button class="btn-qty" type="button" data-action="qty-dec" title="Giảm 1">-</button>
+                        <input
+                        id="quantityInput"
+                        type="number"
+                        inputmode="numeric"
+                        pattern="\d*"
+                        min="1"
+                        max="{{ (int) $p->SOLUONGTON ?: 9999 }}"
+                        step="1"
+                        value="1"
+                        class="qty-input"
+                        aria-label="Chọn số lượng"
+                        />
+                        <button class="btn-qty" type="button" data-action="qty-inc" title="Tăng 1">+</button>
+                    </div>
+                    </div>
 
-            {{-- Qty + nút mua --}}
-            <div class="detail-actions mt-2">
-                <div class="qty-box">
-                <label class="qty-label" for="quantityInput">Số lượng</label>
-                <div class="qty-input-wrap">
-                    <button class="btn-qty" type="button" data-action="qty-dec" title="Giảm 1">-</button>
-                    <input
-                    id="quantityInput"
-                    type="number"
-                    inputmode="numeric"
-                    pattern="\\d*"
-                    min="1"
-                    max="{{ (int) $p->SOLUONGTON ?: 9999 }}"
-                    step="1"
-                    value="1"
-                    class="qty-input"
-                    aria-label="Chọn số lượng"
-                    />
-                    <button class="btn-qty" type="button" data-action="qty-inc" title="Tăng 1">+</button>
+                    <button
+                    type="button"
+                    id="btnAddToCart"
+                    class="btn-gradient add-to-cart-btn {{ $isDetailInCart ? 'is-added' : '' }}"
+                    data-product-id="{{ $p->MASANPHAM }}"
+                    data-default-text="Chọn mua"
+                    data-added-text="Đã trong giỏ hàng"
+                    data-in-cart="{{ $isDetailInCart ? '1' : '0' }}"
+                    data-action="add-to-cart"
+                    @if((int) $p->SOLUONGTON <= 0) disabled @endif
+                    >
+                    {{ $isDetailInCart ? 'Đã trong giỏ hàng' : 'Chọn mua' }}
+                    </button>
                 </div>
+
+                <div class="mt-4">
+                    <a href="javascript:void(0);" onclick="window.history.back();" class="btn-outline back-btn">
+                    <i class="fas fa-arrow-left"></i>&nbsp;Trở lại danh sách
+                    </a>
                 </div>
-
-                <button
-                type="button"
-                id="btnAddToCart"
-                class="btn-gradient add-to-cart-btn {{ $isDetailInCart ? 'is-added' : '' }}"
-                data-product-id="{{ $p->MASANPHAM }}"
-                data-default-text="Chọn mua"
-                data-added-text="Đã trong giỏ hàng"
-                data-in-cart="{{ $isDetailInCart ? '1' : '0' }}"
-                data-action="add-to-cart"
-                @if((int) $p->SOLUONGTON <= 0) disabled @endif
-                >
-                {{ $isDetailInCart ? 'Đã trong giỏ hàng' : 'Chọn mua' }}
-                </button>
-            </div>
-
-            <div class="mt-4">
-                <a href="javascript:void(0);" onclick="window.history.back();" class="btn-outline back-btn">
-                <i class="fas fa-arrow-left"></i>&nbsp;Trở lại danh sách
-                </a>
-            </div>
             </div>
         </div>
 
-        {{-- ====== ĐÁNH GIÁ SẢN PHẨM (chen giữa) ====== --}}
+        {{-- ====== ĐÁNH GIÁ SẢN PHẨM ====== --}}
         <div id="reviews" class="mt-5">
             <h3 class="section-title">ĐÁNH GIÁ SẢN PHẨM</h3>
 
@@ -265,83 +282,16 @@
                     <h3 class="section-title">SẢN PHẨM LIÊN QUAN</h3>
                     <div class="row g-4 mt-2 align-items-stretch">
                         @foreach ($related as $item)
-                            @php
-                                $relatedId       = $item->MASANPHAM ?? $item->id ?? '';
-                                $relatedName     = $item->TENSANPHAM ?? $item->name ?? '';
-                                $img             = trim((string)($item->HINHANH ?? $item->image ?? ''));
-                                $origR           = (float) ($item->GIABAN ?? 0);
-                                $saleR           = (float) ($item->gia_sau_km ?? $origR);
-                                $hasSale         = $saleR < $origR;
-                                $stockRelated    = $item->SOLUONGTON ?? null;
-                                $stockCount      = is_null($stockRelated) ? null : (int) $stockRelated;
-                                $formattedOrigR  = number_format($origR, 0, ',', '.');
-                                $formattedSaleR  = number_format($saleR, 0, ',', '.');
-                                $imgUrl          = $img !== '' ? asset('assets/images/' . urlencode($img)) : asset('HinhAnh/LOGO/Logo.jpg');
-                                $isInCartRelated = in_array((string) $relatedId, $cartItemIds, true);
-
-                                if ($stockCount === null) {
-                                    $availabilityLabel = 'Liên hệ để biết hàng';
-                                    $availabilityClass = 'is-muted';
-                                } elseif ($stockCount <= 0) {
-                                    $availabilityLabel = 'Hết hàng';
-                                    $availabilityClass = 'is-out';
-                                } elseif ($stockCount <= 5) {
-                                    $availabilityLabel = 'Còn ' . $stockCount . ' sản phẩm';
-                                    $availabilityClass = 'is-low';
-                                } else {
-                                    $availabilityLabel = 'Sẵn sàng';
-                                    $availabilityClass = 'is-available';
-                                }
-                            @endphp
-
-                            <div class="col-lg-3 col-md-4 col-sm-6 d-flex align-items-stretch">
-                                <article class="product-card product-card--compact">
-                                    @if ($hasSale)
-                                        <div class="sale-ribbon">-{{ max(0, min(100, round(100 * ($origR - $saleR) / max($origR, 1)))) }}%</div>
-                                    @endif
-                                    <a href="{{ route('sp.detail', $relatedId) }}" class="product-card__link" aria-label="Xem chi tiết {{ $relatedName }}">
-                                        <div class="product-card__media">
-                                            <img src="{{ $imgUrl }}" class="product-card__image" alt="{{ $relatedName }}">
-                                        </div>
-                                        <div class="product-card__info">
-                                            <h3 class="product-card__title">{{ $relatedName }}</h3>
-                                            <div class="product-card__price-group">
-                                                @if ($hasSale)
-                                                    <span class="product-card__price-old">{{ $formattedOrigR }} VNĐ</span>
-                                                    <span class="product-card__price-new">{{ $formattedSaleR }} VNĐ</span>
-                                                @else
-                                                    <span class="product-card__price-new">{{ $formattedOrigR }} VNĐ</span>
-                                                @endif
-                                            </div>
-                                            <p class="product-card__availability {{ $availabilityClass }}">{{ $availabilityLabel }}</p>
-                                        </div>
-                                    </a>
-                                    <div class="product-card__footer">
-                                        <button
-                                            type="button"
-                                            class="btn product-card__add-btn {{ $isInCartRelated ? 'is-added' : '' }}"
-                                            data-product-id="{{ $relatedId }}"
-                                            data-default-text="Chọn mua"
-                                            data-added-text="Đã trong giỏ hàng"
-                                            data-in-cart="{{ $isInCartRelated ? '1' : '0' }}"
-                                            data-action="add-to-cart"
-                                            data-qty="1"
-                                            @if (!is_null($stockCount))
-                                                data-stock="{{ $stockCount }}"
-                                            @endif
-                                            @if (!is_null($stockCount) && $stockCount <= 0) disabled @endif
-                                        >
-                                            {{ $isInCartRelated ? 'Đã trong giỏ hàng' : 'Chọn mua' }}
-                                        </button>
-                                    </div>
-                                </article>
-                            </div>
+                            @include('partials.product-card', [
+                                'item' => $item,
+                                'cartItemIds' => $cartItemIds,
+                                'compact' => true
+                            ])
                         @endforeach
                     </div>
                 </div>
             </div>
         @endif
-                        </p>
         </div>
     </main>
 @endsection

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class SanPham extends Model
 {
@@ -23,6 +23,54 @@ class SanPham extends Model
         'GIABAN'      => 'float',
         'SOLUONGTON'  => 'int',
     ];
+
+    /**
+     * SQL expression: giá sau khuyến mại (ưu tiên mức giá thấp nhất trong các KM PRODUCT đang hoạt động).
+     */
+    public static function effectivePriceExpression(?string $tableAlias = null): string
+    {
+        $table = $tableAlias ?: 'SANPHAM';
+
+        return "COALESCE((
+            SELECT MIN(
+                CASE
+                    WHEN km.LOAIKHUYENMAI LIKE '%\\%%' THEN {$table}.GIABAN * (1 - km.GIAMGIA / 100)
+                    WHEN km.LOAIKHUYENMAI LIKE '%fixed%' THEN {$table}.GIABAN - km.GIAMGIA
+                    ELSE {$table}.GIABAN
+                END
+            )
+            FROM SANPHAM_KHUYENMAI AS spkm
+            JOIN KHUYENMAI AS km ON km.MAKHUYENMAI = spkm.MAKHUYENMAI
+            WHERE spkm.MASANPHAM = {$table}.MASANPHAM
+              AND km.PHAMVI = 'PRODUCT'
+              AND km.NGAYBATDAU <= NOW()
+              AND km.NGAYKETTHUC >= NOW()
+        ), {$table}.GIABAN)";
+    }
+
+    /**
+     * SQL expression: phần trăm giảm giá tương đương của KM PRODUCT đang áp dụng.
+     */
+    public static function discountPercentExpression(?string $tableAlias = null): string
+    {
+        $table = $tableAlias ?: 'SANPHAM';
+
+        return "COALESCE((
+            SELECT MAX(
+                CASE
+                    WHEN km.LOAIKHUYENMAI LIKE '%\\%%' THEN km.GIAMGIA
+                    WHEN km.LOAIKHUYENMAI LIKE '%fixed%' AND {$table}.GIABAN > 0 THEN ROUND(100 * km.GIAMGIA / {$table}.GIABAN, 2)
+                    ELSE 0
+                END
+            )
+            FROM SANPHAM_KHUYENMAI AS spkm
+            JOIN KHUYENMAI AS km ON km.MAKHUYENMAI = spkm.MAKHUYENMAI
+            WHERE spkm.MASANPHAM = {$table}.MASANPHAM
+              AND km.PHAMVI = 'PRODUCT'
+              AND km.NGAYBATDAU <= NOW()
+              AND km.NGAYKETTHUC >= NOW()
+        ), 0)";
+    }
 
     public function loai(){ return $this->belongsTo(Loai::class, 'MALOAI', 'MALOAI'); }
     public function nhaCungCap(){ return $this->belongsTo(NhaCungCap::class, 'MANHACUNGCAP', 'MANHACUNGCAP'); }
@@ -51,6 +99,20 @@ class SanPham extends Model
     }
     public function scopeOfSupplier(Builder $q, $maNcc): Builder { return $maNcc ? $q->where('MANHACUNGCAP', $maNcc) : $q; }
 
+    /**
+     * Bổ sung field giá sau KM và % giảm vào query để tái sử dụng cho lọc/sắp xếp.
+     */
+    public function scopeWithPricing(Builder $q): Builder
+    {
+        $table       = $q->getModel()->getTable();
+        $priceSql    = self::effectivePriceExpression($table);
+        $discountSql = self::discountPercentExpression($table);
+
+        return $q->select("{$table}.*")
+            ->selectRaw("{$priceSql} as gia_sau_km_calculated")
+            ->selectRaw("{$discountSql} as discount_percent_calculated");
+    }
+
     /** KM đang hiệu lực của SP, sắp xếp theo ưu tiên */
     public function activePromotions()
     {
@@ -59,9 +121,13 @@ class SanPham extends Model
         })->orderByDesc('UUTIEN');
     }
 
-    /** Giá sau khuyến mãi (lấy KM ưu tiên cao nhất) */
+    /** Giá sau khuyến mại (lấy KM ưu tiên cao nhất) */
     public function getGiaSauKmAttribute(): float
     {
+        if (array_key_exists('gia_sau_km_calculated', $this->attributes)) {
+            return (float) $this->attributes['gia_sau_km_calculated'];
+        }
+
         $price = (float) $this->GIABAN;
         $promo = $this->activePromotions()->first();
         if (!$promo) return $price;
@@ -72,8 +138,26 @@ class SanPham extends Model
         if ($promo->LOAIKHUYENMAI === 'Giảm fixed') {
             return max(0, $price - (float)$promo->GIAMGIA);
         }
-        // Flash Sale hay loại khác: tuỳ chỉnh
+        // Flash Sale hay loại khác: tự chỉnh
         return $price;
+    }
+
+    /**
+     * Tỷ lệ giảm giá (0-100).
+     */
+    public function getDiscountPercentAttribute(): float
+    {
+        if (array_key_exists('discount_percent_calculated', $this->attributes)) {
+            return (float) $this->attributes['discount_percent_calculated'];
+        }
+
+        $orig = (float) $this->GIABAN;
+        if ($orig <= 0) {
+            return 0;
+        }
+
+        $sale = $this->gia_sau_km;
+        return max(0, round(100 * max(0, $orig - $sale) / $orig));
     }
 
     /** URL ảnh */
