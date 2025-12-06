@@ -41,10 +41,11 @@ class IssueController extends Controller
                 'p.TRANGTHAI',
                 'p.TONGSL',
                 'p.GHICHU',
+                'p.TONGTIEN',
                 'k.HOTEN as KHACHHANG',
                 'k.MAKHACHHANG',
                 'u.name as NHANVIEN',
-                DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA), 0) as TONGTIEN'),
+                DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA), 0) as SUBTOTAL'),
                 'km.MAKHUYENMAI',
                 'km.LOAIKHUYENMAI',
                 'km.GIAMGIA'
@@ -106,8 +107,9 @@ class IssueController extends Controller
             ->get();
 
         $subtotal       = $details->sum(fn($d) => $d->THANHTIEN);
-        $discountAmount = $header->GIAMGIA > 0 ? $subtotal * ($header->GIAMGIA / 100) : 0;
-        $tongtien       = $subtotal - $discountAmount;
+        $storedTotal    = (float) ($header->TONGTIEN ?? 0);
+        $discountAmount = max(0, $subtotal - $storedTotal);
+        $tongtien       = $storedTotal > 0 ? $storedTotal : $subtotal;
 
         return response()->json([
             'header'         => $header,
@@ -203,9 +205,10 @@ class IssueController extends Controller
         $tongSL = $lines->sum('SOLUONG');
         $subtotal = $lines->sum('THANHTIEN');
 
-        // Tính tiền giảm nếu có khuyến mãi
-        $discountAmount = $header->GIAMGIA > 0 ? $subtotal * ($header->GIAMGIA / 100) : 0;
-        $tongTien       = $subtotal - $discountAmount;
+        // Tính tiền giảm dựa trên số tiền đã lưu của phiếu (bảo toàn logic đơn hàng)
+        $storedTotal    = (float) ($header->TONGTIEN ?? 0);
+        $discountAmount = max(0, $subtotal - $storedTotal);
+        $tongTien       = $storedTotal > 0 ? $storedTotal : $subtotal;
 
         $data = [
             'header' => $header,
@@ -272,6 +275,7 @@ class IssueController extends Controller
                     'k.HOTEN as KHACHHANG',
                     'u.name as NHANVIEN',
                     DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA), 0) as SUBTOTAL'),
+                    'p.TONGTIEN',
                     'km.LOAIKHUYENMAI',
                     'km.GIAMGIA'
                 )
@@ -281,6 +285,7 @@ class IssueController extends Controller
                     'p.TRANGTHAI',
                     'k.HOTEN',
                     'u.name',
+                    'p.TONGTIEN',
                     'km.LOAIKHUYENMAI',
                     'km.GIAMGIA'
                 )
@@ -291,10 +296,15 @@ class IssueController extends Controller
                 foreach ($rows as $r) {
                     $i++;
 
-                    $totalBefore = (float) $r->SUBTOTAL;  // Tổng trước khuyến mãi
-                    $discount    = $r->GIAMGIA ? (float) $r->GIAMGIA : 0;
-                    $totalAfter  = $totalBefore - ($discount > 0 ? $totalBefore * $discount / 100 : 0);
-                    $kmText      = $r->LOAIKHUYENMAI ? ($r->LOAIKHUYENMAI . ' (' . $discount . '%)') : '';
+                    $totalBefore  = (float) $r->SUBTOTAL;  // Tổng trước khuyến mãi
+                    $totalAfter   = (float) ($r->TONGTIEN ?? $totalBefore);
+                    $discount     = max(0, $totalBefore - $totalAfter);
+                    $kmValue      = $r->LOAIKHUYENMAI === 'Giảm %'
+                        ? ($r->GIAMGIA ?? 0) . '%'
+                        : number_format($r->GIAMGIA ?? 0, 0, ',', '.');
+                    $kmText       = $r->LOAIKHUYENMAI
+                        ? ($r->LOAIKHUYENMAI . ' (' . $kmValue . ')')
+                        : '';
 
                     fputcsv($out, [
                         $i,

@@ -272,11 +272,13 @@ class ReceiptController extends Controller
             )
             ->get();
 
+        $tongSL   = $details->sum('SOLUONG');
         $tongtien = $details->sum(fn($d) => $d->THANHTIEN);
 
         $pdf = Pdf::loadView('staff.receipts_pdf', [
             'header'   => $header,
             'details'  => $details,
+            'TONGSL'   => $tongSL,
             'TONGTIEN' => $tongtien,
         ]);
 
@@ -294,7 +296,6 @@ class ReceiptController extends Controller
         $file = 'phieu-nhap-' . now()->format('Ymd-His') . '.csv';
 
         try {
-            // Xây dựng query giống index để đảm bảo nhất quán
             $query = DB::table('PHIEUNHAP as p')
                 ->join('NHACUNGCAP as n', 'n.MANHACUNGCAP', '=', 'p.MANHACUNGCAP')
                 ->join('users as u', 'u.id', '=', 'p.NHANVIEN_ID')
@@ -323,50 +324,40 @@ class ReceiptController extends Controller
                     'p.MAPN',
                     'p.NGAYNHAP',
                     'p.TRANGTHAI',
+                    'p.GHICHU',
+                    'p.MANHACUNGCAP',
                     'n.TENNHACUNGCAP',
                     'u.name as NHANVIEN',
+                    DB::raw('COUNT(ct.MASANPHAM) as SO_DONG'),
+                    DB::raw('COALESCE(SUM(ct.SOLUONG),0) as TONGSL'),
                     DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA), 0) as TONGTIEN')
                 )
-                ->groupBy('p.MAPN', 'p.NGAYNHAP', 'p.TRANGTHAI', 'n.TENNHACUNGCAP', 'u.name', 'p.GHICHU') // Thêm p.GHICHU để tránh groupBy error nếu có trong index
+                ->groupBy('p.MAPN', 'p.NGAYNHAP', 'p.TRANGTHAI', 'p.GHICHU', 'p.MANHACUNGCAP', 'n.TENNHACUNGCAP', 'u.name')
                 ->orderBy('p.MAPN', 'asc');
 
-            // Debug: Log query SQL để kiểm tra
-            Log::info('Export CSV Query SQL: ' . $query->toSql());
-            Log::info('Export CSV Bindings: ' . json_encode($query->getBindings()));
-
-            // Lấy dữ liệu (sử dụng get() thay chunk để đơn giản và kiểm tra)
             $rows = $query->get();
-
-            // Log số lượng rows
-            Log::info('Export CSV Rows Count: ' . $rows->count());
-
-            if ($rows->isEmpty()) {
-                // Nếu empty, vẫn xuất file với thông báo
-                $rows = collect([ (object) ['info' => 'Không có dữ liệu phù hợp với bộ lọc.'] ]);
-            }
 
             $response = new StreamedResponse(function () use ($rows) {
                 echo "\xEF\xBB\xBF"; // UTF-8 BOM
                 $out = fopen('php://output', 'w');
 
-                // Header
-                fputcsv($out, ['STT', 'MÃ PN', 'Nhà cung cấp', 'Nhân viên', 'Ngày nhập', 'Trạng thái', 'Tổng tiền (đ)']);
+                fputcsv($out, ['STT', 'Mã PN', 'Nhà cung cấp', 'Mã NCC', 'Nhân viên', 'Ngày nhập', 'Trạng thái', 'Số dòng', 'Tổng SL', 'Tổng tiền (đ)', 'Ghi chú']);
 
                 $i = 0;
                 foreach ($rows as $r) {
                     $i++;
-                    if (isset($r->info)) {
-                        fputcsv($out, ['', '', '', '', '', $r->info, '']);
-                        break; // Chỉ 1 row thông báo
-                    }
                     fputcsv($out, [
                         $i,
                         $r->MAPN ?? '',
                         $r->TENNHACUNGCAP ?? '',
+                        $r->MANHACUNGCAP ?? '',
                         $r->NHANVIEN ?? '',
                         $r->NGAYNHAP ? \Carbon\Carbon::parse($r->NGAYNHAP)->format('d/m/Y H:i') : '',
                         $r->TRANGTHAI ?? '',
-                        number_format((float) ($r->TONGTIEN ?? 0), 0, ',', '.') . ' ₫', // Format tiền trong CSV
+                        (int) ($r->SO_DONG ?? 0),
+                        (int) ($r->TONGSL ?? 0),
+                        number_format((float) ($r->TONGTIEN ?? 0), 0, ',', '.'),
+                        $r->GHICHU ?? '',
                     ]);
                 }
 

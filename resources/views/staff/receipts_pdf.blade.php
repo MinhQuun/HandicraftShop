@@ -4,27 +4,35 @@
     <meta charset="utf-8">
     <title>Phiếu nhập {{ $header->MAPN }}</title>
     <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
-        h2 { text-align: center; margin-bottom: 20px; }
-        .info { margin-bottom: 15px; }
-        .info p { margin: 2px 0; }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #222; }
+        h2 { text-align: center; margin-bottom: 12px; letter-spacing: 0.5px; }
+        .meta { margin-bottom: 12px; width: 100%; }
+        .meta td { padding: 4px 0; }
+        .meta strong { display: inline-block; min-width: 120px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        table, th, td { border: 1px solid #000; padding: 5px; }
-        th { background-color: #f0f0f0; }
+        th, td { border: 1px solid #000; padding: 6px; }
+        th { background-color: #f5f5f5; }
         .text-end { text-align: right; }
+        .totals td { background: #fafafa; font-weight: bold; }
     </style>
 </head>
 <body>
     <h2>PHIẾU NHẬP HÀNG</h2>
 
-    <div class="info">
-        <p><strong>Mã PN:</strong> {{ $header->MAPN }}</p>
-        <p><strong>Nhà cung cấp:</strong> {{ $header->TENNHACUNGCAP }}</p>
-        <p><strong>Nhân viên:</strong> {{ $header->NHANVIEN }}</p>
-        <p><strong>Ngày nhập:</strong> {{ $header->NGAYNHAP }}</p>
-        <p><strong>Trạng thái:</strong> {{ $header->TRANGTHAI }}</p>
-        <p><strong>Ghi chú:</strong> {{ $header->GHICHU ?? '-' }}</p>
-    </div>
+    <table class="meta">
+        <tr>
+            <td><strong>Mã PN:</strong> #{{ $header->MAPN }}</td>
+            <td><strong>Ngày nhập:</strong> {{ \Carbon\Carbon::parse($header->NGAYNHAP)->format('d/m/Y H:i') }}</td>
+        </tr>
+        <tr>
+            <td><strong>Nhà cung cấp:</strong> {{ $header->TENNHACUNGCAP }}</td>
+            <td><strong>Nhân viên:</strong> {{ $header->NHANVIEN }}</td>
+        </tr>
+        <tr>
+            <td><strong>Trạng thái:</strong> {{ $header->TRANGTHAI }}</td>
+            <td><strong>Ghi chú:</strong> {{ $header->GHICHU ?? '—' }}</td>
+        </tr>
+    </table>
 
     <table>
         <thead>
@@ -44,15 +52,16 @@
                 <td>{{ $item->MASANPHAM }}</td>
                 <td>{{ $item->TENSANPHAM }}</td>
                 <td class="text-end">{{ $item->SOLUONG }}</td>
-                <td class="text-end">{{ number_format($item->DONGIA) }}</td>
-                <td class="text-end">{{ number_format($item->THANHTIEN) }}</td>
+                <td class="text-end">{{ number_format($item->DONGIA, 0, ',', '.') }} đ</td>
+                <td class="text-end">{{ number_format($item->THANHTIEN, 0, ',', '.') }} đ</td>
             </tr>
             @endforeach
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="5" class="text-end"><strong>Tổng tiền</strong></td>
-                <td class="text-end"><strong>{{ number_format($TONGTIEN) }}</strong></td>
+                <td colspan="3" class="text-end totals">Tổng SL</td>
+                <td class="text-end totals">{{ number_format($TONGSL ?? 0, 0, ',', '.') }}</td>
+                <td class="text-end totals" colspan="2">Tổng tiền: {{ number_format($TONGTIEN, 0, ',', '.') }} đ</td>
             </tr>
         </tfoot>
     </table>

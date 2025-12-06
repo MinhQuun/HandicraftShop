@@ -257,9 +257,9 @@ Route::prefix('staff')
 
         /* Đơn hàng */
         Route::get('/orders',                   [StaffOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/export-csv',        [StaffOrderController::class, 'exportCsv'])->name('orders.exportCsv'); // đặt trước {id} để tránh 404
         Route::get('/orders/{id}',              [StaffOrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{id}/status',       [StaffOrderController::class, 'updateStatus'])->name('orders.updateStatus');
-        Route::get('/orders/export-csv',        [StaffOrderController::class, 'exportCsv'])->name('orders.exportCsv');
         Route::get('/orders/{id}/json',         [StaffOrderController::class, 'showRich'])->name('orders.showRich'); // JSON chi tiết đơn hàng (enriched)
 
         /* Phiếu xuất */

@@ -98,17 +98,29 @@
                         @php
                             $rowNumber = ($issues->currentPage()-1)*$issues->perPage() + $idx + 1;
                             $badgeClass = $issue->TRANGTHAI === 'DA_XAC_NHAN' ? 'stock-ok' : ($issue->TRANGTHAI === 'HUY' ? 'stock-bad' : 'stock-warn');
-                            $promotionText = $issue->MAKHUYENMAI ? ($issue->LOAIKHUYENMAI ?? 'Khuyến mãi') . ' (' . $issue->GIAMGIA . '%)' : '—';
+                            $totalBefore    = (float) ($issue->SUBTOTAL ?? 0);
+                            $totalAfter     = (float) ($issue->TONGTIEN ?? 0);
+                            $discountAmount = max(0, $totalBefore - $totalAfter);
+                            $promotionText  = $issue->MAKHUYENMAI
+                                ? ($issue->LOAIKHUYENMAI ?? 'Khuyến mãi') . ' (' . ($issue->LOAIKHUYENMAI === 'Giảm %'
+                                    ? $issue->GIAMGIA . '%'
+                                    : number_format($issue->GIAMGIA ?? 0, 0, ',', '.') . 'đ') . ')'
+                                : '—';
                         @endphp
                         <tr data-id="{{ $issue->MAPX }}" class="row-detail" style="cursor:pointer">
                             <td>{{ $rowNumber }}</td>
                             <td>{{ $issue->MAPX }}</td>
-                            <td>{{ $issue->KHACHHANG ?? '—' }}</td>
+                            <td>{{ $issue->KHACHHANG ?? '-' }}</td>
                             <td>{{ $issue->NHANVIEN }}</td>
                             <td>{{ \Carbon\Carbon::parse($issue->NGAYXUAT)->format('d/m/Y H:i') }}</td>
-                            <td class="text-end">{{ number_format($issue->TONGTIEN + ($issue->GIAMGIA ? ($issue->TONGTIEN * $issue->GIAMGIA / 100) : 0), 0, ',', '.') }}</td>
-                            <td>{{ $promotionText }}</td>
-                            <td class="text-end">{{ number_format($issue->TONGTIEN, 0, ',', '.') }}</td>
+                            <td class="text-end">{{ number_format($totalBefore, 0, ',', '.') }}</td>
+                            <td>
+                                {{ $promotionText }}
+                                @if($discountAmount > 0)
+                                    <small class="text-muted d-block">-{{ number_format($discountAmount, 0, ',', '.') }}đ</small>
+                                @endif
+                            </td>
+                            <td class="text-end">{{ number_format($totalAfter, 0, ',', '.') }}</td>
                             <td><span class="badge {{ $badgeClass }}">{{ $issue->TRANGTHAI }}</span></td>
                             <td class="text-end">
                                 @if($issue->TRANGTHAI === 'NHAP')

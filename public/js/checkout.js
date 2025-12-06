@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", () => {
     /* ================= Payment method & QR ================= */
 
     const payCards = document.querySelectorAll(".pay-card");
@@ -10,15 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const qrImage = document.getElementById("payQRImage");
 
     function selectCard(card) {
-        // remove active
         payCards.forEach((c) => c.classList.remove("active"));
-        // set active
         card.classList.add("active");
-        // set form value
         if (mattInput) mattInput.value = card.dataset.matt || "";
         if (payError) payError.style.display = "none";
 
-        // QR rule: COD => hide, otherwise show if data-qr available
         const code = (card.dataset.matt || "").toLowerCase();
         if (code === "cod") {
             if (qrCard) qrCard.style.display = "none";
@@ -30,15 +26,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // bind click
     payCards.forEach((card) => {
         card.addEventListener("click", () => selectCard(card));
     });
 
-    // auto select if only 1
     if (payCards.length === 1) selectCard(payCards[0]);
 
-    // validate before submit
     if (form) {
         form.addEventListener("submit", (e) => {
             if (!mattInput || !mattInput.value) {
@@ -57,29 +50,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const promoInput = document.getElementById("promo_code");
     const promoMsg = document.getElementById("promo_message");
 
-    // Totals (new layout)
     const subtotalEl = document.getElementById("subtotal_value");
     const discountRow = document.getElementById("discount_row");
     const discountEl = document.getElementById("discount_value");
+    const discountCodeText = document.getElementById("discount_code_text");
     const totalEl = document.getElementById("total_value");
 
-    // Fallback (old layout)
     const totalPriceSingleEl = document.getElementById("total_price");
 
-    // Voucher applied badge (optional)
     const voucherWrap = document.getElementById("voucher_applied");
     const voucherCode = document.getElementById("voucher_code");
     const voucherDesc = document.getElementById("voucher_desc");
 
-    // helpers
     const fmtVND = (n) => (Number(n) || 0).toLocaleString("vi-VN") + " VNĐ";
     const csrfToken =
         document
             .querySelector('meta[name="csrf-token"]')
             ?.getAttribute("content") || "";
 
+    let isApplying = false;
+
     async function applyPromo() {
-        const code = (promoInput?.value || "").trim();
+        if (isApplying) return;
+        const code = (promoInput?.value || "").trim().toUpperCase();
         const url = applyBtn?.dataset?.url || "";
         if (!code || !url) {
             if (promoMsg)
@@ -87,6 +80,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     ? "Vui lòng nhập mã khuyến mãi."
                     : "Thiếu URL áp mã.";
             return;
+        }
+
+        isApplying = true;
+        if (applyBtn) {
+            applyBtn.disabled = true;
+            applyBtn.dataset.originalText = applyBtn.innerHTML;
+            applyBtn.innerHTML =
+                '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Đang áp dụng';
         }
 
         if (promoMsg) {
@@ -108,7 +109,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await res.json();
 
-            // message style
             if (promoMsg) {
                 promoMsg.textContent =
                     data?.message ||
@@ -118,12 +118,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (!res.ok || !data?.success) {
-                // hide applied badge
                 if (voucherWrap) voucherWrap.style.display = "none";
-                // hide discount row if exists
                 if (discountRow) discountRow.classList.add("d-none");
 
-                // if API returns subtotals, show them; otherwise fallback do nothing
                 if (typeof data?.subtotal === "number" && subtotalEl)
                     subtotalEl.textContent = fmtVND(data.subtotal);
                 if (typeof data?.total === "number") {
@@ -132,26 +129,36 @@ document.addEventListener("DOMContentLoaded", () => {
                         totalPriceSingleEl.textContent =
                             "Tổng thành tiền: " + fmtVND(data.total);
                 }
+                isApplying = false;
+                if (applyBtn && applyBtn.dataset.originalText) {
+                    applyBtn.innerHTML = applyBtn.dataset.originalText;
+                    applyBtn.disabled = false;
+                }
                 return;
             }
 
-            // success: update UI
             if (voucherWrap) voucherWrap.style.display = "";
             if (voucherCode) voucherCode.textContent = data.code || code;
+            if (discountCodeText) discountCodeText.textContent = data.code || code;
 
             if (voucherDesc) {
                 const typeText =
                     data.type === "percent"
                         ? data.value + "%"
-                        : (Number(data.value) || 0).toLocaleString("vi-VN") + "đ";
+                        : (Number(data.value) || 0).toLocaleString("vi-VN") +
+                          "đ";
                 const minText =
                     Number(data.min_total) > 0
-                        ? " – tối thiểu " +
-                            Number(data.min_total).toLocaleString("vi-VN") + "đ" : "";
+                        ? " • Tối thiểu " +
+                          Number(data.min_total).toLocaleString("vi-VN") +
+                          "đ"
+                        : "";
                 const capText =
                     Number(data.max_discount) > 0
-                        ? " – tối đa " +
-                        Number(data.max_discount).toLocaleString("vi-VN") + "đ" : "";
+                        ? " • Tối đa " +
+                          Number(data.max_discount).toLocaleString("vi-VN") +
+                          "đ"
+                        : "";
                 voucherDesc.textContent = `(${typeText}${minText}${capText})`;
             }
 
@@ -160,11 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (typeof data.discount === "number") {
                 if (discountEl)
                     discountEl.textContent = "- " + fmtVND(data.discount);
-                if (discountRow) {
-                    if (data.discount > 0)
-                        discountRow.classList.remove("d-none");
-                    else discountRow.classList.add("d-none");
-                }
+                if (discountRow) discountRow.classList.remove("d-none");
             }
             if (typeof data.total === "number") {
                 if (totalEl) totalEl.textContent = fmtVND(data.total);
@@ -172,16 +175,37 @@ document.addEventListener("DOMContentLoaded", () => {
                     totalPriceSingleEl.textContent =
                         "Tổng thành tiền: " + fmtVND(data.total);
             }
+
+            document
+                .getElementById("total_value")
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            isApplying = false;
+            if (applyBtn && applyBtn.dataset.originalText) {
+                applyBtn.innerHTML = applyBtn.dataset.originalText;
+                applyBtn.disabled = false;
+            }
         } catch (e) {
             console.error(e);
             if (promoMsg) {
                 promoMsg.textContent = "Lỗi kết nối.";
                 promoMsg.classList.add("text-danger");
             }
+            isApplying = false;
+            if (applyBtn && applyBtn.dataset.originalText) {
+                applyBtn.innerHTML = applyBtn.dataset.originalText;
+                applyBtn.disabled = false;
+            }
         }
     }
 
     if (applyBtn) {
         applyBtn.addEventListener("click", applyPromo);
+        promoInput?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                applyPromo();
+            }
+        });
     }
 });

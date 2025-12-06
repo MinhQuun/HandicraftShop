@@ -30,11 +30,20 @@
             <td colspan="2"><strong>Địa chỉ:</strong> {{ $header->DIACHI }}</td>
         </tr>
         @if($header->MAKHUYENMAI)
+            @php
+                $promoValue = $header->LOAIKHUYENMAI === 'Giảm %'
+                    ? ($header->GIAMGIA ?? 0) . '%'
+                    : number_format($header->GIAMGIA ?? 0, 0, ',', '.') . 'đ';
+            @endphp
             <tr>
-                <td><strong>Khuyến mãi:</strong> {{ $header->LOAIKHUYENMAI ?? 'Khuyến mãi' }} ({{ $header->GIAMGIA ?? 0 }}%)</td>
+                <td><strong>Khuyến mãi:</strong> {{ $header->MAKHUYENMAI }} - {{ $header->LOAIKHUYENMAI ?? 'Khuyến mãi' }} {{ $header->GIAMGIA !== null ? '(' . $promoValue . ')' : '' }}</td>
                 <td><strong>Tiền giảm:</strong> {{ number_format($discountAmount ?? 0, 0, ',', '.') }} ₫</td>
             </tr>
         @endif
+        <tr>
+            <td><strong>Tổng trước KM:</strong> {{ number_format($subtotal, 0, ',', '.') }} ₫</td>
+            <td><strong>Tổng sau KM:</strong> {{ number_format($tongTien, 0, ',', '.') }} ₫</td>
+        </tr>
     </table>
 
     <table>

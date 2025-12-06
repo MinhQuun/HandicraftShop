@@ -269,39 +269,86 @@ class OrderController extends Controller
         $response = new StreamedResponse(function () use ($request) {
             echo "\xEF\xBB\xBF"; // BOM cho Excel
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['STT','Mã Đơn','Khách hàng','Địa chỉ','Ngày đặt','Tổng thành tiền (đ)','Trạng thái']);
 
-            $query = DonHang::query()->with(['khachHang', 'diaChi']);
+            fputcsv($out, [
+                'STT',
+                'Mã đơn',
+                'Khách hàng',
+                'Địa chỉ',
+                'Trạng thái',
+                'Tổng SL',
+                'Tạm tính (đ)',
+                'Giảm (đ)',
+                'Tổng sau giảm (đ)',
+                'Mã KM',
+                'Ngày đặt',
+                'Hình thức TT',
+                'Ghi chú',
+            ]);
 
-            if ($q = $request->input('q')) {
-                $query->where('MADONHANG', 'like', "%{$q}%")
-                        ->orWhereHas('khachHang', fn($qb) => $qb->where('HOTEN', 'like', "%{$q}%"));
-            }
-            if ($customer = $request->input('customer')) {
-                $query->where('MAKHACHHANG', $customer);
-            }
-            if ($status = $request->input('status')) {
-                $query->where('TRANGTHAI', $status);
-            }
-            if ($from = $request->input('from')) {
-                $query->where('NGAYDAT', '>=', $from);
-            }
-            if ($to = $request->input('to')) {
-                $query->where('NGAYDAT', '<=', $to);
-            }
+            $query = DB::table('DONHANG as d')
+                ->leftJoin('KHACHHANG as k', 'k.MAKHACHHANG', '=', 'd.MAKHACHHANG')
+                ->leftJoin('DIACHI_GIAOHANG as dc', 'dc.MADIACHI', '=', 'd.MADIACHI')
+                ->leftJoin('KHUYENMAI as km', 'km.MAKHUYENMAI', '=', 'd.MAKHUYENMAI')
+                ->leftJoin('CHITIETDONHANG as ct', 'ct.MADONHANG', '=', 'd.MADONHANG')
+                ->when($request->input('q'), function ($q2, $q) {
+                    $like = "%{$q}%";
+                    $q2->where(function ($sub) use ($like) {
+                        $sub->where('d.MADONHANG', 'like', $like)
+                            ->orWhere('k.HOTEN', 'like', $like);
+                    });
+                })
+                ->when($request->input('customer'), fn($q2, $c) => $q2->where('d.MAKHACHHANG', $c))
+                ->when($request->input('status'), fn($q2, $st) => $q2->where('d.TRANGTHAI', $st))
+                ->when($request->input('from'), fn($q2, $from) => $q2->whereDate('d.NGAYDAT', '>=', $from))
+                ->when($request->input('to'), fn($q2, $to) => $q2->whereDate('d.NGAYDAT', '<=', $to))
+                ->select(
+                    'd.MADONHANG',
+                    'd.TRANGTHAI',
+                    'd.MAKHUYENMAI',
+                    'd.NGAYDAT',
+                    'd.GHICHU',
+                    'd.MATT',
+                    'k.HOTEN as KHACHHANG',
+                    'dc.DIACHI',
+                    DB::raw('COALESCE(SUM(ct.SOLUONG),0) as TONGSL'),
+                    DB::raw('COALESCE(SUM(ct.SOLUONG * ct.DONGIA),0) as SUBTOTAL'),
+                    DB::raw('MAX(d.TONGTHANHTIEN) as TOTAL')
+                )
+                ->groupBy(
+                    'd.MADONHANG',
+                    'd.TRANGTHAI',
+                    'd.MAKHUYENMAI',
+                    'd.NGAYDAT',
+                    'd.GHICHU',
+                    'd.MATT',
+                    'k.HOTEN',
+                    'dc.DIACHI'
+                )
+                ->orderByDesc('d.NGAYDAT');
 
             $i = 0;
-            $query->orderBy('NGAYDAT', 'desc')->chunk(500, function ($rows) use (&$i, $out) {
+            $query->chunk(500, function ($rows) use (&$i, $out) {
                 foreach ($rows as $r) {
                     $i++;
+                    $subtotal = (float) ($r->SUBTOTAL ?? 0);
+                    $total    = (float) ($r->TOTAL ?? 0);
+                    $discount = max(0, $subtotal - $total);
+
                     fputcsv($out, [
                         $i,
                         $r->MADONHANG,
-                        optional($r->khachHang)->HOTEN,
-                        optional($r->diaChi)->DIACHI,
-                        (string) ($r->NGAYDAT ? \Carbon\Carbon::parse($r->NGAYDAT)->format('d/m/Y H:i') : ''),
-                        (float) $r->TONGTHANHTIEN,
-                        $r->TRANGTHAI,
+                        $r->KHACHHANG ?? '',
+                        $r->DIACHI ?? '',
+                        $r->TRANGTHAI ?? '',
+                        (int) ($r->TONGSL ?? 0),
+                        number_format($subtotal, 0, ',', '.'),
+                        number_format($discount, 0, ',', '.'),
+                        number_format($total, 0, ',', '.'),
+                        $r->MAKHUYENMAI ?? '',
+                        $r->NGAYDAT ? \Carbon\Carbon::parse($r->NGAYDAT)->format('d/m/Y H:i') : '',
+                        $r->MATT ?? '',
+                        $r->GHICHU ?? '',
                     ]);
                 }
             });

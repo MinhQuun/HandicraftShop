@@ -130,16 +130,17 @@
                                 <span>-{{ number_format($productSaveSum, 0, ',', '.') }} VNĐ</span>
                             </li>
                             @endif
-                            @if($voucherApplied && $voucherSave > 0)
-                            <li class="discount-line" id="discount_row">
+                            <li
+                                class="discount-line {{ $voucherApplied ? '' : 'd-none' }}"
+                                id="discount_row">
                                 <span>Giảm theo mã
                                     <span class="voucher-badge" title="Mã đang áp dụng">
-                                        <i class="fas fa-tag"></i> {{ $voucher['code'] ?? '' }}
+                                        <i class="fas fa-tag"></i>
+                                        <span id="discount_code_text">{{ $voucher['code'] ?? '' }}</span>
                                     </span>
                                 </span>
                                 <span id="discount_value">- {{ number_format($voucherSave, 0, ',', '.') }} VNĐ</span>
                             </li>
-                            @endif
                             <li class="grand">
                                 <span>Tổng thành tiền</span>
                                 <span id="total_value">{{ number_format($totalPrice, 0, ',', '.') }} VNĐ</span>

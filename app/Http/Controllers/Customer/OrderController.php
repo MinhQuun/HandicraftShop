@@ -33,6 +33,20 @@ class OrderController extends Controller
         session(['cart' => $cart]);
     }
 
+    /** Lấy đơn giá thực tế (đã áp dụng giảm giá sản phẩm nếu có) */
+    protected function resolveUnitPrice(array $item): int
+    {
+        $id = $item['MASANPHAM'] ?? $item['id'] ?? null;
+        if (!$id) return (int) ($item['GIABAN'] ?? 0);
+
+        $product = SanPham::where('MASANPHAM', $id)->first();
+        if ($product) {
+            return (int) ($product->gia_sau_km ?? $product->GIABAN ?? 0);
+        }
+
+        return (int) ($item['GIABAN'] ?? 0);
+    }
+
     /* ===== Voucher helpers (schema khuyến mãi mới) ===== */
 
     /** Tìm voucher còn hiệu lực theo code (PHAMVI=ORDER, trong khoảng ngày) */
@@ -82,11 +96,11 @@ class OrderController extends Controller
     {
         // Tính lại đơn giá theo khuyến mãi sản phẩm (nếu có) để đảm bảo tổng tiền chuẩn
         $subtotal = (int) collect($items)->sum(function ($i) {
-            $id = $i['MASANPHAM'] ?? null;
             $qty = (int) ($i['SOLUONG'] ?? 0);
-            if (!$id || $qty <= 0) return 0;
-            $p = SanPham::where('MASANPHAM', $id)->first();
-            $unit = $p ? (int) ($p->gia_sau_km ?? $p->GIABAN ?? 0) : (int) ($i['GIABAN'] ?? 0);
+            if ($qty <= 0) return 0;
+            $unit = isset($i['UNIT_PRICE'])
+                ? (int) $i['UNIT_PRICE']
+                : $this->resolveUnitPrice($i);
             return $qty * $unit;
         });
         $discount = 0;
@@ -111,6 +125,9 @@ class OrderController extends Controller
 
     public function create()
     {
+        // Yêu cầu nhập lại mã mỗi lần vào trang thanh toán, không mang mã từ đơn cũ
+        session()->forget('voucher');
+
         $cart = $this->getCart();
         if (empty($cart)) return redirect()->route('cart')->with('warning', 'Giỏ hàng trống.');
 
@@ -118,9 +135,11 @@ class OrderController extends Controller
         $items = collect($cart)->map(function ($item, $id) {
             $p = SanPham::where('MASANPHAM', $id)->first();
             if ($p) {
+                $item['MASANPHAM']   = $item['MASANPHAM'] ?? $id;
                 $item['GIABAN']      = (int)$p->GIABAN;
                 $item['SOLUONG']     = min((int)$item['SOLUONG'], (int)$p->SOLUONGTON);
                 $item['TENSANPHAM']  = $item['TENSANPHAM'] ?? $p->TENSANPHAM;
+                $item['UNIT_PRICE']  = (int) ($p->gia_sau_km ?? $p->GIABAN ?? 0);
             }
             return $item;
         });
@@ -227,7 +246,9 @@ class OrderController extends Controller
                 if (!$p || $p->SOLUONGTON < (int)$item['SOLUONG']) {
                     throw new \Exception('Sản phẩm ' . ($item['TENSANPHAM'] ?? $id) . ' đã hết hàng.');
                 }
+                $item['MASANPHAM'] = $item['MASANPHAM'] ?? $id;
                 $item['GIABAN'] = (int)$p->GIABAN;
+                $item['UNIT_PRICE'] = (int) ($p->gia_sau_km ?? $p->GIABAN ?? 0);
                 return $item;
             });
 
@@ -295,7 +316,7 @@ class OrderController extends Controller
                 $detail->MADONHANG = $order->MADONHANG;
                 $detail->MASANPHAM = $id;
                 $detail->SOLUONG   = (int)$item['SOLUONG'];
-                $detail->DONGIA    = (int)$item['GIABAN']; // đơn giá gốc (chưa trừ voucher)
+                $detail->DONGIA    = (int) ($item['UNIT_PRICE'] ?? $this->resolveUnitPrice($item)); // đơn giá đã áp khuyến mãi sản phẩm
                 $detail->save();
             }
 

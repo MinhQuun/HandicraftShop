@@ -105,7 +105,16 @@ document.addEventListener("DOMContentLoaded", () => {
             setText("md_time", fmtTime(h.NGAYXUAT));
             setText("md_tongsl", (h.TONGSL ?? 0).toString());
             setText("md_tongtien", fmtVND(data.TONGTIEN ?? 0));
-            setText("md_promotion", h.MAKHUYENMAI ? `${h.LOAIKHUYENMAI ?? 'Khuyến mãi'} (${h.GIAMGIA ?? 0}%)` : "—");
+            const promoValue =
+                h.LOAIKHUYENMAI === "Giảm %"
+                    ? `${h.GIAMGIA ?? 0}%`
+                    : h.GIAMGIA
+                    ? `${Number(h.GIAMGIA).toLocaleString("vi-VN")}đ`
+                    : "";
+            const promoText = h.MAKHUYENMAI
+                ? `${h.MAKHUYENMAI} - ${h.LOAIKHUYENMAI ?? "Khuyến mãi"}${promoValue ? ` (${promoValue})` : ""}`
+                : "—";
+            setText("md_promotion", promoText);
             setText("md_tiengiam", fmtVND(data.discountAmount ?? 0));
 
             const tbody = detailModal.querySelector("#tblDetailLines tbody");
